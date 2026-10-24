@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groceries — Meat-Prep Essentials | Azizo Butchery & Grill</title>
+<meta name="description" content="Shop tomatoes, onions, garlic, dhania and other meat-prep groceries alongside your order at Azizo Butchery & Grill, Nairobi — delivered or for pickup.">
+<meta name="keywords" content="grocery delivery Nairobi, tomatoes onions garlic Nairobi, kachumbari ingredients, meat prep groceries Kenya">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.azizobutchery.co.ke/groceries.html">
+
+<meta property="og:type" content="restaurant.restaurant">
+<meta property="og:site_name" content="Azizo Butchery & Grill">
+<meta property="og:title" content="Groceries — Meat-Prep Essentials | Azizo Butchery & Grill">
+<meta property="og:description" content="Shop tomatoes, onions, garlic, dhania and other meat-prep groceries alongside your order at Azizo Butchery & Grill, Nairobi.">
+<meta property="og:url" content="https://www.azizobutchery.co.ke/groceries.html">
+<meta property="og:image" content="https://www.azizobutchery.co.ke/logo.png">
+<meta property="og:locale" content="en_KE">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Groceries — Meat-Prep Essentials | Azizo Butchery & Grill">
+<meta name="twitter:description" content="Shop tomatoes, onions, garlic, dhania and other meat-prep groceries alongside your order at Azizo Butchery & Grill, Nairobi.">
+<meta name="twitter:image" content="https://www.azizobutchery.co.ke/logo.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "GroceryStore",
+  "name": "Azizo Butchery & Grill",
+  "description": "Premium butchery and grill offering fresh beef, pork, chicken and fish, nyama choma, shawarma, home delivery and bulk meat plans. Open 24 hours.",
+  "url": "https://www.azizobutchery.co.ke/",
+  "telephone": "+254724888057",
+  "priceRange": "KSh",
+  "openingHoursSpecification": [{
+    "@type": "OpeningHoursSpecification",
+    "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+    "opens": "00:00",
+    "closes": "23:59"
+  }],
+  "servesCuisine": ["Kenyan","Grill","Nyama Choma"],
+  "department": [
+    {"@type":"GroceryStore","name":"Azizo Butchery & Grill - Syokimau","address":{"@type":"PostalAddress","addressLocality":"Syokimau","addressRegion":"Nairobi","addressCountry":"KE"}},
+    {"@type":"GroceryStore","name":"Azizo Butchery & Grill - Umoja","address":{"@type":"PostalAddress","addressLocality":"Umoja","addressRegion":"Nairobi","addressCountry":"KE"}},
+    {"@type":"GroceryStore","name":"Azizo Butchery & Grill - Buruburu","address":{"@type":"PostalAddress","addressLocality":"Buruburu","addressRegion":"Nairobi","addressCountry":"KE"}},
+    {"@type":"GroceryStore","name":"Azizo Butchery & Grill - Utawala","address":{"@type":"PostalAddress","addressLocality":"Utawala","addressRegion":"Nairobi","addressCountry":"KE"}}
+  ]
+}
+</script>
+
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#161210">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Azizo Grill">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="eb-flag.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body data-page="groceries">
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img id="navLogo" src="logo.png" alt="Azizo Butchery and Grill logo" class="brand-logo">
+      <span class="brand-name">Azizo <span>Butchery & Grill</span></span>
+    </a>
+    <nav class="links">
+      <a href="fresh-market.html" data-page="fresh-market" data-i18n="nav.fresh">Fresh Market</a>
+      <a href="meal-planner.html" data-page="meal-planner" data-i18n="nav.planner">Meal Plan</a>
+      <a href="ready-to-eat.html" data-page="ready-to-eat" data-i18n="nav.ready">Ready to Eat</a>
+      <a href="groceries.html" data-page="groceries" data-i18n="nav.groceries">Groceries</a>
+      <a href="outdoor-events.html" data-page="outdoor-events" data-i18n="nav.events">Outdoor Events</a>
+      <a href="contact.html" data-page="contact" data-i18n="nav.branches">Branches</a>
+    </nav>
+    <div class="nav-utils">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langToggle" title="Switch language" aria-label="Switch between English and Swahili">EN / SW</button>
+      <button class="cart-btn" onclick="openCart()">
+        <span data-i18n="nav.cart">Cart</span> <span class="cart-count" id="cartCount">0</span>
+      </button>
+      <button class="menu-toggle" onclick="toggleMobileNav()" id="menuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+  <nav class="mobile-links" id="mobileLinks">
+    <a href="fresh-market.html" data-page="fresh-market" data-i18n="nav.fresh">Fresh Market</a>
+    <a href="meal-planner.html" data-page="meal-planner" data-i18n="nav.planner">Meal Plan</a>
+    <a href="budget.html" data-page="budget">Meat Budget</a>
+    <a href="areas.html" data-page="areas">Areas We Serve</a>
+    <a href="ready-to-eat.html" data-page="ready-to-eat" data-i18n="nav.ready">Ready to Eat</a>
+      <a href="groceries.html" data-page="groceries" data-i18n="nav.groceries">Groceries</a>
+    <a href="outdoor-events.html" data-page="outdoor-events" data-i18n="nav.events">Outdoor Events</a>
+    <a href="event-budget.html" data-page="event-budget" data-eb-link>Event Budget</a>
+    <a href="contact.html" data-page="contact" data-i18n="nav.branches">Branches</a>
+    <a href="recipes.html" data-page="recipes">Recipes</a>
+    <a href="kitchens.html" data-page="kitchens" style="color:#D4A63F;font-weight:700">Azizo Kitchens</a>
+    <a href="about.html" data-page="about">Our Story</a>
+    <a href="reviews.html" data-page="reviews">Reviews</a>
+    <a href="faq.html" data-page="faq">FAQ</a>
+  </nav>
+</header>
+
+<section class="section" id="groceries">
+  <svg class="sketch-art" viewBox="0 0 300 300" width="190" style="bottom:0px;left:0px;" aria-hidden="true">
+    <circle cx="110" cy="170" r="55"/>
+    <path d="M100 118 Q110 100 125 115 Q135 100 145 118"/>
+    <circle cx="195" cy="190" r="38"/>
+  </svg>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <div class="sec-eyebrow"><span class="flame">🧄</span> Meat-Prep Essentials</div>
+        <h2>Groceries</h2>
+      </div>
+      <p class="sec-desc">Tomatoes, onions, garlic, dhania and the other everyday essentials that go with your meat order — shop them here, or let us suggest them in your cart.</p>
+    </div>
+    <div class="filter-bar" id="groceryFilters"></div>
+    <div class="grid" id="groceryGrid"></div>
+  </div>
+</section>
+
+<!-- OUTDOOR EVENTS -->
+
+<div class="section-fade fade-to-dark"></div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="index.html" class="brand" style="margin-bottom:14px;display:flex;">
+          <img id="footerLogo" src="logo.png" style="width:52px;height:52px;" alt="Azizo Butchery and Grill logo" class="brand-logo">
+          <span class="brand-name">Azizo <span>Butchery & Grill</span></span>
+        </a>
+        <p>Nairobi's premium one-stop shop for fresh meat, grilled favourites and full outdoor event catering. Open 24 hours, every day.</p>
+      </div>
+      <div>
+        <h5>Shop</h5>
+        <ul>
+          <li><a href="fresh-market.html#boxes">Curated Boxes</a></li>
+          <li><a href="fresh-market.html">Fresh Meat Market</a></li>
+          <li><a href="meal-planner.html">Meal Plan</a></li>
+          <li><a href="budget.html">Meat Budget Planner</a></li>
+          <li><a href="areas.html">Areas We Serve</a></li>
+          <li><a href="ready-to-eat.html">Ready to Eat</a></li>
+          <li><a href="groceries.html">Groceries</a></li>
+          <li><a href="outdoor-events.html">Outdoor Events</a></li>
+          <li data-eb-link><a href="event-budget.html">Event Budget Planner</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Explore</h5>
+        <ul>
+          <li><a href="index.html?track" class="foot-track">📦 Track My Order</a></li>
+          <li><a href="recipes.html">Recipes</a></li>
+          <li><a href="about.html">Our Story</a></li>
+          <li><a href="about.html#gallery">Gallery</a></li>
+          <li><a href="about.html#community">The Grill Table</a></li>
+          <li><a href="reviews.html">Reviews</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Branches</h5>
+        <ul data-branch-footer>
+          <li><a href="contact.html">Syokimau (Main)</a></li>
+          <li><a href="contact.html">Umoja</a></li>
+          <li><a href="contact.html">Buruburu</a></li>
+          <li><a href="contact.html">Utawala</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Order Direct</h5>
+        <div class="contact-icons">
+          <a href="tel:+254724888057" class="contact-icon" title="Call us" aria-label="Call us">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </a>
+          <a href="https://wa.me/254724888057" target="_blank" rel="noopener" class="contact-icon" title="WhatsApp us" aria-label="WhatsApp us">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 6.32A8.86 8.86 0 0 0 12.05 4a8.94 8.94 0 0 0-7.74 13.4L3 21l3.71-1.28a8.9 8.9 0 0 0 4.34 1.11h.01a8.93 8.93 0 0 0 8.93-8.93 8.87 8.87 0 0 0-2.4-6.27zm-5.55 13.7h-.01a7.4 7.4 0 0 1-3.78-1.04l-.27-.16-2.81.97.95-2.75-.18-.28a7.42 7.42 0 0 1 11.61-9.16 7.36 7.36 0 0 1 2.18 5.25 7.43 7.43 0 0 1-7.69 7.17zm4.07-5.56c-.22-.11-1.31-.65-1.52-.72-.2-.08-.35-.11-.5.11-.15.22-.57.72-.7.87-.13.15-.26.17-.48.06a6.06 6.06 0 0 1-1.78-1.1 6.65 6.65 0 0 1-1.23-1.53c-.13-.22 0-.34.1-.45.1-.1.22-.26.33-.39.11-.13.15-.22.22-.37.07-.15.04-.28-.02-.39-.06-.11-.5-1.2-.68-1.65-.18-.43-.36-.37-.5-.38h-.43a.82.82 0 0 0-.6.28 2.5 2.5 0 0 0-.78 1.86c0 1.1.8 2.16.91 2.31.11.15 1.57 2.4 3.81 3.36.53.23.95.37 1.27.47.53.17 1.02.15 1.4.09.43-.06 1.31-.53 1.49-1.05.18-.51.18-.95.13-1.04-.05-.1-.2-.15-.42-.26z"/></svg>
+          </a>
+          <a href="mailto:info@azizobutchery.co.ke" class="contact-icon" title="Email us" aria-label="Email us">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6z"/><path d="m22 6-10 7L2 6"/></svg>
+          </a>
+          <a href="https://www.facebook.com/azizo254" id="fbIconLink" target="_blank" rel="noopener" class="contact-icon" title="Facebook" aria-label="Facebook">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.45h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>
+          </a>
+          <a href="#" id="igIconLink" target="_blank" rel="noopener" class="contact-icon" title="Instagram" aria-label="Instagram" style="display:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg>
+          </a>
+          <a href="#" id="ttIconLink" target="_blank" rel="noopener" class="contact-icon" title="TikTok" aria-label="TikTok" style="display:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2h-3v14.2a2.8 2.8 0 1 1-2-2.68V10.4a5.9 5.9 0 1 0 5 5.83V8.9a7.6 7.6 0 0 0 4.5 1.5V7.4a4.6 4.6 0 0 1-4.5-4.5V2z"/></svg>
+          </a>
+        </div>
+        <p style="margin-top:14px;font-size:12.5px;">Open 24 Hours</p>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Azizo Butchery & Grill. Serving Nairobi since 2022.</span>
+      <span>Fresh · Grilled · Delivered</span>
+      <div class="foot-admin-row">
+        <button class="foot-admin-btn" onclick="openStaffPanel()">🔒 Staff Login</button>
+        <a href="admin.html" class="foot-admin-btn">🛠 Manage Products</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- STAFF: PROMO CODE GENERATOR -->
+<div class="overlay" id="staffOverlay" onclick="closeStaffPanel()"></div>
+<div class="staff-panel" id="staffPanel">
+  <div class="drawer-head">
+    <h3>Generate Promo Code</h3>
+    <button class="drawer-close" onclick="closeStaffPanel()" aria-label="Close">&times;</button>
+  </div>
+  <div class="staff-panel-body">
+    <p class="staff-note">
+      Codes are self-validating — no database needed, and they work the instant you generate them.
+      Note: anyone who reads this page's source code could theoretically work out the pattern, so
+      treat these like casual promo codes, not high-security vouchers. There's also no "one-time use"
+      tracking without a backend — a code works for whoever has it, as many times as they use it.
+    </p>
+    <div class="pay-label">Discount Tier</div>
+    <div class="pay-methods" id="tierChips">
+      <button class="pay-chip active" data-tier="1" onclick="selectTier(1)">5%</button>
+      <button class="pay-chip" data-tier="2" onclick="selectTier(2)">10%</button>
+      <button class="pay-chip" data-tier="3" onclick="selectTier(3)">15%</button>
+      <button class="pay-chip" data-tier="4" onclick="selectTier(4)">20%</button>
+    </div>
+    <button class="add-plan-btn staff-generate-btn" onclick="staffGenerateCode()">Generate Code</button>
+    <div class="staff-result" id="staffResult"></div>
+
+    <div id="adminResetSection" style="display:none;">
+      <div class="pay-label payment-heading" style="margin-top:26px;">🔑 Admin Controls</div>
+      <p class="staff-note" style="margin-top:8px;">
+        Resets the staff passcode <strong>on this device only</strong> back to the default
+        (<code id="defaultPasscodeDisplay"></code>). It can't reach a passcode set on a
+        different phone or computer — see the deployment guide for why.
+      </p>
+      <button class="add-plan-btn" style="background:var(--accent);" onclick="resetStaffPasscode()">Reset Staff Passcode to Default</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- CART DRAWER -->
+<div class="overlay" id="overlay" onclick="closeCart()"></div>
+<div class="toast" id="toast">
+  <span id="toastMsg">Added to cart</span>
+  <button onclick="openCart()">View Cart</button>
+</div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h3>Your Order</h3>
+    <button class="drawer-close" onclick="closeCart()" aria-label="Close cart">&times;</button>
+  </div>
+  <div class="drawer-scroll">
+  <div class="drawer-body" id="drawerBody">
+    <div class="empty-cart">Your cart is empty.<br>Add items from Fresh Market, Ready to Eat, or Groceries.</div>
+  </div>
+  <div class="free-delivery-nudge" id="freeDeliveryNudge" style="display:none;"></div>
+  <div class="grocery-suggest" id="grocerySuggest" style="display:none;"></div>
+  <div class="drawer-foot">
+
+    <div class="pay-label">Your Name</div>
+    <input type="text" id="clientName" class="name-input" placeholder="e.g. Jane Wanjiru" maxlength="60" autocomplete="name">
+
+    <div class="pay-label">Your Phone Number</div>
+    <div class="mpesa-input-row" style="margin-bottom:16px;">
+      <span class="mpesa-prefix">+254</span>
+      <input type="tel" id="clientPhone" placeholder="7XX XXX XXX" maxlength="9">
+    </div>
+
+    <div class="pay-label">Delivery Method</div>
+    <div class="pay-methods" id="deliveryMethods">
+      <button class="pay-chip active" data-dmethod="pickup" onclick="selectDeliveryMethod('pickup')">🏬 Pickup</button>
+      <button class="pay-chip" data-dmethod="delivery" onclick="selectDeliveryMethod('delivery')">🛵 Home Delivery</button>
+    </div>
+
+    <div id="pickupBox">
+      <select class="branch-select" id="branchSelect">
+        <option value="Syokimau (Main)">Pickup branch: Syokimau (Main)</option>
+        <option value="Umoja">Pickup branch: Umoja</option>
+        <option value="Buruburu">Pickup branch: Buruburu</option>
+        <option value="Utawala">Pickup branch: Utawala</option>
+      </select>
+    </div>
+
+    <div id="deliveryBox" style="display:none;">
+      <select class="branch-select" id="deliveryBranch" onchange="updateDeliveryFeeDisplay()" style="margin-bottom:10px;">
+        <option value="syokimau">Deliver from: Syokimau (Main)</option>
+        <option value="umoja">Deliver from: Umoja</option>
+        <option value="buruburu">Deliver from: Buruburu</option>
+        <option value="utawala">Deliver from: Utawala</option>
+      </select>
+      <div class="addr-suggest-wrap">
+        <input type="text" id="deliveryAddress" class="branch-select" placeholder="Type your delivery address or landmark..." style="margin-bottom:10px;" autocomplete="off">
+        <div id="addressSuggestions" class="addr-suggest-list"></div>
+      </div>
+      <button class="stk-btn" id="locateBtn" onclick="useMyLocation()" style="background:var(--maroon);margin-bottom:8px;">📍 Use My Current Location</button>
+      <div class="stk-status" id="locateStatus"></div>
+      <div class="delivery-fee-box" id="deliveryFeeDisplay"></div>
+    </div>
+
+    <div class="pay-label">⏰ Preferred time</div>
+    <select class="branch-select" id="prefTime" style="margin-bottom:10px;">
+      <option>No preference</option>
+      <option>As soon as possible</option>
+      <option>Today, morning</option>
+      <option>Today, afternoon</option>
+      <option>Today, evening</option>
+      <option>Tomorrow, morning</option>
+      <option>Tomorrow, afternoon</option>
+      <option>Tomorrow, evening</option>
+      <option>Another day - I will confirm on WhatsApp</option>
+    </select>
+    <div class="pay-label">🔪 Instructions for the butcher <span style="font-weight:400;opacity:.7">(optional)</span></div>
+    <textarea class="branch-select" id="orderNotes" rows="2" maxlength="300" placeholder="e.g. cut the leg of lamb, mince the beef coarse, leave the fat on the ribs" style="margin-bottom:16px;resize:vertical;"></textarea>
+
+    <div class="pay-label payment-heading">💰 Payment Method</div>
+    <div class="pay-methods" id="payMethods">
+      <button class="pay-chip active" data-method="cash" onclick="selectPayMethod('cash')">💵 Cash</button>
+      <button class="pay-chip" data-method="mpesa" onclick="selectPayMethod('mpesa')">📱 M-Pesa</button>
+      <button class="pay-chip disabled" disabled title="Coming soon">💳 Card <span class="soon">Soon</span></button>
+    </div>
+
+    <div class="mpesa-box" id="mpesaBox" style="display:none;">
+      <label class="mpesa-label" for="mpesaPhone">M-Pesa Number</label>
+      <div class="mpesa-input-row">
+        <span class="mpesa-prefix">+254</span>
+        <input type="tel" id="mpesaPhone" placeholder="7XX XXX XXX" maxlength="9">
+      </div>
+      <button class="stk-btn" id="stkBtn" onclick="initiateSTKPush()">Send Payment Prompt</button>
+      <div class="stk-status" id="stkStatus"></div>
+    </div>
+
+    <label class="promo-toggle">
+      <input type="checkbox" id="promoCheckbox" onchange="togglePromoBox()">
+      <span>Have a promo code?</span>
+    </label>
+    <div class="promo-box" id="promoBox" style="display:none;">
+      <div class="mpesa-input-row">
+        <input type="text" id="promoInput" placeholder="e.g. AZIZO-1-A2B3C-9" style="text-transform:uppercase;">
+        <button class="promo-apply-btn" onclick="applyPromoCode()">Apply</button>
+      </div>
+      <div class="stk-status" id="promoStatus"></div>
+    </div>
+
+    <div class="total-row"><span>Estimated Total</span><span class="amt" id="cartTotal">KSh 0</span></div>
+    <div class="checkout-note" id="checkoutNote"></div>
+    <button class="wa-btn" id="waSend" onclick="placeOrder()" disabled>
+      Place Order — Download PDF &amp; Send via WhatsApp
+    </button>
+  </div>
+  </div>
+</div>
+
+
+<script src="app.js"></script>
+<script src="pwa.js" defer></script>
+</body>
+</html>

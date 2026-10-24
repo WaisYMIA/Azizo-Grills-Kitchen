@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homemade Lunch &amp; Dinner Delivery in Buruburu, Nairobi | Azizo Kitchens</title>
+<meta name="description" content="Order homemade Kenyan lunch and dinner in Buruburu: pilau, ugali and stew, githeri, mukimo and family packs from vetted home kitchens near you. Pre-order, delivered hot.">
+<meta name="keywords" content="homemade food delivery Nairobi, Kenyan lunch delivery, home cooked meals Nairobi, pilau delivery, ugali and stew delivery, Azizo Kitchens">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.azizobutchery.co.ke/kitchens-buruburu.html">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Azizo Kitchens">
+<meta property="og:title" content="Homemade Lunch & Dinner in Buruburu | Azizo Kitchens">
+<meta property="og:description" content="Pre-order lunch or dinner from vetted home kitchens in your estate. Real Kenyan food, cooked fresh.">
+<meta property="og:url" content="https://www.azizobutchery.co.ke/kitchens-buruburu.html"><meta property="og:image" content="https://www.azizobutchery.co.ke/logo.png"><meta property="og:locale" content="en_KE">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FoodService","name":"Azizo Kitchens","description":"Homemade Kenyan lunch and dinner from vetted home kitchens, quality-checked by Azizo Butchery & Grill.","url":"https://www.azizobutchery.co.ke/kitchens-buruburu.html","areaServed":"Nairobi, Kenya","servesCuisine":["Kenyan","Swahili","Kikuyu","Luo","Kamba"],"telephone":"+254724888057","parentOrganization":{"@type":"Organization","name":"Azizo Butchery & Grill"}}</script>
+<link rel="icon" type="image/png" href="favicon.png"><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0B0A09"><link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kk.css">
+</head>
+<body>
+<div id="kkHeader"></div>
+<section class="hero"><div class="wrap">
+  <div class="eyebrow">Azizo Kitchens · Nairobi</div>
+  <h1>Homemade Kenyan food in <em>Buruburu</em></h1>
+  <p>Lunch and dinner made fresh in vetted home kitchens serving Buruburu Phases 1 to 5 and Eastlands. Pre-order, and it arrives hot.</p>
+  <div class="panel locbar">
+    <div><label class="f" for="area" data-t>Your area</label><select id="area"></select></div>
+    <div><label class="f">&nbsp;</label><button class="btn" id="gpsBtn" type="button">📍 <span data-t>Use my location</span></button></div>
+    <div><label class="f" for="search" data-t>Search a dish</label><input id="search" type="search" placeholder="pilau, githeri, mukimo…" autocomplete="off"></div>
+  </div>
+  <div class="chips" id="dates" role="group" aria-label="Day"></div>
+  <div class="chips" id="meals" role="group" aria-label="Meal"></div>
+  <p class="slotnote" id="slotNote"></p>
+</div></section>
+<main class="wrap" id="main">
+  <div id="status" class="msg info" style="display:none" role="status" aria-live="polite"></div>
+  <div class="chips" id="trads" role="group" aria-label="Cuisine"></div>
+  <div class="chips" id="tagchips" role="group" aria-label="Dietary filters"></div>
+  <div id="again" style="margin-top:14px"></div>
+  <div class="kgrid" id="kitchens"></div>
+  <div class="panel" style="margin:-60px 0 90px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span data-t>Already ordered? Check your order or leave a rating.</span><button class="btn" id="trackBtn" type="button" data-t>Track my order</button></div>
+</main>
+<div id="kkFooter"></div>
+
+<div class="bar" id="bar"><div><b id="barTxt"></b><div style="font-size:.8rem;opacity:.9" id="barSub"></div></div><button class="btn gold" id="barBtn" type="button">View basket</button></div>
+
+<div class="modal" id="mOpt"><div class="sheet"><button class="x" data-close aria-label="Close">&times;</button><div id="optBody"></div></div></div>
+<div class="modal" id="mCart"><div class="sheet"><button class="x" data-close aria-label="Close">&times;</button><div id="cartBody"></div></div></div>
+<div class="modal" id="mDone"><div class="sheet"><button class="x" data-close aria-label="Close">&times;</button><div id="doneBody"></div></div></div>
+<div class="modal" id="mTrack"><div class="sheet"><button class="x" data-close aria-label="Close">&times;</button><div id="trackBody"></div></div></div>
+<script>window.KK_AREA="buruburu-phase-1";</script>
+<script src="kk-config.js"></script>
+<script src="kk-common.js"></script>
+<script src="kitchens.js"></script>
+</body>
+</html>

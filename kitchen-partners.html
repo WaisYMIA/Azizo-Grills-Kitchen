@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cook with Azizo Kitchens: Earn from Your Home Kitchen in Nairobi</title>
+<meta name="description" content="Turn your home cooking into income. Join Azizo Kitchens as a partner cook: we bring the customers, set simple quality standards and handle delivery. Apply in Syokimau, Umoja, Buruburu, Utawala and more.">
+<meta name="robots" content="index, follow"><link rel="canonical" href="https://www.azizobutchery.co.ke/kitchen-partners.html">
+<meta property="og:type" content="website"><meta property="og:title" content="Cook with Azizo Kitchens"><meta property="og:description" content="Your estate's best cooks, feeding your estate. Apply to become an Azizo Kitchens partner."><meta property="og:url" content="https://www.azizobutchery.co.ke/kitchen-partners.html"><meta property="og:image" content="https://www.azizobutchery.co.ke/logo.png">
+<link rel="icon" type="image/png" href="favicon.png"><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0B0A09">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kk.css">
+</head>
+<body>
+<div id="kkHeader"></div>
+<section class="hero"><div class="wrap">
+  <div class="eyebrow">Kitchen Partner Programme</div>
+  <h1>Your cooking. <em>Your estate.</em> Your income.</h1>
+  <p>Cook indigenous Kenyan lunch and dinner at home. Azizo finds the customers, sets simple quality standards and organises delivery. You run your own kitchen business.</p>
+  <p style="margin-top:16px"><a class="btn gold" href="#apply">Apply to join</a> <a class="btn" href="kitchens.html">See how customers order</a></p>
+</div></section>
+
+<section class="sec"><div class="wrap">
+  <h2>How it <em>works</em></h2>
+  <div class="steps">
+    <div class="step"><i>1</i><h3>Apply</h3><p>Tell us about your kitchen and upload your documents. Takes about five minutes on your phone.</p></div>
+    <div class="step"><i>2</i><h3>Tasting and visit</h3><p>We taste your food, check hygiene and your documents, then score you on a simple scorecard.</p></div>
+    <div class="step"><i>3</i><h3>Go live</h3><p>You are listed to customers near you. You choose which approved dishes you cook each day.</p></div>
+    <div class="step"><i>4</i><h3>Cook and get paid</h3><p>Orders arrive on your phone before each meal. We deliver. You are paid weekly for what was delivered.</p></div>
+  </div>
+</div></section>
+
+<section class="sec"><div class="wrap two">
+  <div><h2>What you <em>get</em></h2><ul class="tick">
+    <li>Customers without advertising. We market your kitchen to your own estate.</li><li>Orders ahead of time, so you cook what is already sold and waste less.</li>
+    <li>Delivery arranged by Azizo.</li><li>Fresh beef, goat and chicken from Azizo if you want it.</li><li>Training, packaging guidance and a clear recipe card for every dish.</li><li>A transparent weekly statement showing every order and our commission.</li></ul></div>
+  <div><h2>What we <em>ask</em></h2><ul class="tick">
+    <li>A clean kitchen and a valid food handler's medical certificate.</li><li>A business permit and public health licence for your premises (we help you through it).</li>
+    <li>Cook the approved dishes the Azizo way: same portions, same packaging.</li><li>Confirm orders quickly and have food ready at handover time.</li><li>Be honest. Hygiene problems or repeated no-shows lead to delisting.</li></ul>
+    <p style="color:var(--mute);font-size:.88rem">You stay independent: your own business, your own team, your own hours when you are not on an order. Azizo charges a commission only on food sold through the platform (currently 20%, shown to you before you start).</p></div>
+</div></section>
+
+<section class="sec" id="apply"><div class="wrap" style="max-width:760px">
+  <h2>Apply to <em>join</em></h2>
+  <p style="color:var(--mute)">We open a few kitchens per area at a time so every cook gets enough orders. If your area is full, you join a waiting list.</p>
+  <form id="f" class="panel" novalidate>
+    <div class="row"><div><label class="f" for="name">Kitchen name</label><input id="name" placeholder="e.g. Mama Wanjiru's Kitchen" required></div><div><label class="f" for="cook">Cook's full name</label><input id="cook" autocomplete="name" required></div></div>
+    <div class="row" style="margin-top:10px"><div><label class="f" for="phone">Phone (WhatsApp)</label><input id="phone" type="tel" autocomplete="tel" required></div><div><label class="f" for="email">Email</label><input id="email" type="email" autocomplete="email" required></div></div>
+    <div class="row" style="margin-top:10px"><div><label class="f" for="area">Your area</label><select id="area"></select></div><div><label class="f">&nbsp;</label><button class="btn" id="gps" type="button">📍 Use my location instead</button></div></div>
+    <p class="slotnote" id="gpsOk" style="display:none">Location saved. Your kitchen pin is set.</p>
+    <label class="f" for="addr" style="margin-top:10px">Kitchen address or landmark</label><input id="addr" placeholder="Estate, building, house number, landmark">
+    <div class="row" style="margin-top:10px"><div><label class="f" for="spec">What do you cook best?</label><input id="spec" placeholder="e.g. pilau, githeri, mukimo, fish"></div><div><label class="f" for="cap">Orders you can cook per meal</label><input id="cap" type="number" min="1" max="60" value="10"></div></div>
+    <label class="f" for="exp" style="margin-top:10px">Cooking experience</label><textarea id="exp" placeholder="Tell us about your cooking: home, church events, catering…"></textarea>
+    <h3 style="margin-top:18px">Documents <small style="color:var(--mute);font-family:Inter;font-weight:400">(photos from your phone. You can add more later in your portal)</small></h3>
+    <div class="row">
+      <div><label class="f" for="d_id">National ID (photo)</label><input id="d_id" type="file" accept="image/*"></div>
+      <div><label class="f" for="d_health">Food handler medical certificate</label><input id="d_health" type="file" accept="image/*"></div>
+      <div><label class="f" for="d_permit">Business permit</label><input id="d_permit" type="file" accept="image/*"></div>
+      <div><label class="f" for="d_premises">Photo of your kitchen</label><input id="d_premises" type="file" accept="image/*"></div>
+    </div>
+    <p style="color:var(--mute);font-size:.82rem">Your documents are stored privately and seen only by the Azizo Kitchens team for vetting.</p>
+    <h3 style="margin-top:18px">Your login</h3>
+    <div class="row"><div><label class="f" for="pw">Choose a password (6+ characters)</label><input id="pw" type="password" autocomplete="new-password"></div><div><label class="f" for="pw2">Repeat password</label><input id="pw2" type="password" autocomplete="new-password"></div></div>
+    <label class="opt" style="margin-top:12px"><input type="checkbox" id="agree"><span>I understand that Azizo Kitchens is a partner programme, that I run my own independent kitchen business, and that the final partner agreement will be signed before I go live.</span></label>
+    <input class="hp" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div id="out"></div><button class="btn red" id="go" type="submit" style="width:100%;margin-top:10px">Submit my application</button>
+  </form>
+  <p style="margin-top:14px">Already applied? <a href="kitchen-portal.html">Log in to your kitchen</a></p>
+</div></section>
+
+<section class="sec"><div class="wrap" style="max-width:760px">
+  <h2>Common <em>questions</em></h2>
+  <details class="panel" style="margin-bottom:8px"><summary><b>Do I pay to join?</b></summary><p>No joining fee. Azizo keeps a commission only on food sold through the platform.</p></details>
+  <details class="panel" style="margin-bottom:8px"><summary><b>Will I be an Azizo employee?</b></summary><p>No. You are an independent business. You decide whether to accept each order and you manage your own kitchen and helpers.</p></details>
+  <details class="panel" style="margin-bottom:8px"><summary><b>Who delivers?</b></summary><p>Azizo arranges delivery. You pack the food to our standard and hand it over.</p></details>
+  <details class="panel" style="margin-bottom:8px"><summary><b>When am I paid?</b></summary><p>Weekly, for delivered orders, after commission. Your portal shows every order and your balance.</p></details>
+  <details class="panel" style="margin-bottom:8px"><summary><b>What if my area is full?</b></summary><p>You join a waiting list in the order you applied and we contact you when a place opens.</p></details>
+</div></section>
+<div id="kkFooter"></div>
+<script src="kk-config.js"></script><script src="kk-common.js"></script>
+<script>
+(function(){
+  var K = window.KK, $ = K.$, loc = null; K.header('partners'); K.footer();
+  K.api('/areas').then(function(r){ $('area').innerHTML = K.areaOptions(r.areas, ''); }).catch(function(){ $('area').innerHTML = '<option value="">Areas could not load</option>'; });
+  $('gps').onclick = async function(){ try{ loc = await K.gps(); $('area').value = ''; $('gpsOk').style.display = ''; }catch(e){ K.toast(e.message); } };
+  $('area').onchange = function(){ if(this.value){ loc = null; $('gpsOk').style.display = 'none'; } };
+  function err(m){ $('out').innerHTML = '<div class="msg err">' + K.esc(m) + '</div>'; }
+  $('f').onsubmit = async function(e){
+    e.preventDefault(); $('out').innerHTML = '';
+    if($('pw').value !== $('pw2').value) return err('The two passwords do not match.');
+    if(!$('area').value && !loc) return err('Choose your area, or tap "Use my location instead".');
+    if(!$('agree').checked) return err('Please tick the box to accept the partner terms.');
+    $('go').disabled = true; $('go').textContent = 'Sending…';
+    try{
+      var imgs = [];
+      for(var t of ['id','health','permit','premises']){ var f = $('d_' + t).files[0]; if(f) imgs.push({ type: t, data: await K.readImage(f, 1400, 1100) }); }
+      var b = { name: $('name').value, cookName: $('cook').value, phone: $('phone').value, email: $('email').value, password: $('pw').value, address: $('addr').value, specialities: $('spec').value, capacity: $('cap').value, experience: $('exp').value, agree: true, website: $('hp').value, docImages: imgs };
+      if($('area').value) b.areaId = $('area').value; else { b.lat = loc.lat; b.lng = loc.lng; }
+      var r = await K.api('/apply', { method: 'POST', body: JSON.stringify(b) });
+      sessionStorage.setItem('kkPartnerToken', r.token);
+      $('f').innerHTML = '<h3>Application received ✔</h3><div class="msg ok">' + K.esc(r.message) + (r.queuePosition ? ' Your place in line: <b>#' + r.queuePosition + '</b>.' : '') + '</div><p>Next: we will call you on WhatsApp to arrange a tasting. You can log in to your kitchen portal any time to follow your status and add documents.</p><a class="btn gold" href="kitchen-portal.html">Open my kitchen portal</a>';
+      window.scrollTo({ top: $('apply').offsetTop - 80, behavior: 'smooth' });
+    }catch(x){ err(x.message); $('go').disabled = false; $('go').textContent = 'Submit my application'; }
+  };
+})();
+</script>
+</body>
+</html>

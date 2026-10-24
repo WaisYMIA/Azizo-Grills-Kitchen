@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Azizo Staff</title>
+<style>
+  :root{
+    --dark:#161210; --darker:#070605; --gold:#C89B3C; --gold-soft:#E4C88A;
+    --cream:#F3ECE0; --paper:#FBF8F2; --ink:#221A17; --ink-soft:#5A4E48; --line:#DDD0BC;
+    --red:#B23A3A; --green:#2E7D46; --blue:#2F6DB5; --amber:#C27C0E;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;cursor:pointer;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 16px;}
+
+  /* login */
+  .gate{max-width:380px;margin:60px auto;background:#fff;border:1px solid var(--line);border-radius:10px;padding:26px;}
+  .gate h2{margin:0 0 6px;}
+  .gate p{margin:0 0 10px;font-size:13px;color:var(--ink-soft);line-height:1.5;}
+  .gate label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-top:12px;}
+  .gate input{width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;font-size:16px;margin-top:4px;}
+  .gate button{width:100%;margin-top:16px;padding:13px;border:none;border-radius:6px;background:var(--dark);color:var(--cream);font-size:15px;font-weight:700;}
+  .err{color:var(--red);font-size:13px;margin-top:10px;min-height:16px;}
+  .back-link{display:inline-block;margin-top:14px;font-size:13px;color:var(--ink-soft);}
+
+  /* top bar + tabs */
+  header{background:var(--darker);color:var(--cream);position:sticky;top:0;z-index:20;}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;}
+  .bar h1{margin:0;font-size:17px;}
+  .bar small{display:block;color:#C9B8A9;font-size:11.5px;margin-top:2px;}
+  .bar-actions{display:flex;gap:8px;align-items:center;}
+  .ghost{background:transparent;border:1px solid #5b4f48;color:var(--cream);border-radius:6px;padding:7px 11px;font-size:12.5px;min-height:36px;}
+  .ghost.on{border-color:var(--gold);color:var(--gold);}
+  .tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;border-top:1px solid #2a221e;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{flex:1 0 auto;background:none;border:none;color:#C9B8A9;padding:13px 16px;font-size:14px;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap;min-height:46px;}
+  .tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+  .badge{display:inline-block;min-width:20px;padding:1px 6px;margin-left:6px;border-radius:10px;background:var(--red);color:#fff;font-size:11.5px;text-align:center;}
+  .badge:empty,.badge.zero{display:none;}
+  main{padding:16px 0 60px;}
+  .pane{display:none;} .pane.active{display:block;}
+
+  /* controls */
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:20px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--ink-soft);min-height:38px;}
+  .chip.active{background:var(--dark);border-color:var(--dark);color:var(--cream);}
+  .field{padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:15px;background:#fff;min-height:42px;}
+  .grow{flex:1;min-width:140px;}
+  .note{font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;}
+  .empty{background:#fff;border:1px dashed var(--line);border-radius:10px;padding:30px 16px;text-align:center;color:var(--ink-soft);font-size:14px;}
+
+  /* order cards */
+  .order{background:#fff;border:1px solid var(--line);border-left:5px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+  .order.st-received{border-left-color:var(--red);} .order.st-preparing{border-left-color:var(--amber);}
+  .order.st-ready{border-left-color:var(--green);} .order.st-out_for_delivery{border-left-color:var(--blue);}
+  .order.st-completed{border-left-color:#9a9086;} .order.st-cancelled{border-left-color:#c9bfb4;opacity:.8;}
+  .order.fresh{box-shadow:0 0 0 2px var(--gold);}
+  .o-head{width:100%;text-align:left;background:none;border:none;padding:14px;display:flex;justify-content:space-between;gap:12px;color:inherit;}
+  .o-id{font-weight:800;font-size:16px;}
+  .o-new{background:var(--red);color:#fff;font-size:10.5px;font-weight:800;border-radius:4px;padding:2px 6px;margin-left:6px;vertical-align:middle;}
+  .o-sub{font-size:13px;color:var(--ink-soft);margin-top:3px;line-height:1.45;}
+  .o-right{text-align:right;flex-shrink:0;}
+  .o-total{font-weight:700;font-size:15px;}
+  .status{display:inline-block;margin-top:5px;padding:3px 9px;border-radius:12px;font-size:11.5px;font-weight:700;color:#fff;background:#777;}
+  .status.received{background:var(--red);} .status.preparing{background:var(--amber);} .status.ready{background:var(--green);}
+  .status.out_for_delivery{background:var(--blue);} .status.completed{background:#9a9086;} .status.cancelled{background:#b8aea3;}
+  .o-body{display:none;padding:0 14px 14px;border-top:1px solid #efe6d6;}
+  .order.open .o-body{display:block;}
+  .items{width:100%;border-collapse:collapse;margin:12px 0 8px;font-size:14px;}
+  .items td{padding:7px 0;border-bottom:1px solid #f0e9dc;}
+  .items td.n{text-align:right;white-space:nowrap;font-family:ui-monospace,Menlo,monospace;}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13.5px;margin:8px 0;}
+  .kv b{color:var(--ink-soft);font-weight:600;}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .btn{border:none;border-radius:8px;padding:12px 16px;font-size:14px;font-weight:700;min-height:44px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+  .btn.primary{background:var(--dark);color:var(--cream);flex:1 1 180px;}
+  .btn.go{background:var(--green);color:#fff;flex:1 1 180px;}
+  .btn.light{background:var(--paper);border:1px solid var(--line);color:var(--ink);}
+  .btn.danger{background:#fff;border:1px solid var(--red);color:var(--red);}
+  .btn:disabled{opacity:.5;}
+  .fix{margin-top:12px;font-size:12.5px;color:var(--ink-soft);}
+  .fix select{margin-left:6px;padding:7px;border:1px solid var(--line);border-radius:6px;font-size:13px;}
+
+  /* today */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;}
+  .tile{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;}
+  .tile b{display:block;font-size:24px;margin-bottom:2px;} .tile span{font-size:12.5px;color:var(--ink-soft);}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;}
+  .card h3{margin:0 0 8px;font-size:14.5px;}
+  .tbl{width:100%;border-collapse:collapse;font-size:14px;} .tbl td{padding:7px 0;border-bottom:1px solid #f0e9dc;} .tbl td:last-child{text-align:right;font-family:ui-monospace,Menlo,monospace;}
+
+  /* stock */
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:8px;}
+  .row.out{background:#fbf1f1;}
+  .row small{display:block;color:var(--ink-soft);font-size:12px;margin-top:2px;}
+  .switch{position:relative;width:54px;height:30px;flex-shrink:0;}
+  .switch input{opacity:0;width:100%;height:100%;position:absolute;inset:0;margin:0;cursor:pointer;z-index:1;}
+  .switch i{position:absolute;inset:0;background:#c9bfb4;border-radius:15px;transition:.2s;}
+  .switch i::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;}
+  .switch input:checked + i{background:var(--green);} .switch input:checked + i::after{transform:translateX(24px);}
+  .switch input:focus-visible + i{outline:2px solid var(--gold);outline-offset:2px;}
+  .grp{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:16px 2px 8px;font-weight:700;}
+
+  /* promo */
+  .code{font-family:ui-monospace,Menlo,monospace;font-size:22px;font-weight:800;letter-spacing:.06em;background:var(--paper);border:2px dashed var(--gold);border-radius:8px;padding:14px;text-align:center;margin:12px 0;word-break:break-all;}
+
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);background:var(--dark);color:var(--cream);padding:11px 18px;border-radius:24px;font-size:13.5px;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:90vw;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .live{font-size:11.5px;color:#C9B8A9;}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <h2>Azizo Staff</h2>
+  <p>Sign in to see and work today's orders, mark items sold out, and check the day's totals.</p>
+  <label for="urlIn">Backend URL <span style="font-weight:400">(leave blank if same website)</span></label>
+  <input type="text" id="urlIn" placeholder="https://your-backend.example.com" autocapitalize="off" autocomplete="off">
+  <label for="passIn">Staff password</label>
+  <input type="password" id="passIn" placeholder="Staff password" onkeydown="if(event.key==='Enter')login()">
+  <button onclick="login()">Sign in</button>
+  <div class="err" id="gateErr" role="alert"></div>
+  <a class="back-link" href="index.html">← Back to the website</a>
+</div>
+
+<div id="app" style="display:none;">
+  <header>
+    <div class="wrap">
+      <div class="bar">
+        <div><h1>Azizo Staff</h1><small id="liveNote">Orders refresh by themselves</small></div>
+        <div class="bar-actions">
+          <button class="ghost" id="soundBtn" onclick="toggleSound()" aria-pressed="false">🔕 Sound off</button>
+          <a class="ghost" href="rider.html" style="text-decoration:none;display:inline-flex;align-items:center">🛵 Rider screen</a>
+          <button class="ghost" onclick="logout()">Sign out</button>
+        </div>
+      </div>
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="orders" onclick="showTab('orders')">Orders<span class="badge zero" id="newBadge"></span></button>
+        <button class="tab" data-tab="today" onclick="showTab('today')">Today</button>
+        <button class="tab" data-tab="stock" onclick="showTab('stock')">Stock</button>
+        <button class="tab" data-tab="standing" onclick="showTab('standing')">Standing</button>
+        <button class="tab" data-tab="promo" onclick="showTab('promo')">Promo codes</button>
+        <button class="tab" data-tab="branches" onclick="showTab('branches')">Branches</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- ORDERS -->
+    <section class="pane active" id="pane-orders">
+      <div class="controls" id="orderChips">
+        <button class="chip active" data-f="active" onclick="setOrderFilter('active')">Open</button>
+        <button class="chip" data-f="today" onclick="setOrderFilter('today')">Today</button>
+        <button class="chip" data-f="completed" onclick="setOrderFilter('completed')">Done</button>
+        <button class="chip" data-f="cancelled" onclick="setOrderFilter('cancelled')">Cancelled</button>
+        <button class="chip" data-f="all" onclick="setOrderFilter('all')">All</button>
+      </div>
+      <div class="controls">
+        <input class="field grow" id="orderSearch" type="search" placeholder="Search order #, name or phone" oninput="debouncedLoad()">
+        <select class="field" id="branchFilter" onchange="loadOrders()"><option value="">All branches</option></select>
+      </div>
+      <div id="ordersList"></div>
+    </section>
+
+    <!-- TODAY -->
+    <section class="pane" id="pane-today"><div id="todayBody"></div></section>
+
+    <!-- STOCK -->
+    <section class="pane" id="pane-stock">
+      <p class="note">Switch an item off when it runs out — customers will see "Sold out" and can't add it. Switch it back on when it's restocked. (Prices and descriptions are changed by the admin.)</p>
+      <div class="controls">
+        <select class="field" id="stockBranch" onchange="renderStock()" aria-label="Which branch"><option value="">All branches (sold out everywhere)</option></select>
+      </div>
+      <div class="controls">
+        <input class="field grow" id="stockSearch" type="search" placeholder="Search products" oninput="renderStock()">
+        <button class="chip" id="outOnly" onclick="toggleOutOnly()">Sold out only</button>
+      </div>
+      <div id="stockList"></div>
+    </section>
+
+    <!-- STANDING ORDERS -->
+    <section class="pane" id="pane-standing">
+      <p class="note">Customers who chose <strong>recurring order</strong>. "Due" means it is time for their next one. Message them to confirm, then tap <strong>Create this order</strong> to copy their last order (today's prices) straight into the order queue. No automatic charging.</p>
+      <div id="standingList"></div>
+    </section>
+
+    <!-- PROMO -->
+    <section class="pane" id="pane-promo">
+      <div class="card">
+        <h3>Generate a discount code</h3>
+        <p class="note">Give the code to a customer; they tick "I have a promo code" at checkout and type it in. Each code works for the discount you pick here.</p>
+        <div class="controls" id="tierChips">
+          <button class="chip active" data-t="1" onclick="pickTier(1)">5% off</button>
+          <button class="chip" data-t="2" onclick="pickTier(2)">10% off</button>
+          <button class="chip" data-t="3" onclick="pickTier(3)">15% off</button>
+          <button class="chip" data-t="4" onclick="pickTier(4)">20% off</button>
+        </div>
+        <button class="btn primary" style="width:100%" onclick="makeCode()">Generate code</button>
+        <div id="codeOut"></div>
+      </div>
+    </section>
+
+    <!-- BRANCHES -->
+    <section class="pane" id="pane-branches"><div id="branchList"></div></section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+  const TOKEN_KEY = 'azizoStaffToken', URL_KEY = 'azizoAdminBackendUrl';
+  const LABELS = {received:'New', preparing:'Preparing', ready:'Ready for pickup', out_for_delivery:'Out for delivery', completed:'Completed', cancelled:'Cancelled'};
+  const ACTIVE = 'received,preparing,ready,out_for_delivery';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const backend = () => (localStorage.getItem(URL_KEY) || '').replace(/\/+$/, '');
+  const token = () => sessionStorage.getItem(TOKEN_KEY) || '';
+  const money = n => 'KSh ' + Number(n || 0).toLocaleString('en-KE');
+
+  async function api(path, opts){
+    opts = opts || {};
+    const res = await fetch(backend() + path, Object.assign({}, opts, {
+      headers: Object.assign({'Authorization': 'Bearer ' + token()}, opts.body ? {'Content-Type':'application/json'} : {}, opts.headers || {}),
+      cache: 'no-store',
+    }));
+    const data = await res.json().catch(() => ({}));
+    if(res.status === 401){ logout(true); throw new Error('Session expired — please sign in again'); }
+    if(!res.ok) throw new Error(data.error || ('Request failed (' + res.status + ')'));
+    return data;
+  }
+  function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2600); }
+
+  // ---------- sign in / out ----------
+  window.login = async function(){
+    const url = $('urlIn').value.trim().replace(/\/+$/, ''), pass = $('passIn').value;
+    $('gateErr').textContent = '';
+    if(!pass){ $('gateErr').textContent = 'Enter the staff password.'; return; }
+    localStorage.setItem(URL_KEY, url);
+    try{
+      const res = await fetch(url + '/api/auth/staff-login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password: pass})});
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(data.error || ('Sign-in failed (' + res.status + ')'));
+      sessionStorage.setItem(TOKEN_KEY, data.token);
+      $('passIn').value = '';
+      start();
+    }catch(e){ $('gateErr').textContent = e.message + (e instanceof TypeError ? ' — check the Backend URL and that the server is running.' : ''); }
+  };
+  window.logout = function(expired){
+    sessionStorage.removeItem(TOKEN_KEY);
+    clearInterval(timer); timer = null;
+    $('app').style.display = 'none'; $('gate').style.display = 'block';
+    document.title = 'Azizo Staff';
+    if(expired === true) $('gateErr').textContent = 'Session expired — please sign in again.';
+  };
+
+  // ---------- tabs ----------
+  window.showTab = function(name){
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + name));
+    if(name === 'orders') loadOrders();
+    if(name === 'today') loadToday();
+    if(name === 'stock') loadStock();
+    if(name === 'standing') loadStanding();
+    if(name === 'branches') loadBranches();
+  };
+  const currentTab = () => (document.querySelector('.tab.active') || {}).dataset.tab;
+
+  // ---------- orders ----------
+  let orderFilter = 'active', knownIds = null, openIds = new Set(), lastOrders = [], timer = null, debounce = null;
+  window.setOrderFilter = function(f){
+    orderFilter = f;
+    document.querySelectorAll('#orderChips .chip').forEach(c => c.classList.toggle('active', c.dataset.f === f));
+    loadOrders();
+  };
+  window.debouncedLoad = function(){ clearTimeout(debounce); debounce = setTimeout(loadOrders, 300); };
+
+  function query(){
+    const p = new URLSearchParams();
+    if(orderFilter === 'active') p.set('status', ACTIVE);
+    if(orderFilter === 'today') p.set('date', 'today');
+    if(orderFilter === 'completed') p.set('status', 'completed');
+    if(orderFilter === 'cancelled') p.set('status', 'cancelled');
+    const q = $('orderSearch').value.trim(); if(q) p.set('q', q);
+    const b = $('branchFilter').value; if(b) p.set('branch', b);
+    return p.toString();
+  }
+
+  window.loadOrders = async function(quiet){
+    try{
+      const data = await api('/api/orders?' + query());
+      const orders = data.orders || [];
+      // flag orders we haven't seen before (not on the very first load) and ding for brand-new ones
+      const ids = new Set(orders.map(o => o.id));
+      let fresh = new Set();
+      if(knownIds){ orders.forEach(o => { if(!knownIds.has(o.id) && o.status === 'received') fresh.add(o.id); }); }
+      if(fresh.size && soundOn) beep();
+      if(fresh.size) toast(fresh.size === 1 ? 'New order received' : fresh.size + ' new orders received');
+      knownIds = new Set([...(knownIds || []), ...ids]);
+      lastOrders = orders; renderOrders(orders, fresh);
+      updateBadge();
+      $('liveNote').textContent = 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }catch(e){ if(!quiet) $('ordersList').innerHTML = '<div class="empty">Couldn\'t load orders: ' + esc(e.message) + '</div>'; $('liveNote').textContent = 'Offline — retrying…'; }
+  };
+
+  async function updateBadge(){
+    try{
+      const d = await api('/api/orders?status=received');
+      const n = (d.orders || []).length, b = $('newBadge');
+      b.textContent = n || ''; b.classList.toggle('zero', !n);
+      document.title = (n ? '(' + n + ') ' : '') + 'Azizo Staff';
+    }catch(e){}
+  }
+
+  const utc = s => new Date(String(s).replace(' ', 'T') + 'Z');
+  function ago(s){
+    const m = Math.max(0, Math.round((Date.now() - utc(s)) / 60000));
+    if(m < 1) return 'just now'; if(m < 60) return m + ' min ago';
+    const h = Math.floor(m / 60); return h < 24 ? h + ' h ' + (m % 60) + ' min ago' : Math.floor(h / 24) + ' d ago';
+  }
+  const clock = s => utc(s).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  function waNumber(p){
+    const d = String(p || '').replace(/\D/g, '');
+    if(d.startsWith('254')) return d; if(d.startsWith('0')) return '254' + d.slice(1); if(d.length === 9) return '254' + d; return d;
+  }
+  function mapsUrl(o){
+    if(o.delivery_lat != null && o.delivery_lng != null) return 'https://www.google.com/maps/search/?api=1&query=' + o.delivery_lat + ',' + o.delivery_lng;
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent((o.delivery_address || '') + ', Kenya');
+  }
+  const SITE = location.origin;
+  function statusMessage(o){
+    const n = o.customer_name ? ' ' + o.customer_name.split(' ')[0] : '', id = '#' + o.id, where = o.branch || 'our branch';
+    const m = {
+      received: 'Hello' + n + ', Azizo Butchery & Grill here. We have received your order ' + id + ' and are getting it ready.',
+      preparing: 'Hello' + n + ', your order ' + id + ' is being prepared now.',
+      ready: 'Hello' + n + ', your order ' + id + ' is ready for pickup at ' + where + '. Karibu!',
+      out_for_delivery: 'Hello' + n + ', your order ' + id + ' is on its way to you. Please keep your phone close.',
+      completed: 'Thank you' + n + '! Your order ' + id + ' is complete. How was it? Tell us here, it takes a minute: ' + SITE + '/index.html?track=' + o.id,
+      cancelled: 'Hello' + n + ', we are sorry, your order ' + id + ' has been cancelled. Please message us if you would like to re-order.'
+    };
+    return m[o.status] || ('Hello' + n + ', this is Azizo Butchery & Grill about your order ' + id + '.');
+  }
+  function nextStep(o){
+    if(o.status === 'received') return {to:'preparing', label:'Start preparing'};
+    if(o.status === 'preparing') return o.fulfilment === 'pickup' ? {to:'ready', label:'Mark ready for pickup'} : {to:'out_for_delivery', label:'Send out for delivery'};
+    if(o.status === 'ready' || o.status === 'out_for_delivery') return {to:'completed', label:o.status === 'ready' ? 'Handed over — complete' : 'Delivered — complete'};
+    return null;
+  }
+
+  function renderOrders(orders, fresh){
+    const list = $('ordersList');
+    if(!orders.length){ list.innerHTML = '<div class="empty">' + (orderFilter === 'active' ? 'No open orders right now. New ones appear here by themselves.' : 'No orders match this view.') + '</div>'; return; }
+    list.innerHTML = orders.map(o => {
+      const isDel = o.fulfilment === 'delivery';
+      const where = isDel ? '🛵 Delivery' + (o.delivery_address ? ' · ' + esc(o.delivery_address) : '') + (o.pickup_time ? ' · ⏰ ' + esc(o.pickup_time) : '')
+        : '🏪 Pickup' + (o.branch ? ' · ' + esc(o.branch) : '') + (o.pickup_time ? ' · ' + esc(o.pickup_time) : '');
+      const count = (o.items || []).reduce((n, i) => n + 1, 0);
+      const step = nextStep(o);
+      const rows = (o.items || []).map(i => '<tr><td>' + esc(i.qty) + (i.unit ? ' ' + esc(i.unit) : '') + ' × ' + esc(i.name) + '</td><td class="n">' + money(i.line_total) + '</td></tr>').join('');
+      const phone = esc(o.customer_phone);
+      return '<article class="order st-' + esc(o.status) + (fresh.has(o.id) ? ' fresh' : '') + (openIds.has(o.id) ? ' open' : '') + '" id="o-' + o.id + '">' +
+        '<button class="o-head" onclick="toggleOrder(' + o.id + ')" aria-expanded="' + openIds.has(o.id) + '">' +
+          '<div><div class="o-id">#' + o.id + (fresh.has(o.id) ? '<span class="o-new">NEW</span>' : '') + ' · ' + esc(o.customer_name || 'Guest') + '</div>' +
+          '<div class="o-sub">' + where + '</div><div class="o-sub">' + count + ' item' + (count === 1 ? '' : 's') + ' · ' + esc(o.payment_method) + ' · ' + esc(clock(o.created_at)) + ' (' + ago(o.created_at) + ')</div></div>' +
+          '<div class="o-right"><div class="o-total">' + money(o.total) + '</div><span class="status ' + esc(o.status) + '">' + esc(LABELS[o.status] || o.status) + '</span></div>' +
+        '</button>' +
+        '<div class="o-body">' +
+          (o.notes ? '<div style="background:#fff4d6;border:1px solid #e8c766;border-radius:8px;padding:8px 10px;margin-top:10px;font-size:14px"><b>🔪 Butcher note:</b> ' + esc(o.notes) + '</div>' : '') +
+          '<table class="items">' + rows + '</table>' +
+          '<div class="kv"><b>Items</b><span>' + money(o.items_subtotal) + '</span>' +
+            (isDel ? '<b>Delivery fee</b><span>' + money(o.delivery_fee) + '</span>' : '') +
+            (o.promo_code ? '<b>Promo</b><span>' + esc(o.promo_code) + '</span>' : '') +
+            '<b>Total</b><span><strong>' + money(o.total) + '</strong> · ' + esc(o.payment_method) + (o.mpesa_receipt ? ' · receipt ' + esc(o.mpesa_receipt) : '') + '</span>' +
+            '<b>Customer</b><span>' + esc(o.customer_name || 'Guest') + ' · ' + phone + '</span>' +
+            (isDel ? '<b>Deliver to</b><span>' + esc(o.delivery_address || 'address not given') + '</span>' : '<b>Pickup</b><span>' + esc(o.branch || '—') + (o.pickup_time ? ' at ' + esc(o.pickup_time) : '') + '</span>') +
+          '</div>' +
+          '<div class="actions">' +
+            (step ? '<button class="btn go" onclick="setStatus(' + o.id + ',\'' + step.to + '\')">' + esc(step.label) + '</button>' : '') +
+            '<a class="btn light" href="tel:' + phone + '">📞 Call</a>' +
+            '<a class="btn light" target="_blank" rel="noopener" href="https://wa.me/' + waNumber(o.customer_phone) + '?text=' + encodeURIComponent(statusMessage(o)) + '">💬 Tell customer: ' + esc(LABELS[o.status] || o.status) + '</a>' +
+            (isDel ? '<a class="btn light" target="_blank" rel="noopener" href="' + mapsUrl(o) + '">📍 Map</a>' : '') +
+            '<button class="btn light" onclick="printTicket(' + o.id + ')">🖨 Print ticket</button>' +
+            (['received','preparing','ready','out_for_delivery'].includes(o.status) ? '<button class="btn danger" onclick="cancelOrder(' + o.id + ')">Cancel</button>' : '') +
+          '</div>' +
+          '<div class="fix">Wrong status? <select onchange="setStatus(' + o.id + ',this.value)">' +
+            Object.keys(LABELS).map(s => '<option value="' + s + '"' + (s === o.status ? ' selected' : '') + '>' + LABELS[s] + '</option>').join('') + '</select></div>' +
+        '</div></article>';
+    }).join('');
+  }
+
+  window.toggleOrder = function(id){
+    const el = $('o-' + id); if(!el) return;
+    const open = el.classList.toggle('open');
+    open ? openIds.add(id) : openIds.delete(id);
+    el.querySelector('.o-head').setAttribute('aria-expanded', open);
+  };
+  window.setStatus = async function(id, status){
+    try{
+      await api('/api/orders/' + id + '/status', {method:'PATCH', body: JSON.stringify({status})});
+      toast('Order #' + id + ' → ' + LABELS[status]);
+      await loadOrders(true);
+    }catch(e){ toast("Couldn't update: " + e.message); loadOrders(true); }
+  };
+  window.cancelOrder = function(id){
+    if(confirm('Cancel order #' + id + '? Call or message the customer to tell them.')) setStatus(id, 'cancelled');
+  };
+  window.printTicket = function(id){
+    const o = lastOrders.find(x => x.id === id); if(!o) return;
+    const w = window.open('', '_blank', 'width=380,height=640'); if(!w){ toast('Allow pop-ups to print'); return; }
+    const lines = (o.items || []).map(i => '<tr><td>' + esc(i.qty) + (i.unit ? ' ' + esc(i.unit) : '') + '</td><td>' + esc(i.name) + '</td></tr>').join('');
+    w.document.write('<!doctype html><title>Order #' + o.id + '</title><style>body{font:14px monospace;margin:12px}h2{margin:0 0 4px}td{padding:3px 6px 3px 0;vertical-align:top}hr{border:0;border-top:1px dashed #000}</style>' +
+      '<h2>AZIZO — Order #' + o.id + '</h2><div>' + esc(clock(o.created_at)) + '</div><hr>' +
+      '<div><b>' + (o.fulfilment === 'delivery' ? 'DELIVERY' : 'PICKUP') + '</b>' + (o.branch ? ' · ' + esc(o.branch) : '') + (o.pickup_time ? ' · ' + esc(o.pickup_time) : '') + '</div>' +
+      '<div>' + esc(o.customer_name || 'Guest') + ' · ' + esc(o.customer_phone) + '</div>' +
+      (o.delivery_address ? '<div>' + esc(o.delivery_address) + '</div>' : '') + (o.fulfilment === 'delivery' && o.pickup_time ? '<div>Time: ' + esc(o.pickup_time) + '</div>' : '') + (o.notes ? '<div><b>NOTE:</b> ' + esc(o.notes) + '</div>' : '') + '<hr><table>' + lines + '</table><hr>' +
+      '<div>Total: ' + money(o.total) + ' (' + esc(o.payment_method) + ')</div><script>window.onload=function(){window.print();}<\/script>');
+    w.document.close();
+  };
+
+  // ---------- sound ----------
+  let soundOn = false, audio = null;
+  window.toggleSound = function(){
+    soundOn = !soundOn;
+    const b = $('soundBtn'); b.textContent = soundOn ? '🔔 Sound on' : '🔕 Sound off'; b.classList.toggle('on', soundOn); b.setAttribute('aria-pressed', soundOn);
+    try{ localStorage.setItem('azizoStaffSound', soundOn ? '1' : '0'); }catch(e){}
+    if(soundOn) beep();
+  };
+  function beep(){
+    try{
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      [0, .22].forEach(d => { const o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = 880; o.connect(g); g.connect(audio.destination);
+        const t = audio.currentTime + d; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .18); o.start(t); o.stop(t + .2); });
+    }catch(e){}
+  }
+
+  // ---------- today ----------
+  async function loadToday(){
+    const box = $('todayBody'); box.innerHTML = '<div class="empty">Loading…</div>';
+    try{
+      const s = await api('/api/orders/summary');
+      const table = (title, rows, a, b) => rows.length ? '<div class="card"><h3>' + title + '</h3><table class="tbl">' + rows.map(r => '<tr><td>' + esc(a(r)) + '</td><td>' + esc(b(r)) + '</td></tr>').join('') + '</table></div>' : '';
+      box.innerHTML =
+        '<p class="note">Totals for ' + esc(s.date) + ' (cancelled orders are not counted in sales).</p>' +
+        '<div class="tiles">' +
+          '<div class="tile"><b>' + s.orders + '</b><span>Orders today</span></div>' +
+          '<div class="tile"><b>' + money(s.revenue) + '</b><span>Sales today</span></div>' +
+          '<div class="tile"><b>' + money(s.avgOrder) + '</b><span>Average order</span></div>' +
+          '<div class="tile"><b>' + s.openNow + '</b><span>Open right now</span></div>' +
+          '<div class="tile"><b>' + s.cancelled + '</b><span>Cancelled today</span></div>' +
+        '</div>' +
+        table('By pickup / delivery', s.byFulfilment, r => (r.fulfilment === 'delivery' ? 'Delivery' : 'Pickup') + ' · ' + r.orders + ' order' + (r.orders === 1 ? '' : 's'), r => money(r.revenue)) +
+        table('By payment', s.byPayment, r => r.method + ' · ' + r.orders, r => money(r.revenue)) +
+        table('By branch', s.byBranch, r => r.branch + ' · ' + r.orders, r => money(r.revenue)) +
+        table('Most ordered today', s.topItems, r => r.name, r => r.qty + (r.unit ? ' ' + r.unit : '')) +
+        (s.orders ? '' : '<div class="empty">No orders yet today.</div>');
+    }catch(e){ box.innerHTML = '<div class="empty">Couldn\'t load: ' + esc(e.message) + '</div>'; }
+  }
+
+  // ---------- stock ----------
+  let products = [], outOnly = false;
+  let stockOut = {};
+  async function loadStock(){
+    try{
+      const res = await fetch(backend() + '/api/products', {cache:'no-store'}); const d = await res.json();
+      try{ stockOut = (await (await fetch(backend() + '/api/branch-stock', {cache:'no-store'})).json()).out || {}; }catch(e){ stockOut = {}; }
+      try{
+        const bl = (await api('/api/branches/all')).branches || [], sel = $('stockBranch'), cur = sel.value;
+        sel.innerHTML = '<option value="">All branches (sold out everywhere)</option>' + bl.map(b => '<option value="' + esc(b.id) + '">Only at ' + esc(b.name) + '</option>').join('');
+        sel.value = cur;
+      }catch(e){}
+      products = [].concat(
+        (d.freshItems || []).map(p => Object.assign({group:'Fresh meat'}, p)),
+        (d.readyItems || []).map(p => Object.assign({group:'Ready to eat'}, p)),
+        (d.groceryItems || []).map(p => Object.assign({group:'Groceries'}, p)));
+      renderStock();
+    }catch(e){ $('stockList').innerHTML = '<div class="empty">Couldn\'t load products: ' + esc(e.message) + '</div>'; }
+  }
+  window.toggleOutOnly = function(){ outOnly = !outOnly; $('outOnly').classList.toggle('active', outOnly); renderStock(); };
+  window.renderStock = function(){
+    const q = $('stockSearch').value.trim().toLowerCase();
+    const br = $('stockBranch').value, outHere = new Set(br ? (stockOut[br] || []) : []);
+    const isOn = p => br ? (p.inStock !== false && !outHere.has(p.id)) : p.inStock !== false;
+    const items = products.filter(p => (!q || (p.name + ' ' + p.cat).toLowerCase().includes(q)) && (!outOnly || !isOn(p)));
+    if(!items.length){ $('stockList').innerHTML = '<div class="empty">' + (outOnly ? 'Nothing is marked sold out.' : 'No products match.') + '</div>'; return; }
+    let html = '', last = '';
+    items.forEach(p => {
+      if(p.group !== last){ html += '<div class="grp">' + esc(p.group) + '</div>'; last = p.group; }
+      const on = isOn(p), everywhere = br && p.inStock === false;
+      html += '<div class="row' + (on ? '' : ' out') + '"><div><strong>' + esc(p.name) + '</strong><small>' + esc(p.cat) + ' · ' + money(p.price) + '/' + esc(p.unit) + ' · ' + (on ? 'Available' : (everywhere ? 'SOLD OUT everywhere' : 'SOLD OUT')) + '</small></div>' +
+        '<label class="switch"><input type="checkbox" ' + (on ? 'checked' : '') + (everywhere ? ' disabled' : '') + ' aria-label="' + esc(p.name) + ' available" onchange="setStock(\'' + esc(p.id) + '\', this)"><i></i></label></div>';
+    });
+    $('stockList').innerHTML = html;
+  };
+  window.setStock = async function(id, box){
+    const inStock = box.checked; box.disabled = true;
+    const br = $('stockBranch').value;
+    try{
+      const p = products.find(x => x.id === id);
+      if(br){
+        await api('/api/branch-stock', {method:'POST', body: JSON.stringify({branchId: br, productId: id, inStock})});
+        const list = stockOut[br] = (stockOut[br] || []).filter(x => x !== id); if(!inStock) list.push(id);
+        toast((p ? p.name : 'Item') + (inStock ? ' is back in stock at ' : ' marked sold out at ') + $('stockBranch').selectedOptions[0].textContent.replace('Only at ', ''));
+      } else {
+        await api('/api/products/' + encodeURIComponent(id) + '/stock', {method:'PATCH', body: JSON.stringify({inStock})});
+        if(p) p.inStock = inStock;
+        toast((p ? p.name : 'Item') + (inStock ? ' is back in stock' : ' marked sold out'));
+      }
+    }catch(e){ box.checked = !inStock; toast("Couldn't update: " + e.message); }
+    renderStock();
+  };
+
+  // ---------- standing (recurring) orders ----------
+  const CYCLE_DAYS = {'Weekly': 7, 'Bi-weekly': 14, 'Monthly': 30};
+  async function loadStanding(){
+    const box = $('standingList'); box.innerHTML = '<div class="empty">Loading…</div>';
+    try{
+      const list = (await api('/api/orders/standing')).standing || [];
+      if(!list.length){ box.innerHTML = '<div class="empty">No standing orders yet. They appear when a customer ticks "recurring order" on the Meal Plan page.</div>'; return; }
+      box.innerHTML = list.map(o => {
+        const days = Math.floor((Date.now() - utc(o.last_order_at || o.created_at)) / 86400000), cyc = CYCLE_DAYS[o.recurring] || 7, due = days >= cyc - 1;
+        const items = (o.items || []).map(i => esc(i.qty) + (i.unit ? ' ' + esc(i.unit) : '') + ' ' + esc(i.name)).join(', ');
+        const msg = 'Hello' + (o.customer_name ? ' ' + o.customer_name.split(' ')[0] : '') + ', Azizo Butchery & Grill here. Shall we send your ' + o.recurring.toLowerCase() + ' order again (' + items + ')? Reply YES to confirm.';
+        return '<div class="card"><h3>' + esc(o.customer_name || 'Customer') + ' · 🔁 ' + esc(o.recurring) + (due ? ' <span class="o-new">DUE</span>' : '') + '</h3>' +
+          '<div class="kv"><b>Phone</b><span>' + esc(o.customer_phone) + '</span><b>Last ordered</b><span>' + days + ' day' + (days === 1 ? '' : 's') + ' ago · ' + money(o.total) + '</span><b>Items</b><span>' + items + '</span>' +
+          '<b>Where</b><span>' + (o.fulfilment === 'delivery' ? '🛵 ' + esc(o.area || '') + ' ' + esc(o.delivery_address || '') : '🏪 ' + esc(o.branch || '')) + '</span></div>' +
+          '<div class="actions"><a class="btn light" target="_blank" rel="noopener" href="https://wa.me/' + waNumber(o.customer_phone) + '?text=' + encodeURIComponent(msg) + '">💬 Ask to confirm</a>' +
+          '<button class="btn go" onclick="repeatOrder(' + o.id + ')">Create this order</button></div></div>';
+      }).join('');
+    }catch(e){ box.innerHTML = '<div class="empty">Couldn\'t load: ' + esc(e.message) + '</div>'; }
+  }
+  window.repeatOrder = async function(id){
+    if(!confirm('Create a new order copying #' + id + ' at today\'s prices?')) return;
+    try{ const r = await api('/api/orders/' + id + '/repeat', {method:'POST'}); toast('Order #' + r.orderId + ' created - ' + money(r.total)); loadStanding(); }
+    catch(e){ toast("Couldn't create: " + e.message); }
+  };
+
+  // ---------- promo codes (same scheme the website checks at checkout) ----------
+  const PROMO_SALT = 137, B36 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', PCT = {1:5, 2:10, 3:15, 4:20};
+  let tier = 1;
+  window.pickTier = function(t){ tier = t; document.querySelectorAll('#tierChips .chip').forEach(c => c.classList.toggle('active', Number(c.dataset.t) === t)); };
+  window.makeCode = function(){
+    let body = ''; const rnd = new Uint32Array(5); crypto.getRandomValues(rnd);
+    rnd.forEach(n => body += B36[n % 36]);
+    let sum = PROMO_SALT; for(const ch of (String(tier) + body)) sum += ch.charCodeAt(0);
+    const code = 'AZIZO-' + tier + '-' + body + '-' + B36[sum % 36];
+    $('codeOut').innerHTML = '<div class="code" id="theCode">' + code + '</div><button class="btn light" style="width:100%" onclick="copyCode()">Copy code (' + PCT[tier] + '% off)</button>';
+  };
+  window.copyCode = function(){
+    const c = $('theCode').textContent;
+    (navigator.clipboard ? navigator.clipboard.writeText(c) : Promise.reject()).then(() => toast('Code copied'), () => toast('Select the code and copy it'));
+  };
+
+  // ---------- branches ----------
+  async function loadBranches(){
+    const box = $('branchList'); box.innerHTML = '<div class="empty">Loading…</div>';
+    try{
+      const d = await api('/api/branches/all');
+      const list = d.branches || [];
+      fillBranchFilter(list);
+      box.innerHTML = list.map(b => '<div class="card"><h3>' + esc(b.name) + (b.isMain ? ' (Main)' : '') + (b.listed ? '' : ' <small style="font-weight:400;color:var(--ink-soft)">· not shown on website</small>') + '</h3>' +
+        '<div class="kv"><b>Address</b><span>' + esc(b.address) + '</span><b>Hours</b><span>' + esc(b.hours) + '</span><b>Phone</b><span>' + (b.phone ? '<a href="tel:' + esc(b.phone) + '">' + esc(b.phone) + '</a>' : 'not set yet') + '</span></div>' +
+        '<div class="actions">' + (b.phone ? '<a class="btn light" href="tel:' + esc(b.phone) + '">📞 Call branch</a>' : '') +
+        '<a class="btn light" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=' + b.lat + ',' + b.lng + '">📍 Open map</a></div></div>').join('') || '<div class="empty">No branches.</div>';
+    }catch(e){ box.innerHTML = '<div class="empty">Couldn\'t load: ' + esc(e.message) + '</div>'; }
+  }
+  function fillBranchFilter(list){
+    const sel = $('branchFilter'), cur = sel.value;
+    sel.innerHTML = '<option value="">All branches</option>' + list.map(b => '<option value="' + esc(b.name) + '">' + esc(b.name) + '</option>').join('');
+    sel.value = cur;
+  }
+
+  // ---------- start ----------
+  async function start(){
+    $('gate').style.display = 'none'; $('app').style.display = 'block';
+    try{ if(localStorage.getItem('azizoStaffSound') === '1'){ soundOn = true; $('soundBtn').textContent = '🔔 Sound on'; $('soundBtn').classList.add('on'); $('soundBtn').setAttribute('aria-pressed', 'true'); } }catch(e){}
+    knownIds = null;
+    try{ fillBranchFilter((await api('/api/branches/all')).branches || []); }catch(e){}
+    await loadOrders();
+    clearInterval(timer);
+    timer = setInterval(() => { if(!document.hidden && currentTab() === 'orders') loadOrders(true); else if(!document.hidden) updateBadge(); }, 20000);
+  }
+  document.addEventListener('visibilitychange', () => { if(!document.hidden && token() && currentTab() === 'orders') loadOrders(true); });
+  const saved = localStorage.getItem(URL_KEY); if(saved !== null) $('urlIn').value = saved;
+  if(token()) start();
+})();
+</script>
+</body>
+</html>
