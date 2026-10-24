@@ -1,0 +1,787 @@
+{
+ "dishes": [
+  {
+   "name": "Beef Stew & Ugali Combo",
+   "tradition": "Pan-Kenyan",
+   "category": "Combo",
+   "meal": "both",
+   "price": 450,
+   "serves": 1,
+   "description": "Tender beef in a thick tomato and onion gravy with ugali, sukuma wiki and kachumbari.",
+   "components": [
+    "Beef stew: 180 g cooked beef + 200 ml gravy",
+    "Ugali: 300 g (or rice 250 g)",
+    "Sukuma wiki: 120 g",
+    "Kachumbari: 60 g"
+   ],
+   "method": [
+    "Beef simmered until fork-tender (min 90 min), never fried dry",
+    "Gravy: onion, tomato, garlic, ginger, salt only; no stock cubes beyond 1/4 cube per kg",
+    "Sukuma sliced thin, cooked 6-8 minutes so it stays green",
+    "Kachumbari made fresh the same morning"
+   ],
+   "options": [
+    {
+     "name": "Starch",
+     "required": true,
+     "choices": [
+      {
+       "name": "Ugali",
+       "price": 0
+      },
+      {
+       "name": "Rice",
+       "price": 0
+      },
+      {
+       "name": "Chapati x2",
+       "price": 40
+      }
+     ]
+    },
+    {
+     "name": "Spice level",
+     "required": false,
+     "choices": [
+      {
+       "name": "Mild",
+       "price": 0
+      },
+      {
+       "name": "Medium",
+       "price": 0
+      },
+      {
+       "name": "Hot",
+       "price": 0
+      }
+     ]
+    }
+   ],
+   "packaging": "700 ml container + 250 ml gravy cup",
+   "tips": "Beef bought from Azizo.",
+   "id": 1,
+   "slug": "beef-stew-ugali-combo",
+   "image": "",
+   "active": true,
+   "sort": 0
+  },
+  {
+   "name": "Chicken Stew & Rice",
+   "tradition": "Pan-Kenyan",
+   "category": "Combo",
+   "meal": "both",
+   "price": 480,
+   "serves": 1,
+   "description": "Browned chicken pieces in a tomato gravy with fluffy rice and greens.",
+   "components": [
+    "Chicken: 2 pieces (about 250 g) + 150 ml gravy",
+    "Rice: 250 g cooked",
+    "Cabbage or sukuma: 100 g",
+    "Kachumbari: 60 g"
+   ],
+   "method": [
+    "Chicken browned before it goes into the gravy",
+    "Cooked to 74 C inside",
+    "Rice washed, cooked with a pinch of salt, no oil pooling"
+   ],
+   "options": [
+    {
+     "name": "Starch",
+     "required": true,
+     "choices": [
+      {
+       "name": "Ugali",
+       "price": 0
+      },
+      {
+       "name": "Rice",
+       "price": 0
+      },
+      {
+       "name": "Chapati x2",
+       "price": 40
+      }
+     ]
+    }
+   ],
+   "packaging": "700 ml container + 250 ml gravy cup",
+   "tips": "",
+   "id": 2,
+   "slug": "chicken-stew-rice",
+   "image": "",
+   "active": true,
+   "sort": 1
+  },
+  {
+   "name": "Pilau Beef Plate",
+   "tradition": "Swahili",
+   "category": "Combo",
+   "meal": "both",
+   "price": 500,
+   "serves": 1,
+   "description": "Spiced rice cooked in beef stock with tender beef, served with kachumbari.",
+   "components": [
+    "Pilau rice: 300 g cooked",
+    "Beef: 150 g cooked, bone-in or boneless",
+    "Kachumbari: 80 g"
+   ],
+   "method": [
+    "Onions browned deep before the spices",
+    "Pilau masala 2 tbsp per kg of rice",
+    "Rice rested covered for 10 minutes before packing"
+   ],
+   "options": [
+    {
+     "name": "Spice level",
+     "required": false,
+     "choices": [
+      {
+       "name": "Mild",
+       "price": 0
+      },
+      {
+       "name": "Medium",
+       "price": 0
+      },
+      {
+       "name": "Hot",
+       "price": 0
+      }
+     ]
+    }
+   ],
+   "packaging": "800 ml container + 80 g kachumbari cup",
+   "tips": "",
+   "id": 3,
+   "slug": "pilau-beef-plate",
+   "image": "",
+   "active": true,
+   "sort": 2
+  },
+  {
+   "name": "Chicken Biryani",
+   "tradition": "Swahili",
+   "category": "Combo",
+   "meal": "both",
+   "price": 550,
+   "serves": 1,
+   "description": "Layered spiced rice with marinated chicken, fried onions and a cooling raita.",
+   "components": [
+    "Biryani rice: 300 g cooked",
+    "Chicken: 2 pieces (about 250 g)",
+    "Raita: 80 g",
+    "Fried onions: 10 g"
+   ],
+   "method": [
+    "Chicken marinated in yoghurt and spices at least 2 hours",
+    "Layered and cooked sealed (dum) for 25 minutes"
+   ],
+   "options": [
+    {
+     "name": "Spice level",
+     "required": false,
+     "choices": [
+      {
+       "name": "Mild",
+       "price": 0
+      },
+      {
+       "name": "Medium",
+       "price": 0
+      },
+      {
+       "name": "Hot",
+       "price": 0
+      }
+     ]
+    }
+   ],
+   "packaging": "700 ml container + 250 ml gravy cup",
+   "tips": "",
+   "id": 4,
+   "slug": "chicken-biryani",
+   "image": "",
+   "active": true,
+   "sort": 3
+  },
+  {
+   "name": "Kuku Paka & Chapati",
+   "tradition": "Swahili",
+   "category": "Combo",
+   "meal": "dinner",
+   "price": 550,
+   "serves": 1,
+   "description": "Coastal chicken in a creamy turmeric coconut sauce with two soft chapatis.",
+   "components": [
+    "Kuku paka: 2 pieces + 200 ml sauce",
+    "Chapati: 2 pieces",
+    "Kachumbari: 60 g"
+   ],
+   "method": [
+    "Chicken grilled or fried first, then simmered in coconut sauce",
+    "Chapati made the same day, kept wrapped"
+   ],
+   "options": [
+    {
+     "name": "Spice level",
+     "required": false,
+     "choices": [
+      {
+       "name": "Mild",
+       "price": 0
+      },
+      {
+       "name": "Medium",
+       "price": 0
+      },
+      {
+       "name": "Hot",
+       "price": 0
+      }
+     ]
+    }
+   ],
+   "packaging": "700 ml container + 250 ml gravy cup",
+   "tips": "",
+   "id": 5,
+   "slug": "kuku-paka-chapati",
+   "image": "",
+   "active": true,
+   "sort": 4
+  },
+  {
+   "name": "Mukimo & Beef Stew",
+   "tradition": "Kikuyu",
+   "category": "Combo",
+   "meal": "both",
+   "price": 450,
+   "serves": 1,
+   "description": "Mashed potato, maize and greens with a ladle of beef stew.",
+   "components": [
+    "Mukimo: 350 g",
+    "Beef stew: 150 g beef + 150 ml gravy"
+   ],
+   "method": [
+    "Potatoes, maize and greens mashed together while hot",
+    "Served hot; holds 90 minutes maximum"
+   ],
+   "options": [],
+   "packaging": "800 ml container + 250 ml gravy cup",
+   "tips": "",
+   "id": 6,
+   "slug": "mukimo-beef-stew",
+   "image": "",
+   "active": true,
+   "sort": 5
+  },
+  {
+   "name": "Githeri Special",
+   "tradition": "Kikuyu",
+   "category": "Plate",
+   "meal": "both",
+   "price": 320,
+   "serves": 1,
+   "description": "Slow-cooked maize and beans with carrots and potatoes, topped with fresh avocado slices.",
+   "components": [
+    "Githeri: 400 g",
+    "Avocado: 1/4 fruit",
+    "Kachumbari: 60 g"
+   ],
+   "method": [
+    "Maize and beans soaked overnight and boiled until soft",
+    "Fried with onions, tomato and carrot"
+   ],
+   "options": [],
+   "packaging": "800 ml container",
+   "tips": "",
+   "id": 7,
+   "slug": "githeri-special",
+   "image": "",
+   "active": true,
+   "sort": 6
+  },
+  {
+   "name": "Chapati & Ndengu",
+   "tradition": "Pan-Kenyan",
+   "category": "Plate",
+   "meal": "both",
+   "price": 300,
+   "serves": 1,
+   "description": "Green-gram stew with two chapatis and kachumbari.",
+   "components": [
+    "Ndengu: 250 g cooked",
+    "Chapati: 2 pieces",
+    "Kachumbari: 60 g"
+   ],
+   "method": [
+    "Ndengu boiled until they break gently; simmered with tomato and onion"
+   ],
+   "options": [],
+   "packaging": "700 ml container + 250 ml gravy cup",
+   "tips": "",
+   "id": 8,
+   "slug": "chapati-ndengu",
+   "image": "",
+   "active": true,
+   "sort": 7
+  },
+  {
+   "name": "Tilapia & Ugali",
+   "tradition": "Luo",
+   "category": "Combo",
+   "meal": "both",
+   "price": 650,
+   "serves": 1,
+   "description": "Whole fried tilapia with ugali, sukuma wiki and kachumbari.",
+   "components": [
+    "Tilapia: 1 whole fish (400-500 g)",
+    "Ugali: 300 g",
+    "Sukuma wiki: 100 g",
+    "Kachumbari: 60 g"
+   ],
+   "method": [
+    "Fish seasoned with salt and lemon, fried until crisp",
+    "Packed vented so it stays crisp",
+    "Fish must be delivered within 45 minutes"
+   ],
+   "options": [],
+   "packaging": "Fish tray + 700 ml container",
+   "tips": "Hold time for fish is shorter: 60 minutes.",
+   "id": 9,
+   "slug": "tilapia-ugali",
+   "image": "",
+   "active": true,
+   "sort": 8
+  },
+  {
+   "name": "Omena & Ugali",
+   "tradition": "Luo",
+   "category": "Plate",
+   "meal": "both",
+   "price": 300,
+   "serves": 1,
+   "description": "Lake Victoria dagaa simmered with tomato and onion, with ugali and greens.",
+   "components": [
+    "Omena: 120 g (dry weight)",
+    "Ugali: 300 g",
+    "Sukuma wiki: 100 g"
+   ],
+   "method": [
+    "Omena washed 3 times and boiled before frying",
+    "Simmered with onion and tomato"
+   ],
+   "options": [],
+   "packaging": "700 ml container + 250 ml gravy cup",
+   "tips": "",
+   "id": 10,
+   "slug": "omena-ugali",
+   "image": "",
+   "active": true,
+   "sort": 9
+  },
+  {
+   "name": "Ingokho (Luhya Chicken) & Ugali",
+   "tradition": "Luhya",
+   "category": "Combo",
+   "meal": "dinner",
+   "price": 650,
+   "serves": 1,
+   "description": "Free-range chicken slow-cooked Luhya style with ugali and traditional greens.",
+   "components": [
+    "Kienyeji chicken: 2 pieces (about 300 g)",
+    "Ugali: 300 g",
+    "Greens: 100 g"
+   ],
+   "method": [
+    "Free-range chicken simmered slowly (60-90 min)",
+    "Seasoned simply with onion, tomato and salt"
+   ],
+   "options": [],
+   "packaging": "700 ml container + 250 ml gravy cup",
+   "tips": "",
+   "id": 11,
+   "slug": "ingokho-luhya-chicken-ugali",
+   "image": "",
+   "active": true,
+   "sort": 10
+  },
+  {
+   "name": "Mbuzi Stew & Ugali",
+   "tradition": "Pan-Kenyan",
+   "category": "Combo",
+   "meal": "both",
+   "price": 600,
+   "serves": 1,
+   "description": "Goat stew with ugali and sukuma wiki.",
+   "components": [
+    "Goat: 170 g cooked + 200 ml gravy",
+    "Ugali: 300 g",
+    "Sukuma wiki: 100 g",
+    "Kachumbari: 60 g"
+   ],
+   "method": [
+    "Goat simmered until tender (min 2 hours)",
+    "Gravy as per standard beef stew"
+   ],
+   "options": [
+    {
+     "name": "Starch",
+     "required": true,
+     "choices": [
+      {
+       "name": "Ugali",
+       "price": 0
+      },
+      {
+       "name": "Rice",
+       "price": 0
+      },
+      {
+       "name": "Chapati x2",
+       "price": 40
+      }
+     ]
+    }
+   ],
+   "packaging": "700 ml container + 250 ml gravy cup",
+   "tips": "",
+   "id": 12,
+   "slug": "mbuzi-stew-ugali",
+   "image": "",
+   "active": true,
+   "sort": 11
+  },
+  {
+   "name": "Matumbo & Ugali",
+   "tradition": "Pan-Kenyan",
+   "category": "Combo",
+   "meal": "both",
+   "price": 400,
+   "serves": 1,
+   "description": "Tripe stew with ugali and kachumbari.",
+   "components": [
+    "Matumbo: 180 g cooked",
+    "Ugali: 300 g",
+    "Kachumbari: 60 g"
+   ],
+   "method": [
+    "Tripe cleaned thoroughly and boiled 2 hours before frying",
+    "Served hot, finished with coriander"
+   ],
+   "options": [],
+   "packaging": "700 ml container + 250 ml gravy cup",
+   "tips": "",
+   "id": 13,
+   "slug": "matumbo-ugali",
+   "image": "",
+   "active": true,
+   "sort": 12
+  },
+  {
+   "name": "Muthokoi with Beef",
+   "tradition": "Kamba",
+   "category": "Plate",
+   "meal": "both",
+   "price": 400,
+   "serves": 1,
+   "description": "Dehulled maize with beans and beef, a Kamba classic.",
+   "components": [
+    "Muthokoi: 350 g",
+    "Beef: 120 g",
+    "Kachumbari: 60 g"
+   ],
+   "method": [
+    "Muthokoi soaked and boiled until soft, then cooked with beans and beef"
+   ],
+   "options": [],
+   "packaging": "700 ml container + 250 ml gravy cup",
+   "tips": "",
+   "id": 14,
+   "slug": "muthokoi-with-beef",
+   "image": "",
+   "active": true,
+   "sort": 13
+  },
+  {
+   "name": "Wali wa Nazi & Fish Curry",
+   "tradition": "Swahili",
+   "category": "Combo",
+   "meal": "both",
+   "price": 600,
+   "serves": 1,
+   "description": "Coconut rice with fish in a mild coconut and tomato curry.",
+   "components": [
+    "Wali wa nazi: 300 g",
+    "Fish: 200 g + 150 ml sauce",
+    "Kachumbari: 60 g"
+   ],
+   "method": [
+    "Rice cooked in coconut milk",
+    "Fish added at the end and cooked gently for 8-10 minutes"
+   ],
+   "options": [],
+   "packaging": "800 ml container + 200 ml sauce cup",
+   "tips": "",
+   "id": 15,
+   "slug": "wali-wa-nazi-fish-curry",
+   "image": "",
+   "active": true,
+   "sort": 14
+  },
+  {
+   "name": "Family Pack: Beef Stew (serves 4)",
+   "tradition": "Pan-Kenyan",
+   "category": "Family Pack",
+   "meal": "both",
+   "price": 1800,
+   "serves": 4,
+   "description": "Beef stew, ugali or rice, sukuma wiki and kachumbari for four people.",
+   "components": [
+    "Beef stew: 720 g beef + 800 ml gravy",
+    "Ugali: 1.2 kg (or rice 1 kg)",
+    "Sukuma wiki: 480 g",
+    "Kachumbari: 240 g"
+   ],
+   "method": [
+    "Same recipe and standards as the single Combo, multiplied by 4",
+    "Packed in separate containers so nothing gets soggy"
+   ],
+   "options": [
+    {
+     "name": "Starch",
+     "required": true,
+     "choices": [
+      {
+       "name": "Ugali",
+       "price": 0
+      },
+      {
+       "name": "Rice",
+       "price": 0
+      },
+      {
+       "name": "Chapati x2",
+       "price": 40
+      }
+     ]
+    }
+   ],
+   "packaging": "2 L container + 1 L container + 2 side pots",
+   "tips": "",
+   "id": 16,
+   "slug": "family-pack-beef-stew-serves-4",
+   "image": "",
+   "active": true,
+   "sort": 15
+  },
+  {
+   "name": "Family Pack: Pilau (serves 4)",
+   "tradition": "Swahili",
+   "category": "Family Pack",
+   "meal": "both",
+   "price": 1900,
+   "serves": 4,
+   "description": "Spiced pilau with beef and kachumbari for four.",
+   "components": [
+    "Pilau: 1.2 kg cooked",
+    "Beef: 600 g cooked",
+    "Kachumbari: 320 g"
+   ],
+   "method": [
+    "Same recipe and standards as the single Pilau plate, multiplied by 4"
+   ],
+   "options": [
+    {
+     "name": "Spice level",
+     "required": false,
+     "choices": [
+      {
+       "name": "Mild",
+       "price": 0
+      },
+      {
+       "name": "Medium",
+       "price": 0
+      },
+      {
+       "name": "Hot",
+       "price": 0
+      }
+     ]
+    }
+   ],
+   "packaging": "2 L container + 2 side pots",
+   "tips": "",
+   "id": 17,
+   "slug": "family-pack-pilau-serves-4",
+   "image": "",
+   "active": true,
+   "sort": 16
+  },
+  {
+   "name": "Sukuma Wiki",
+   "tradition": "Pan-Kenyan",
+   "category": "Side",
+   "meal": "both",
+   "price": 100,
+   "serves": 1,
+   "description": "Collard greens fried with onion.",
+   "components": [
+    "Sukuma: 150 g"
+   ],
+   "method": [
+    "Fresh daily, cooked 6-8 minutes"
+   ],
+   "options": [],
+   "packaging": "250 ml pot",
+   "tips": "",
+   "id": 18,
+   "slug": "sukuma-wiki",
+   "image": "",
+   "active": true,
+   "sort": 17
+  },
+  {
+   "name": "Kachumbari",
+   "tradition": "Pan-Kenyan",
+   "category": "Side",
+   "meal": "both",
+   "price": 80,
+   "serves": 1,
+   "description": "Tomato and onion salad with lemon and coriander.",
+   "components": [
+    "Kachumbari: 100 g"
+   ],
+   "method": [
+    "Made the same morning, kept cold"
+   ],
+   "options": [],
+   "packaging": "150 ml pot",
+   "tips": "",
+   "id": 19,
+   "slug": "kachumbari",
+   "image": "",
+   "active": true,
+   "sort": 18
+  },
+  {
+   "name": "Extra Ugali",
+   "tradition": "Pan-Kenyan",
+   "category": "Side",
+   "meal": "both",
+   "price": 80,
+   "serves": 1,
+   "description": "A second portion of ugali.",
+   "components": [
+    "Ugali: 300 g"
+   ],
+   "method": [
+    "Wrapped hot, sealed"
+   ],
+   "options": [],
+   "packaging": "Foil wrap + 600 ml container",
+   "tips": "",
+   "id": 20,
+   "slug": "extra-ugali",
+   "image": "",
+   "active": true,
+   "sort": 19
+  },
+  {
+   "name": "Chapati (2 pieces)",
+   "tradition": "Pan-Kenyan",
+   "category": "Side",
+   "meal": "both",
+   "price": 80,
+   "serves": 1,
+   "description": "Two soft layered chapatis.",
+   "components": [
+    "Chapati: 2 pieces"
+   ],
+   "method": [
+    "Cooked the same day; wrapped in foil"
+   ],
+   "options": [],
+   "packaging": "Foil wrap",
+   "tips": "",
+   "id": 21,
+   "slug": "chapati-2-pieces",
+   "image": "",
+   "active": true,
+   "sort": 20
+  },
+  {
+   "name": "Extra Rice",
+   "tradition": "Pan-Kenyan",
+   "category": "Side",
+   "meal": "both",
+   "price": 100,
+   "serves": 1,
+   "description": "A second portion of plain rice.",
+   "components": [
+    "Rice: 250 g"
+   ],
+   "method": [
+    "Cooked fresh"
+   ],
+   "options": [],
+   "packaging": "600 ml container",
+   "tips": "",
+   "id": 22,
+   "slug": "extra-rice",
+   "image": "",
+   "active": true,
+   "sort": 21
+  },
+  {
+   "name": "Extra Beef Stew (200 g)",
+   "tradition": "Pan-Kenyan",
+   "category": "Side",
+   "meal": "both",
+   "price": 250,
+   "serves": 1,
+   "description": "Extra beef stew portion.",
+   "components": [
+    "Beef stew: 150 g beef + 150 ml gravy"
+   ],
+   "method": [
+    "As per standard beef stew"
+   ],
+   "options": [],
+   "packaging": "350 ml container",
+   "tips": "",
+   "id": 23,
+   "slug": "extra-beef-stew-200-g",
+   "image": "",
+   "active": true,
+   "sort": 22
+  }
+ ],
+ "settings": {
+  "commissionPct": 20,
+  "lunch": {
+   "label": "Lunch",
+   "from": "12:00",
+   "to": "14:00",
+   "cutoff": "10:30"
+  },
+  "dinner": {
+   "label": "Dinner",
+   "from": "18:00",
+   "to": "20:00",
+   "cutoff": "16:30"
+  },
+  "fee": {
+   "base": 100,
+   "perKm": 25,
+   "bandKm": 2,
+   "max": 400
+  },
+  "defaultRadiusKm": 4,
+  "roadFactor": 1.3,
+  "zoneCap": 4,
+  "minOrder": 300,
+  "holdMinutes": 120
+ }
+}
