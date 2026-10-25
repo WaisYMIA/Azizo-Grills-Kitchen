@@ -1,5 +1,10 @@
 # Changelog
 
+## v3.3.2 — 2026-10-26
+- **Old EN / SW button removed from the main shop's navigation bar** on every page (the Google-powered switch is now the only one site-wide). The old built-in word list is switched off so it can't clash with it.
+- **No more overlap on the main shop.** The language switch now sits bottom-centre where the floating social buttons and the Buy Now button are, and checked at five screen sizes to clear them.
+- **GitHub Pages and Kitchens.** GitHub Pages serves web pages only, so it cannot run the ordering server. Kitchens now says so plainly on such hosts, still shows the area list, and offers an "Order on WhatsApp" button with the chosen area. To get full online ordering, host the backend elsewhere (cPanel PHP, or a Node host) and set `API_BASE_URL` in `site/kk-config.js`.
+
 ## v3.3.1 — 2026-10-26
 - **One language switch.** The old EN | SW button in the Kitchens header is removed; the Google-powered switch (bottom-left) is the only one, on every public page including Azizo Kitchens.
 - **Kitchens "service could not be found".** The site now also tries the PHP router file directly (`/api/kitchens/index.php?p=...`) when the clean address is missing (hosts where the `.htaccess` rewrite is off), and the error now names the address it tried.

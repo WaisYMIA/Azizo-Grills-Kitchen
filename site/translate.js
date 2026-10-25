@@ -23,7 +23,7 @@
     + '#azLangPill button{border:0;background:transparent;padding:10px 13px;min-height:40px;cursor:pointer;color:#333;font:inherit}'
     + '#azLangPill button[aria-pressed=true]{background:#b3131b;color:#fff}'
     + '#azLangMsg{position:fixed;left:12px;bottom:62px;z-index:9991;background:#222;color:#fff;border-radius:10px;padding:9px 12px;font:13px/1.35 system-ui,sans-serif;max-width:260px;box-shadow:0 4px 14px rgba(0,0,0,.3)}'
-    + 'body:has(.modal.show) #azLangPill,body:has(.eb-modal:not([hidden])) #azLangPill{display:none}@media print{#azLangPill,#azLangMsg{display:none}}';
+    + 'body:has(.floating-social) #azLangPill{left:50%;transform:translateX(-50%)}body:has(.modal.show) #azLangPill,body:has(.eb-modal:not([hidden])) #azLangPill{display:none}@media print{#azLangPill,#azLangMsg{display:none}}';
   document.head.appendChild(css);
 
   function msg(t){

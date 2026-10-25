@@ -203,7 +203,7 @@
       'findus.eyebrow': 'Pata Tawi', 'findus.h2': 'Tupate',
     }
   };
-  let currentLang = localStorage.getItem('azizoLang') || 'en';
+  let currentLang = 'en';   // v3.3.2: translation is done site-wide by translate.js (Google); the old built-in word list is no longer used
   const originalText = {}; // cache of original English content, keyed by element index
 
   function applyLanguage(lang){
@@ -218,9 +218,7 @@
       }
     });
     document.documentElement.lang = lang;
-    document.getElementById('langToggle').textContent = lang === 'sw' ? 'SW / EN' : 'EN / SW';
     currentLang = lang;
-    localStorage.setItem('azizoLang', lang);
   }
   function toggleLanguage(){
     applyLanguage(currentLang === 'en' ? 'sw' : 'en');

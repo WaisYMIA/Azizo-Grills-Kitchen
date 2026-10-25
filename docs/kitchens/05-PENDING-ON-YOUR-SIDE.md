@@ -34,3 +34,6 @@ Everything that can be built in code is built. These items need something only y
 
 ## 5. How to restore a backup
 1. Stop the app. 2. Copy the backup `.db` file over the live database file (`backend/azizo.db`, or the path in `DB_PATH`). 3. Untar the uploads archive into `backend/`. 4. Start the app and open `/api/kitchens/health`.
+
+## Hosting note (added v3.3.2)
+GitHub Pages can only show web pages. Kitchens ordering, event enquiries and the admin switches need the backend (Node or PHP) hosted somewhere else (for example cPanel). After hosting it, set `API_BASE_URL` in `site/kk-config.js` to that address and redeploy the site.

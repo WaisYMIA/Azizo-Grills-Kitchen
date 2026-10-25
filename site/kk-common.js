@@ -39,7 +39,7 @@
     if(r.net) throw new Error('Cannot reach the server. Check your internet connection and try again.');
     if(!r.res.ok){
       var msg = r.data.error;
-      if(!msg && (r.res.status === 404 || r.res.status === 405)){ msg = 'The ordering service could not be found at ' + (base || location.origin) + '. The backend there needs the latest version, or set API_BASE_URL in kk-config.js to the right address.'; try{ console.error('Azizo Kitchens: ' + base + '/api/kitchens' + path + ' returned ' + r.res.status + '. Set API_BASE_URL in kk-config.js to your backend address, and make sure the backend is updated to the latest version.'); }catch(e){} }
+      if(!msg && (r.res.status === 404 || r.res.status === 405)){ msg = /github\.io$|netlify\.app$|pages\.dev$/.test(location.hostname) && !K.explicitBase() ? 'Online ordering is not switched on for this website yet. This address (' + location.hostname + ') only serves web pages; the ordering server must be hosted separately and its address set in kk-config.js.' : 'The ordering service could not be found at ' + (base || location.origin) + '. The backend there needs the latest version, or set API_BASE_URL in kk-config.js to the right address.'; try{ console.error('Azizo Kitchens: ' + base + '/api/kitchens' + path + ' returned ' + r.res.status + '. Set API_BASE_URL in kk-config.js to your backend address, and make sure the backend is updated to the latest version.'); }catch(e){} }
       var er = new Error(msg || ('Something went wrong (' + r.res.status + ')')); er.status = r.res.status; throw er;
     }
     return r.data;
