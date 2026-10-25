@@ -99,7 +99,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-tp]'), function(e){ if(!e.dataset.en) e.dataset.en = e.getAttribute('placeholder') || ''; e.setAttribute('placeholder', K.t(e.dataset.en)); });
     var b = K.$('kkLang'); if(b){ b.textContent = K.lang === 'sw' ? 'SW | en' : 'EN | sw'; b.setAttribute('aria-label', K.lang === 'sw' ? 'Switch to English' : 'Badilisha kuwa Kiswahili'); }
   };
-  K.setLang = function(l){ K.lang = l === 'sw' ? 'sw' : 'en'; K.set('kkLang', K.lang); K.applyLang(); if(typeof K.onLang === 'function') K.onLang(); };
+  K.setLang = function(l){ K.lang = l === 'sw' ? 'sw' : 'en'; K.set('kkLang', K.lang); K.applyLang(); if(window.azizoTranslate) window.azizoTranslate(K.lang); if(typeof K.onLang === 'function') K.onLang(); };
   var opener = null;
   K.openModal = function(id){
     var m = K.$(id); if(!m) return; opener = document.activeElement; m.classList.add('show'); var sh = m.querySelector('.sheet');

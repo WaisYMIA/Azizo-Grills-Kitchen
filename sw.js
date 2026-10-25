@@ -1,9 +1,10 @@
 // Azizo Butchery & Grill — Service Worker (multi-page site)
 // Bump CACHE_NAME whenever shared assets change so visitors get the update.
-const CACHE_NAME = 'azizo-v321';
+const CACHE_NAME = 'azizo-v330';
 const CORE_ASSETS = [
   './',
   './index.html',
+  './translate.js',
   './fresh-market.html',
   './ready-to-eat.html',
   './meal-planner.html',
