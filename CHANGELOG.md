@@ -1,5 +1,8 @@
 # Changelog
 
+## v3.3.0 — 2026-10-26
+- **Whole-site Kiswahili.** A new `translate.js` uses Google's free Website Translator, so every word on every public page (including products, dishes, prices labels, menus loaded later) is translated, not only the header. A small EN | SW switch sits bottom-left on every public page; the Kitchens header switch drives the same thing. The choice is remembered, and `?lang=sw` in a link opens the page in Kiswahili. Staff, rider, admin and cook pages stay in English. Needs an internet connection; machine translation, so wording may be imperfect.
+
 ## v3.2.1 — 2026-10-25
 - **Fix: Azizo Kitchens showed "Something went wrong (404)" and an empty area list.** Cause: the Kitchens pages looked for the backend at the page's own address, while on a static host the backend lives elsewhere (set only in `app.js`, with `kk-config.js` left empty). Now, when `kk-config.js` is empty and the page's own address has no Kitchens service, the pages use the backend address already set in `app.js` (and remember it). If no backend can be found, customers see "The ordering service could not be found" with the WhatsApp number instead of "(404)". The reliable setting is still `API_BASE_URL` in `site/kk-config.js`.
 - The phone-test build no longer hard-codes `http://localhost:3000` for Kitchens (same address is used, so it also works from a phone on your network).

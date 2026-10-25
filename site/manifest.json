@@ -1,0 +1,52 @@
+{
+  "name": "Azizo Butchery & Grill",
+  "short_name": "Azizo Grill",
+  "description": "Nairobi's premium one-stop butchery and grill \u2014 fresh meat, nyama choma, delivery and bulk meal plans. Open 24 hours.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#070605",
+  "theme_color": "#161210",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "./index.html",
+  "shortcuts": [
+    {
+      "name": "Order meat",
+      "url": "./fresh-market.html"
+    },
+    {
+      "name": "Meat Budget Planner",
+      "url": "./budget.html"
+    },
+    {
+      "name": "Areas We Serve",
+      "url": "./areas.html"
+    }
+  ]
+}

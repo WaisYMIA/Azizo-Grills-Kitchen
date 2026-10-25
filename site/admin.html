@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azizo Menu Admin</title>
+<style>
+  :root{
+    --maroon:#161210; --maroon-deep:#070605; --gold:#C89B3C; --gold-soft:#E4C88A;
+    --cream:#F3ECE0; --ink:#221A17; --ink-soft:#5A4E48; --line:#DDD0BC; --red:#B23A3A; --green:#2E7D46;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
+  header{background:var(--maroon-deep);color:var(--cream);padding:20px 24px;}
+  header h1{margin:0 0 4px;font-size:19px;}
+  header p{margin:0;font-size:12.5px;color:#C9B8A9;line-height:1.6;max-width:720px;}
+  .wrap{max-width:1120px;margin:0 auto;padding:24px;}
+  .gate{max-width:400px;margin:70px auto;background:#fff;border:1px solid var(--line);border-radius:8px;padding:28px;text-align:center;}
+  .gate input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:4px;font-size:14px;margin:8px 0;}
+  .gate label{display:block;font-size:11.5px;color:var(--ink-soft);text-align:left;font-weight:600;margin-top:12px;}
+  .gate button, .toolbar button, .item-actions button, .form-actions button{
+    background:var(--maroon);color:var(--cream);border:none;padding:10px 18px;border-radius:4px;
+    font-size:13px;font-weight:600;cursor:pointer;
+  }
+  .gate button:hover, .toolbar button:hover{background:var(--maroon-deep);}
+  .gate button{width:100%;margin-top:14px;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:center;}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:18px;padding:18px;}
+  .panel h3{margin:0 0 10px;font-size:14.5px;}
+  .panel .hint{font-size:12px;color:var(--ink-soft);line-height:1.6;margin:0 0 12px;}
+  .excel-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .excel-btn{background:var(--gold);color:var(--maroon-deep);border:none;padding:10px 16px;border-radius:4px;font-size:12.5px;font-weight:700;cursor:pointer;}
+  .excel-btn.secondary{background:var(--ink-soft);color:#fff;}
+  .excel-btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .import-result{margin-top:12px;font-size:12.5px;background:var(--cream);border:1px dashed var(--line);border-radius:4px;padding:10px 12px;display:none;}
+  .import-result.show{display:block;}
+  .import-result .err-line{color:var(--red);}
+  section.cat-section{margin-bottom:28px;}
+  section.cat-section h2{font-size:17px;border-bottom:2px solid var(--gold);padding-bottom:8px;}
+  .item-row{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 16px;margin-bottom:8px;
+  }
+  .item-row .thumb{
+    width:44px;height:44px;border-radius:4px;object-fit:cover;background:var(--cream);
+    border:1px solid var(--line);flex-shrink:0;
+  }
+  .item-row .info{font-size:13.5px;flex:1;min-width:0;}
+  .item-row .info .name{font-weight:700;}
+  .item-row .info .meta{color:var(--ink-soft);font-size:12px;font-family:monospace;}
+  .item-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+  .item-actions{display:flex;gap:8px;flex-shrink:0;}
+  .item-actions button{padding:6px 12px;font-size:12px;}
+  .item-actions .edit-btn{background:var(--ink-soft);}
+  .item-actions .del-btn{background:var(--red);}
+  .add-btn{background:var(--gold);color:var(--maroon-deep);border:none;padding:9px 16px;border-radius:4px;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:6px;}
+  .logout-btn{background:transparent;color:#C9B8A9;border:1px solid rgba(255,255,255,0.3);padding:8px 14px;border-radius:4px;font-size:12px;cursor:pointer;}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:50;padding:16px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:#fff;border-radius:8px;padding:24px;max-width:460px;width:100%;max-height:90vh;overflow-y:auto;}
+  .modal h3{margin-top:0;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:5px;font-weight:600;}
+  .field input, .field select, .field textarea{
+    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:4px;font-size:13.5px;font-family:inherit;
+  }
+  .field textarea{resize:vertical;min-height:60px;}
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .current-photo{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .current-photo img{width:52px;height:52px;object-fit:cover;border-radius:4px;border:1px solid var(--line);background:var(--cream);}
+  .current-photo span{font-size:11.5px;color:var(--ink-soft);}
+  .form-actions{display:flex;justify-content:space-between;margin-top:18px;}
+  .form-actions .cancel-btn{background:var(--line);color:var(--ink);}
+  .error-msg{color:var(--red);font-size:12.5px;margin-top:8px;min-height:0;}
+  .empty-note{color:var(--ink-soft);font-size:13px;font-style:italic;}
+  .status-line{font-size:12.5px;color:var(--ink-soft);margin-top:10px;}
+
+  /* ---------- TOP-LEVEL TABS (Products / Orders) ---------- */
+  .admin-tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:2px solid var(--line);overflow-x:auto;white-space:nowrap;}
+  @media(max-width:560px){.admin-tab{padding:10px 12px;}}
+  .admin-tab{
+    background:none;border:none;padding:10px 18px;font-size:13.5px;font-weight:700;
+    color:var(--ink-soft);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;
+  }
+  .admin-tab.active{color:var(--maroon);border-bottom-color:var(--gold);}
+
+  /* ---------- ORDERS TAB ---------- */
+  .order-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .order-filters select, .order-filters input{
+    padding:8px 10px;border:1px solid var(--line);border-radius:4px;font-size:13px;font-family:inherit;
+  }
+  .order-filters button{padding:8px 14px;font-size:12.5px;font-weight:700;background:var(--ink-soft);color:#fff;border:none;border-radius:4px;cursor:pointer;}
+  .order-card{background:#fff;border:1px solid var(--line);border-radius:6px;margin-bottom:10px;overflow:hidden;}
+  .order-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;flex-wrap:wrap;}
+  .order-head:hover{background:#FBF8F2;}
+  .order-id{font-weight:700;font-size:13.5px;}
+  .order-meta{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .order-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .order-total{font-family:monospace;font-weight:700;font-size:13.5px;}
+  .status-badge{
+    display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;
+    text-transform:uppercase;letter-spacing:0.03em;
+  }
+  .status-badge.received{background:#E4C88A;color:#5A4019;}
+  .status-badge.preparing{background:#C89B3C;color:#fff;}
+  .status-badge.ready{background:#6B8E5A;color:#fff;}
+  .status-badge.out_for_delivery{background:#3E6B8C;color:#fff;}
+  .status-badge.completed{background:var(--green);color:#fff;}
+  .status-badge.cancelled{background:var(--red);color:#fff;}
+  .order-status-select{padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:12px;font-family:inherit;}
+  .order-body{display:none;padding:0 16px 16px;border-top:1px solid var(--line);}
+  .order-body.open{display:block;}
+  .order-body table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px;}
+  .order-body td{padding:5px 0;border-bottom:1px solid #F0E9DC;}
+  .order-body td.num{text-align:right;font-family:monospace;}
+  .order-detail-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--ink-soft);}
+  .order-detail-row strong{color:var(--ink);}
+
+  /* ---------- BRANCHES TAB ---------- */
+  .branch-row-admin{
+    display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+    background:#fff;border:1px solid var(--line);border-radius:6px;padding:12px 16px;margin-bottom:8px;
+  }
+  .branch-row-admin.unlisted{background:#FBF8F2;}
+  .branch-row-admin.unlisted .b-name{color:var(--ink-soft);}
+  .b-left{display:flex;align-items:center;gap:14px;min-width:0;flex:1;}
+  .b-show{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;min-width:64px;}
+  .b-show input{width:20px;height:20px;accent-color:var(--gold);cursor:pointer;}
+  .b-info{min-width:0;}
+  .b-name{font-weight:700;font-size:14px;}
+  .b-meta{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .b-phone{font-family:monospace;font-size:12.5px;margin-top:3px;}
+  .b-phone.none{color:var(--ink-soft);font-style:italic;font-family:inherit;}
+  .main-pill{display:inline-block;background:var(--gold);color:var(--maroon-deep);font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;margin-left:8px;letter-spacing:0.04em;vertical-align:middle;}
+  .check-field{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;}
+  .check-field input{width:auto;accent-color:var(--gold);}
+  .pin-link{font-size:12px;margin:-6px 0 12px;display:block;}
+  @media(max-width:560px){ .b-left{flex-basis:100%;} .branch-row-admin .item-actions{width:100%;} }
+
+  /* ---------- REPORTS TAB ---------- */
+  .rp-bar{padding:14px 16px;}
+  .rp-presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+  .rp-presets button,.rp-subtabs button{background:#fff;border:1px solid var(--line);color:var(--ink);border-radius:18px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .rp-presets button.on,.rp-subtabs button.on{background:var(--maroon);color:var(--cream);border-color:var(--maroon);}
+  .rp-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+  .rp-controls label,.rp-acct-opts label,.rp-exp label{font-size:11.5px;font-weight:600;color:var(--ink-soft);display:flex;flex-direction:column;gap:4px;}
+  .rp-controls input,.rp-controls select,.rp-acct-opts input,.rp-acct-opts select,.rp-exp input,.rp-exp select{padding:7px 9px;border:1px solid var(--line);border-radius:4px;font-size:13px;font-family:inherit;}
+  .rp-subtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px;}
+  .rp-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:18px;}
+  .rp-tile{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px;}
+  .rp-tile.neg{border-color:#E3B4B4;background:#FFF8F7;}
+  .rp-tl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);}
+  .rp-tv{font-size:21px;font-weight:800;margin:4px 0 2px;font-family:Georgia,serif;word-break:break-word;}
+  .rp-tf{font-size:11.5px;color:var(--ink-soft);}
+  .rp-d.up{color:var(--green);font-weight:700;}.rp-d.down{color:var(--red);font-weight:700;}.rp-d.flat{color:var(--ink-soft);}
+  .rp-sec h3{margin:0;}.rp-sechead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .rp-two{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:860px){.rp-two{grid-template-columns:1fr;}}
+  .rp-ins{list-style:none;margin:0;padding:0;}
+  .rp-ins li{padding:9px 12px 9px 14px;border-left:4px solid var(--line);background:#FBF8F2;margin-bottom:6px;border-radius:0 4px 4px 0;font-size:13px;line-height:1.5;}
+  .rp-ins li.good{border-left-color:var(--green);}.rp-ins li.warn{border-left-color:#D08A1E;}.rp-ins li.info{border-left-color:var(--gold);}
+  .rp-svg{width:100%;height:auto;display:block;}
+  .rp-hit{cursor:pointer;}.rp-hit:hover{fill:rgba(200,155,60,.12);}
+  .rp-tip{display:none;position:absolute;z-index:80;background:var(--maroon-deep);color:#fff;font-size:12px;padding:6px 9px;border-radius:4px;max-width:260px;pointer-events:none;}
+  .rp-hrow{display:grid;grid-template-columns:minmax(80px,170px) 1fr minmax(110px,auto);gap:10px;align-items:center;margin-bottom:8px;font-size:12.5px;}
+  .rp-hl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}
+  .rp-htrack{background:#F0E9DC;border-radius:3px;height:12px;}.rp-hfill{height:12px;border-radius:3px;}
+  .rp-hv{text-align:right;font-family:monospace;}.rp-hv small{display:block;color:var(--ink-soft);font-family:inherit;font-size:11px;}
+  @media(max-width:560px){.rp-hrow{grid-template-columns:1fr auto;}.rp-htrack{grid-column:1/-1;order:3;}}
+  .rp-tw{overflow-x:auto;}.rp-t{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .rp-t th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);border-bottom:2px solid var(--line);padding:6px 8px;white-space:nowrap;cursor:pointer;}
+  .rp-t td{padding:7px 8px;border-bottom:1px solid #F0E9DC;vertical-align:top;}
+  .rp-t .n{text-align:right;font-family:monospace;white-space:nowrap;}.rp-t th.n{text-align:right;}
+  .rp-t small{color:var(--ink-soft);font-family:inherit;}
+  .rp-tbtn{margin-top:6px;text-align:right;}
+  .rp-link{background:none;border:none;color:var(--gold-dark,#8F6A1F);font-size:12px;font-weight:700;cursor:pointer;padding:2px 4px;text-decoration:underline;}
+  .rp-na{color:var(--ink-soft);font-style:italic;}.rp-bad{color:var(--red);font-weight:700;}.rp-good{color:var(--green);font-weight:700;}
+  .rp-abc{display:inline-block;min-width:22px;text-align:center;border-radius:4px;font-weight:800;font-size:11px;padding:2px 6px;}
+  .rp-abc.A{background:var(--gold);color:var(--maroon-deep);}.rp-abc.B{background:#E4C88A;color:#5A4019;}.rp-abc.C{background:#EEE7DA;color:var(--ink-soft);}
+  .rp-h4{margin:14px 0 6px;font-size:12.5px;}.rp-list{margin:0 0 6px;padding-left:18px;font-size:12.5px;line-height:1.7;}
+  .rp-pl{width:100%;max-width:640px;border-collapse:collapse;font-size:13.5px;}
+  .rp-pl td{padding:7px 4px;border-bottom:1px solid #F0E9DC;vertical-align:top;}.rp-pl td.n{text-align:right;font-family:monospace;white-space:nowrap;}
+  .rp-pl td small{display:block;color:var(--ink-soft);font-size:11px;font-family:inherit;white-space:normal;}
+  .rp-pl tr.tot td{border-top:2px solid var(--ink);background:#FBF8F2;}
+  .rp-acct-opts{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin:14px 0 4px;font-size:13px;}
+  .rp-exp{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;align-items:end;}
+  .rp-exp .wide{grid-column:span 2;}.rp-exp .excel-btn{height:36px;}
+  @media print{
+    body{background:#fff;}header,.admin-tabs,.rp-bar,.rp-subtabs,.rp-tbtn,.rp-del,.rp-exp,.logout-btn,#productsTab,#ordersTab,#branchesTab,#areasTab,#reviewsTab,#recipesTab,#siteTab{display:none !important;}
+    #reportsTab{display:block !important;}.wrap{max-width:none;padding:0;}.panel,.rp-tile{break-inside:avoid;}
+    body::before{content:attr(data-print-title);display:block;font-weight:800;font-size:15px;margin-bottom:10px;}
+    .rp-tw{overflow:visible;}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <h2 style="margin-top:0;">Azizo Menu Admin</h2>
+  <p style="font-size:13px;color:var(--ink-soft);margin:0;">Logs into your backend's admin API — this is the same password set as <code>ADMIN_PASSWORD</code> in the backend's <code>.env</code> file, not the site's Staff/Admin passcode.</p>
+  <label for="backendUrlInput">Backend URL</label>
+  <input type="text" id="backendUrlInput" placeholder="https://your-backend.example.com (leave blank if same domain)">
+  <label for="passInput">Admin Password</label>
+  <input type="password" id="passInput" placeholder="Admin password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+  <button onclick="doAdminLogin()">Log In</button>
+  <div class="error-msg" id="gateError"></div>
+</div>
+
+<div id="app" style="display:none;">
+  <header>
+    <div class="wrap" style="padding:0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <div>
+        <h1>Azizo Menu Admin</h1>
+        <p>Product photos, prices and the catalog itself now live in the backend's real database — changes here show up on the live site immediately, no GitHub step needed.</p>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Log Out</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <div class="admin-tabs">
+      <button class="admin-tab active" id="tabBtnProducts" onclick="switchAdminTab('products')">Products</button>
+      <button class="admin-tab" id="tabBtnOrders" onclick="switchAdminTab('orders')">Orders</button>
+      <button class="admin-tab" id="tabBtnBranches" onclick="switchAdminTab('branches')">Branches</button>
+      <button class="admin-tab" id="tabBtnAreas" onclick="switchAdminTab('areas')">Areas</button>
+      <button class="admin-tab" id="tabBtnRecipes" onclick="switchAdminTab('recipes')">Recipes</button>
+      <button class="admin-tab" id="tabBtnReviews" onclick="switchAdminTab('reviews')">Reviews</button>
+      <button class="admin-tab" id="tabBtnReports" onclick="switchAdminTab('reports')">Reports</button>
+      <button class="admin-tab" id="tabBtnSite" onclick="switchAdminTab('site')">Site</button>
+    </div>
+
+    <div id="productsTab">
+      <div class="panel">
+        <h3>⬇⬆ Bulk edit via Excel</h3>
+        <p class="hint">Download the full catalog as a spreadsheet, edit prices/names/descriptions in Excel, then upload it back — every row gets matched by its <code>id</code> and updated (a new <code>id</code> creates a new product). Photos still need the per-item uploader below; Excel only carries a filename reference, not the image itself.</p>
+        <div class="excel-row">
+          <button class="excel-btn" onclick="downloadExcel()" id="downloadBtn">Download Excel</button>
+          <input type="file" id="excelFile" accept=".xlsx" style="font-size:12.5px;">
+          <button class="excel-btn secondary" onclick="uploadExcel()" id="uploadExcelBtn">Upload &amp; Import</button>
+        </div>
+        <div class="import-result" id="importResult"></div>
+      </div>
+
+      <button class="add-btn" onclick="openModal()">+ Add Product</button>
+
+      <section class="cat-section">
+        <h2>Fresh Market</h2>
+        <div id="freshList"></div>
+      </section>
+      <section class="cat-section">
+        <h2>Ready to Eat</h2>
+        <div id="readyList"></div>
+      </section>
+      <section class="cat-section">
+        <h2>Groceries</h2>
+        <div id="groceryList"></div>
+      </section>
+
+      <div class="status-line" id="statusLine"></div>
+    </div>
+
+    <div id="ordersTab" style="display:none;">
+      <div class="panel">
+        <h3>Incoming Orders</h3>
+        <p class="hint">Every checkout on the live site is saved here, in addition to the WhatsApp message it sends you. Update an order's status as you work through it — customers with an account see this same status on their own order history.</p>
+        <div class="order-filters">
+          <select id="orderStatusFilter" onchange="loadOrders()">
+            <option value="">All statuses</option>
+            <option value="received">Received</option>
+            <option value="preparing">Preparing</option>
+            <option value="ready">Ready for Pickup</option>
+            <option value="out_for_delivery">Out for Delivery</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <input type="text" id="orderPhoneFilter" placeholder="Search by phone…" onkeydown="if(event.key==='Enter')loadOrders()">
+          <button onclick="loadOrders()">Search</button>
+          <button onclick="document.getElementById('orderStatusFilter').value='';document.getElementById('orderPhoneFilter').value='';loadOrders()">Clear</button>
+        </div>
+        <div id="ordersList"></div>
+        <div class="status-line" id="ordersStatusLine"></div>
+      </div>
+    </div>
+
+    <div id="reportsTab" style="display:none;"></div>
+    <div id="areasTab" style="display:none;"></div>
+    <div id="reviewsTab" style="display:none;"></div>
+    <div id="recipesTab" style="display:none;"></div>
+    <div id="siteTab" style="display:none;"></div>
+
+    <div id="branchesTab" style="display:none;">
+      <div class="panel">
+        <h3>Branches</h3>
+        <p class="hint">Tick <strong>Show on website</strong> to list a branch for customers (branch strip, Find Us map, footer and the pickup / delivery pickers at checkout); untick to hide it without deleting anything. Use <strong>Edit</strong> to change a branch's address, map pin, hours and its own phone number. Every branch takes orders on the <strong>same WhatsApp number</strong> — a branch's phone is only the number customers call for that branch. Delivery fees are measured from each branch's map pin, so check the pins before listing a new branch. <strong>Hiding a branch (for example while it is closed) also re-routes delivery zones, quotes and the nearest-branch suggestions to the next nearest live branch</strong> - see the Areas tab.</p>
+        <div class="toolbar"><button class="add-btn" style="margin-top:0;" onclick="openBranchModal()">+ Add Branch</button></div>
+        <div id="branchesList"></div>
+        <div class="status-line" id="branchesStatusLine"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add Product</h3>
+    <form id="productForm" onsubmit="submitProduct(event)">
+      <input type="hidden" id="f_originalId">
+      <div class="current-photo" id="currentPhotoRow" style="display:none;">
+        <img id="currentPhotoImg" src="" alt="">
+        <span>Current photo — pick a new file below to replace it</span>
+      </div>
+      <div class="field">
+        <label>Photo (JPG/PNG/WEBP/GIF, up to 5MB)</label>
+        <p class="hint" style="margin:2px 0 6px;">Best results: a landscape photo (4:3, for example 1200 × 900 px) with the product in the centre. Photos fill the whole card, so anything near the edges may be trimmed.</p>
+        <input type="file" id="f_image" accept="image/jpeg,image/png,image/webp,image/gif">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>ID (unique, no spaces)</label>
+          <input type="text" id="f_id" required placeholder="e.g. beef-rump">
+        </div>
+        <div class="field">
+          <label>Section</label>
+          <select id="f_category_group" required>
+            <option value="fresh">Fresh Market</option>
+            <option value="ready">Ready to Eat</option>
+            <option value="groceries">Groceries</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Category (e.g. Beef, Chicken, Grilled)</label>
+          <input type="text" id="f_cat" required>
+        </div>
+        <div class="field">
+          <label>Kind (red / white — optional)</label>
+          <input type="text" id="f_kind">
+        </div>
+      </div>
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="f_name" required>
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea id="f_desc"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Price (KSh)</label>
+          <input type="number" id="f_price" required min="1">
+        </div>
+        <div class="field">
+          <label>Unit (kg / bird / plate / wrap...)</label>
+          <input type="text" id="f_unit" required>
+        </div>
+      </div>
+      <div class="field">
+        <label>Cost price per unit (KSh, private — used only for profit reports)</label>
+        <input type="number" id="f_cost" min="0" step="1" placeholder="What one kg / bird / plate costs you">
+      </div>
+      <div class="field">
+        <label>Badges (comma-separated, optional)</label>
+        <input type="text" id="f_badges" placeholder="e.g. Local Farm, Halal">
+      </div>
+      <div class="field">
+        <label>Origin note (optional)</label>
+        <input type="text" id="f_origin" placeholder="e.g. Sourced from Kiambu">
+      </div>
+      <div class="error-msg" id="formError"></div>
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+        <button type="submit" id="saveBtn">Save Item</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="branchModalOverlay">
+  <div class="modal">
+    <h3 id="branchModalTitle">Add Branch</h3>
+    <form id="branchForm" onsubmit="submitBranch(event)">
+      <input type="hidden" id="b_id">
+      <div class="field-row">
+        <div class="field"><label>Branch name</label><input type="text" id="b_name" required maxlength="80" placeholder="e.g. Kilimani"></div>
+        <div class="field"><label>Area / estate</label><input type="text" id="b_area" maxlength="60" placeholder="e.g. Kilimani"></div>
+      </div>
+      <div class="field"><label>Address (shown to customers)</label><input type="text" id="b_address" maxlength="160" placeholder="e.g. Argwings Kodhek Rd, Kilimani, Nairobi"></div>
+      <div class="field-row">
+        <div class="field"><label>Branch phone (calls only)</label><input type="tel" id="b_phone" maxlength="24" placeholder="e.g. 0712 345 678"></div>
+        <div class="field"><label>Opening hours</label><input type="text" id="b_hours" maxlength="60" placeholder="Open 24 hours"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Latitude</label><input type="number" id="b_lat" step="any" required placeholder="-1.2921" oninput="updatePinLink()"></div>
+        <div class="field"><label>Longitude</label><input type="number" id="b_lng" step="any" required placeholder="36.7878" oninput="updatePinLink()"></div>
+      </div>
+      <a class="pin-link" id="b_pinLink" href="#" target="_blank" rel="noopener">Check this pin on Google Maps ↗</a>
+      <div class="field"><label>Google Maps search text (optional)</label><input type="text" id="b_query" maxlength="200" placeholder="Leave blank to show the exact pin above"></div>
+      <label class="check-field"><input type="checkbox" id="b_listed"> Show on website</label>
+      <label class="check-field"><input type="checkbox" id="b_isMain"> This is the main branch (always shown, labelled "Main")</label>
+      <div class="error-msg" id="branchFormError"></div>
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" onclick="closeBranchModal()">Cancel</button>
+        <button type="submit" id="saveBranchBtn">Save Branch</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ---------- Backend connection ----------
+  function getBackendUrl(){ return (localStorage.getItem('azizoAdminBackendUrl') || '').replace(/\/+$/, ''); }
+  function getAdminToken(){ return sessionStorage.getItem('azizoAdminToken') || ''; }
+  function api(path){ return `${getBackendUrl()}${path}`; }
+  function authHeaders(extra){ return Object.assign({'Authorization': `Bearer ${getAdminToken()}`}, extra || {}); }
+
+  let freshItems = [];
+  let readyItems = [];
+  let groceryItems = [];
+
+  async function doAdminLogin(){
+    const backendUrl = document.getElementById('backendUrlInput').value.trim();
+    const password = document.getElementById('passInput').value;
+    const errEl = document.getElementById('gateError');
+    errEl.textContent = '';
+    if(!password){ errEl.textContent = 'Enter the admin password.'; return; }
+    localStorage.setItem('azizoAdminBackendUrl', backendUrl);
+    try{
+      const res = await fetch(`${backendUrl.replace(/\/+$/, '')}/api/auth/admin-login`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(data.error || `Login failed (${res.status})`);
+      sessionStorage.setItem('azizoAdminToken', data.token);
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      await loadProducts();
+    }catch(e){
+      errEl.textContent = `Couldn't log in: ${e.message}. Check the Backend URL and that the server is running.`;
+    }
+  }
+
+  function doLogout(){
+    sessionStorage.removeItem('azizoAdminToken');
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('gate').style.display = 'block';
+    document.getElementById('passInput').value = '';
+    ordersLoadedOnce = false; branchesLoadedOnce = false;
+  }
+
+  // Resolve an image for display here in the admin tool itself (same rule the live
+  // site uses in app.js's resolveImgSrc): a backend-uploaded photo is a /uploads/...
+  // path that needs the backend's own origin in front of it; anything else is assumed
+  // to be a filename living in the site's own images/ folder, or an absolute URL.
+  function resolveImg(img){
+    if(!img) return '';
+    if(/^https?:\/\//i.test(img)) return img;
+    if(img.startsWith('/uploads/')) return `${getBackendUrl()}${img}`;
+    return `images/${img}`;
+  }
+
+  async function loadProducts(){
+    const statusLine = document.getElementById('statusLine');
+    statusLine.textContent = 'Loading catalog…';
+    try{
+      // Admin list includes private cost prices; older/PHP backends without it fall back to the public menu.
+      let res = await fetch(api('/api/products/admin/list'), {headers: authHeaders(), cache: 'no-store'});
+      if(res.status === 401 || res.status === 403){ doLogout(); return; }
+      let data;
+      if(res.ok){
+        const all = (await res.json()).products || [];
+        data = {freshItems: all.filter(p => p.category_group === 'fresh'), readyItems: all.filter(p => p.category_group === 'ready'), groceryItems: all.filter(p => p.category_group === 'groceries')};
+      } else {
+        res = await fetch(api('/api/products'), {headers: authHeaders(), cache: 'no-store'});
+        if(!res.ok) throw new Error(`Server returned ${res.status}`);
+        data = await res.json();
+      }
+      freshItems = data.freshItems || [];
+      readyItems = data.readyItems || [];
+      groceryItems = data.groceryItems || [];
+      renderLists();
+      statusLine.textContent = `${freshItems.length + readyItems.length + groceryItems.length} products loaded from the live database.`;
+    }catch(e){
+      statusLine.textContent = `Couldn't load the catalog: ${e.message}`;
+    }
+  }
+
+  function renderLists(){
+    const freshList = document.getElementById('freshList');
+    const readyList = document.getElementById('readyList');
+    const groceryList = document.getElementById('groceryList');
+    const rowHtml = (item) => `
+      <div class="item-row">
+        <div class="item-left">
+          <img class="thumb" src="${resolveImg(item.img)}" onerror="this.style.visibility='hidden'" alt="">
+          <div class="info">
+            <div class="name">${escapeHtml(item.name)}</div>
+            <div class="meta">${escapeHtml(item.id)} · ${escapeHtml(item.cat)}${item.kind ? ' · ' + escapeHtml(item.kind) : ''} · KSh ${item.price}/${escapeHtml(item.unit)}${item.costPrice ? ` · cost ${item.costPrice} (${Math.round((item.price - item.costPrice) / item.price * 100)}% margin)` : ' · <em>no cost price</em>'}</div>
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="edit-btn" onclick='openModal(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
+          <button class="del-btn" onclick="deleteProduct('${item.id}')">Delete</button>
+        </div>
+      </div>`;
+    freshList.innerHTML = freshItems.length ? freshItems.map(rowHtml).join('') : '<p class="empty-note">No items yet.</p>';
+    readyList.innerHTML = readyItems.length ? readyItems.map(rowHtml).join('') : '<p class="empty-note">No items yet.</p>';
+    groceryList.innerHTML = groceryItems.length ? groceryItems.map(rowHtml).join('') : '<p class="empty-note">No items yet.</p>';
+  }
+
+  function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // ---------- Add / Edit modal ----------
+  function openModal(item){
+    document.getElementById('formError').textContent = '';
+    document.getElementById('productForm').reset();
+    const currentRow = document.getElementById('currentPhotoRow');
+    if(item){
+      document.getElementById('modalTitle').textContent = `Edit — ${item.name}`;
+      document.getElementById('f_originalId').value = item.id;
+      document.getElementById('f_id').value = item.id;
+      document.getElementById('f_category_group').value = readyItems.some(r => r.id === item.id) ? 'ready'
+        : groceryItems.some(r => r.id === item.id) ? 'groceries' : 'fresh';
+      document.getElementById('f_cat').value = item.cat || '';
+      document.getElementById('f_kind').value = item.kind || '';
+      document.getElementById('f_name').value = item.name || '';
+      document.getElementById('f_desc').value = item.desc || '';
+      document.getElementById('f_price').value = item.price || '';
+      document.getElementById('f_unit').value = item.unit || '';
+      document.getElementById('f_badges').value = (item.badges || []).join(', ');
+      document.getElementById('f_origin').value = item.origin || '';
+      document.getElementById('f_cost').value = item.costPrice || '';
+      if(item.img){
+        document.getElementById('currentPhotoImg').src = resolveImg(item.img);
+        currentRow.style.display = 'flex';
+      } else {
+        currentRow.style.display = 'none';
+      }
+    } else {
+      document.getElementById('modalTitle').textContent = 'Add Product';
+      document.getElementById('f_originalId').value = '';
+      currentRow.style.display = 'none';
+    }
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+  function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+
+  async function submitProduct(e){
+    e.preventDefault();
+    const errEl = document.getElementById('formError');
+    errEl.textContent = '';
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+    try{
+      const fd = new FormData();
+      fd.append('id', document.getElementById('f_id').value.trim());
+      fd.append('category_group', document.getElementById('f_category_group').value);
+      fd.append('cat', document.getElementById('f_cat').value.trim());
+      fd.append('kind', document.getElementById('f_kind').value.trim());
+      fd.append('name', document.getElementById('f_name').value.trim());
+      fd.append('desc', document.getElementById('f_desc').value.trim());
+      fd.append('price', document.getElementById('f_price').value);
+      fd.append('unit', document.getElementById('f_unit').value.trim());
+      fd.append('badges', document.getElementById('f_badges').value);
+      fd.append('origin', document.getElementById('f_origin').value.trim());
+      fd.append('cost_price', document.getElementById('f_cost').value || '0');
+      const fileInput = document.getElementById('f_image');
+      if(fileInput.files[0]) fd.append('image', fileInput.files[0]);
+
+      const res = await fetch(api('/api/products'), {
+        method: 'POST', headers: authHeaders(), body: fd,
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(data.error || `Save failed (${res.status})`);
+      closeModal();
+      await loadProducts();
+    }catch(e){
+      errEl.textContent = e.message;
+    }finally{
+      saveBtn.disabled = false; saveBtn.textContent = 'Save Item';
+    }
+  }
+
+  async function deleteProduct(id){
+    if(!confirm(`Delete "${id}"? This can't be undone.`)) return;
+    try{
+      const res = await fetch(api(`/api/products/${encodeURIComponent(id)}`), {
+        method: 'DELETE', headers: authHeaders(),
+      });
+      if(!res.ok){ const data = await res.json().catch(() => ({})); throw new Error(data.error || `Delete failed (${res.status})`); }
+      await loadProducts();
+    }catch(e){
+      alert(`Couldn't delete: ${e.message}`);
+    }
+  }
+
+  // ---------- Excel bulk export / import ----------
+  async function downloadExcel(){
+    const btn = document.getElementById('downloadBtn');
+    btn.disabled = true; btn.textContent = 'Preparing…';
+    try{
+      const res = await fetch(api('/api/products/export.xlsx'), {headers: authHeaders()});
+      if(!res.ok) throw new Error(`Export failed (${res.status})`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'azizo-products.xlsx';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }catch(e){
+      alert(`Couldn't download: ${e.message}`);
+    }finally{
+      btn.disabled = false; btn.textContent = 'Download Excel';
+    }
+  }
+
+  async function uploadExcel(){
+    const fileInput = document.getElementById('excelFile');
+    const resultBox = document.getElementById('importResult');
+    const btn = document.getElementById('uploadExcelBtn');
+    if(!fileInput.files[0]){ alert('Pick an .xlsx file first.'); return; }
+    btn.disabled = true; btn.textContent = 'Importing…';
+    resultBox.classList.remove('show');
+    try{
+      const fd = new FormData();
+      fd.append('file', fileInput.files[0]);
+      const res = await fetch(api('/api/products/import.xlsx'), {
+        method: 'POST', headers: authHeaders(), body: fd,
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(data.error || `Import failed (${res.status})`);
+      let html = `<strong>${data.imported} row(s) imported.</strong>`;
+      if(data.skipped){
+        html += ` ${data.skipped} row(s) skipped:<br>` + data.errors.map(e => `<span class="err-line">• ${escapeHtml(e)}</span>`).join('<br>');
+      }
+      resultBox.innerHTML = html;
+      resultBox.classList.add('show');
+      fileInput.value = '';
+      await loadProducts();
+    }catch(e){
+      resultBox.innerHTML = `<span class="err-line">Import failed: ${escapeHtml(e.message)}</span>`;
+      resultBox.classList.add('show');
+    }finally{
+      btn.disabled = false; btn.textContent = 'Upload & Import';
+    }
+  }
+
+  // ---------- Top-level tabs ----------
+  let ordersLoadedOnce = false;
+  let branchesLoadedOnce = false;
+  function switchAdminTab(tab){
+    const tabs = {products: 'productsTab', orders: 'ordersTab', branches: 'branchesTab', areas: 'areasTab', reviews: 'reviewsTab', recipes: 'recipesTab', reports: 'reportsTab', site: 'siteTab'};
+    const btns = {products: 'tabBtnProducts', orders: 'tabBtnOrders', branches: 'tabBtnBranches', areas: 'tabBtnAreas', reviews: 'tabBtnReviews', recipes: 'tabBtnRecipes', reports: 'tabBtnReports', site: 'tabBtnSite'};
+    Object.keys(tabs).forEach(k => {
+      document.getElementById(tabs[k]).style.display = k === tab ? 'block' : 'none';
+      document.getElementById(btns[k]).classList.toggle('active', k === tab);
+    });
+    if(tab === 'orders' && !ordersLoadedOnce){ ordersLoadedOnce = true; loadOrders(); }
+    if(tab === 'reports' && window.AzizoReports){ window.AzizoReports.open(); }
+    if(tab === 'recipes' && window.AzizoRecipes){ window.AzizoRecipes.open(); }
+    if(tab === 'reviews' && window.AzizoReviews){ window.AzizoReviews.open(); }
+    if(tab === 'site' && window.AzizoSiteAdmin){ window.AzizoSiteAdmin.open(); }
+    if(tab === 'areas' && window.AzizoAreas){ window.AzizoAreas.open(); }
+    if(tab === 'branches' && !branchesLoadedOnce){ branchesLoadedOnce = true; loadBranchesAdmin(); }
+  }
+
+  // ---------- Branches ----------
+  let branchesCache = [];
+
+  async function loadBranchesAdmin(){
+    const statusLine = document.getElementById('branchesStatusLine');
+    statusLine.textContent = 'Loading branches…';
+    try{
+      const res = await fetch(api('/api/branches/all'), {headers: authHeaders(), cache: 'no-store'});
+      if(res.status === 401 || res.status === 403){ doLogout(); return; }
+      if(!res.ok) throw new Error(`Server returned ${res.status}`);
+      const data = await res.json();
+      branchesCache = data.branches || [];
+      renderBranchesAdmin();
+    }catch(e){
+      statusLine.textContent = `Couldn't load branches: ${e.message}`;
+    }
+  }
+
+  function renderBranchesAdmin(){
+    const listed = branchesCache.filter(b => b.listed).length;
+    document.getElementById('branchesStatusLine').textContent = `${listed} of ${branchesCache.length} branches are showing on the website.`;
+    document.getElementById('branchesList').innerHTML = branchesCache.map(b => `
+      <div class="branch-row-admin ${b.listed ? '' : 'unlisted'}">
+        <div class="b-left">
+          <label class="b-show" title="Show this branch on the website">
+            <input type="checkbox" ${b.listed ? 'checked' : ''} ${b.isMain ? 'disabled' : ''} onchange="toggleBranchListed('${escapeHtml(b.id)}', this)">
+            <span>${b.listed ? 'Showing' : 'Hidden'}</span>
+          </label>
+          <div class="b-info">
+            <div class="b-name">${escapeHtml(b.name)}${b.isMain ? '<span class="main-pill">MAIN</span>' : ''}</div>
+            <div class="b-meta">${escapeHtml(b.address || b.area || '')} · ${escapeHtml(b.hours || '')}</div>
+            <div class="b-phone ${b.phone ? '' : 'none'}">${b.phone ? '📞 ' + escapeHtml(b.phone) : 'No branch phone yet'}</div>
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="edit-btn" onclick="openBranchModal('${escapeHtml(b.id)}')">Edit</button>
+          <button class="del-btn" ${b.isMain ? 'disabled style="opacity:.4;cursor:not-allowed;" title="Make another branch the main one first"' : ''} onclick="deleteBranch('${escapeHtml(b.id)}')">Delete</button>
+        </div>
+      </div>`).join('') || '<p class="empty-note">No branches yet.</p>';
+  }
+
+  async function toggleBranchListed(id, box){
+    const listed = box.checked;
+    box.disabled = true;
+    try{
+      const res = await fetch(api(`/api/branches/${encodeURIComponent(id)}/listed`), {
+        method: 'PATCH', headers: authHeaders({'Content-Type': 'application/json'}),
+        body: JSON.stringify({listed}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(data.error || `Update failed (${res.status})`);
+    }catch(e){
+      alert(`Couldn't change that branch: ${e.message}`);
+    }
+    await loadBranchesAdmin(); // re-read from the server so the screen always matches reality
+  }
+
+  function updatePinLink(){
+    const lat = document.getElementById('b_lat').value, lng = document.getElementById('b_lng').value;
+    const a = document.getElementById('b_pinLink');
+    a.style.visibility = (lat !== '' && lng !== '') ? 'visible' : 'hidden';
+    a.href = `https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
+  }
+
+  function openBranchModal(id){
+    document.getElementById('branchFormError').textContent = '';
+    document.getElementById('branchForm').reset();
+    const b = id ? branchesCache.find(x => x.id === id) : null;
+    document.getElementById('branchModalTitle').textContent = b ? `Edit — ${b.name}` : 'Add Branch';
+    document.getElementById('b_id').value = b ? b.id : '';
+    document.getElementById('b_name').value = b ? b.name : '';
+    document.getElementById('b_area').value = b ? b.area : '';
+    document.getElementById('b_address').value = b ? b.address : '';
+    document.getElementById('b_phone').value = b ? b.phone : '';
+    document.getElementById('b_hours').value = b ? b.hours : 'Open 24 hours';
+    document.getElementById('b_lat').value = b ? b.lat : '';
+    document.getElementById('b_lng').value = b ? b.lng : '';
+    document.getElementById('b_query').value = b ? b.query : '';
+    document.getElementById('b_listed').checked = b ? b.listed : true;
+    document.getElementById('b_isMain').checked = b ? b.isMain : false;
+    document.getElementById('b_isMain').disabled = !!(b && b.isMain); // make another branch main to move the flag
+    document.getElementById('b_listed').disabled = !!(b && b.isMain);
+    updatePinLink();
+    document.getElementById('branchModalOverlay').classList.add('open');
+  }
+  function closeBranchModal(){ document.getElementById('branchModalOverlay').classList.remove('open'); }
+
+  async function submitBranch(e){
+    e.preventDefault();
+    const errEl = document.getElementById('branchFormError');
+    errEl.textContent = '';
+    const btn = document.getElementById('saveBranchBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try{
+      const payload = {
+        name: document.getElementById('b_name').value.trim(),
+        area: document.getElementById('b_area').value.trim(),
+        address: document.getElementById('b_address').value.trim(),
+        phone: document.getElementById('b_phone').value.trim(),
+        hours: document.getElementById('b_hours').value.trim(),
+        lat: document.getElementById('b_lat').value,
+        lng: document.getElementById('b_lng').value,
+        query: document.getElementById('b_query').value.trim(),
+        listed: document.getElementById('b_listed').checked,
+        isMain: document.getElementById('b_isMain').checked,
+      };
+      const id = document.getElementById('b_id').value;
+      if(id) payload.id = id;
+      const res = await fetch(api('/api/branches'), {
+        method: 'POST', headers: authHeaders({'Content-Type': 'application/json'}),
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(data.error || `Save failed (${res.status})`);
+      closeBranchModal();
+      await loadBranchesAdmin();
+    }catch(err){
+      errEl.textContent = err.message;
+    }finally{
+      btn.disabled = false; btn.textContent = 'Save Branch';
+    }
+  }
+
+  async function deleteBranch(id){
+    const b = branchesCache.find(x => x.id === id);
+    if(!confirm(`Delete the ${b ? b.name : id} branch? This can't be undone — to just hide it from customers, untick "Show on website" instead.`)) return;
+    try{
+      const res = await fetch(api(`/api/branches/${encodeURIComponent(id)}`), {method: 'DELETE', headers: authHeaders()});
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(data.error || `Delete failed (${res.status})`);
+    }catch(err){
+      alert(`Couldn't delete: ${err.message}`);
+    }
+    await loadBranchesAdmin();
+  }
+
+  // ---------- Orders ----------
+  const STATUS_LABELS = {
+    received: 'Received', preparing: 'Preparing', ready: 'Ready for Pickup', out_for_delivery: 'Out for Delivery',
+    completed: 'Completed', cancelled: 'Cancelled',
+  };
+  let ordersCache = {}; // order id -> {order, items} once its detail has been fetched
+
+  async function loadOrders(){
+    const statusLine = document.getElementById('ordersStatusLine');
+    const listEl = document.getElementById('ordersList');
+    statusLine.textContent = 'Loading orders…';
+    try{
+      const status = document.getElementById('orderStatusFilter').value;
+      const phone = document.getElementById('orderPhoneFilter').value.trim();
+      const params = new URLSearchParams();
+      if(status) params.set('status', status);
+      if(phone) params.set('phone', phone);
+      const res = await fetch(api(`/api/orders${params.toString() ? '?' + params.toString() : ''}`), {headers: authHeaders(), cache: 'no-store'});
+      if(res.status === 401 || res.status === 403){ doLogout(); return; }
+      if(!res.ok) throw new Error(`Server returned ${res.status}`);
+      const data = await res.json();
+      renderOrders(data.orders || []);
+      statusLine.textContent = `${data.orders.length} order(s).`;
+    }catch(e){
+      listEl.innerHTML = '';
+      statusLine.textContent = `Couldn't load orders: ${e.message}`;
+    }
+  }
+
+  function fmtDate(iso){
+    if(!iso) return '';
+    // SQLite's datetime('now') is UTC with no timezone suffix — append one so the
+    // browser doesn't parse it as local time and shift it by several hours.
+    const d = new Date(iso.includes('T') ? iso : iso.replace(' ', 'T') + 'Z');
+    if(isNaN(d.getTime())) return iso;
+    return d.toLocaleString('en-KE', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+  }
+
+  function renderOrders(orders){
+    const listEl = document.getElementById('ordersList');
+    if(!orders.length){ listEl.innerHTML = '<p class="empty-note">No orders match this filter.</p>'; return; }
+    listEl.innerHTML = orders.map(o => {
+      const fulfilText = o.fulfilment === 'delivery'
+        ? `Delivery — ${escapeHtml(o.delivery_address || 'address not given')}`
+        : `Pickup — ${escapeHtml(o.branch || 'branch not given')}`;
+      return `
+      <div class="order-card" id="orderCard-${o.id}">
+        <div class="order-head" onclick="toggleOrder(${o.id})">
+          <div>
+            <div class="order-id">Order #${o.id} — ${escapeHtml(o.customer_name || 'Guest')} · ${escapeHtml(o.customer_phone)}</div>
+            <div class="order-meta">${fulfilText} · ${escapeHtml(o.payment_method)} · ${fmtDate(o.created_at)}</div>
+          </div>
+          <div class="order-right">
+            <span class="order-total">KSh ${o.total}</span>
+            <span class="status-badge ${o.status}">${STATUS_LABELS[o.status] || o.status}</span>
+            <select class="order-status-select" onclick="event.stopPropagation()" onchange="updateOrderStatus(${o.id}, this.value)">
+              ${Object.keys(STATUS_LABELS).map(s => `<option value="${s}" ${s===o.status?'selected':''}>${STATUS_LABELS[s]}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="order-body" id="orderBody-${o.id}"><p class="empty-note">Loading items…</p></div>
+      </div>`;
+    }).join('');
+  }
+
+  async function toggleOrder(id){
+    const body = document.getElementById(`orderBody-${id}`);
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    if(isOpen || ordersCache[id]) { if(ordersCache[id]) renderOrderDetail(id); return; }
+    try{
+      const res = await fetch(api(`/api/orders/${id}`), {headers: authHeaders()});
+      if(!res.ok) throw new Error(`Server returned ${res.status}`);
+      const data = await res.json();
+      ordersCache[id] = data;
+      renderOrderDetail(id);
+    }catch(e){
+      body.innerHTML = `<p class="error-msg">Couldn't load items: ${escapeHtml(e.message)}</p>`;
+    }
+  }
+
+  function renderOrderDetail(id){
+    const body = document.getElementById(`orderBody-${id}`);
+    const {order, items} = ordersCache[id];
+    const rows = items.map(it => `
+      <tr>
+        <td>${escapeHtml(it.name)} × ${it.qty}${it.unit ? ' ' + escapeHtml(it.unit) : ''}</td>
+        <td class="num">KSh ${it.line_total}</td>
+      </tr>`).join('');
+    body.innerHTML = `
+      <table>${rows}</table>
+      <div class="order-detail-row">
+        <span><strong>Subtotal:</strong> KSh ${order.items_subtotal}</span>
+        <span><strong>Delivery fee:</strong> KSh ${order.delivery_fee || 0}</span>
+        ${order.promo_code ? `<span><strong>Promo:</strong> ${escapeHtml(order.promo_code)}</span>` : ''}
+        ${order.pickup_time ? `<span><strong>Pickup time:</strong> ${escapeHtml(order.pickup_time)}</span>` : ''}
+        ${order.mpesa_receipt ? `<span><strong>M-Pesa receipt:</strong> ${escapeHtml(order.mpesa_receipt)}</span>` : ''}
+      </div>`;
+  }
+
+  async function updateOrderStatus(id, status){
+    try{
+      const res = await fetch(api(`/api/orders/${id}/status`), {
+        method: 'PATCH', headers: authHeaders({'Content-Type': 'application/json'}),
+        body: JSON.stringify({status}),
+      });
+      if(!res.ok){ const data = await res.json().catch(() => ({})); throw new Error(data.error || `Update failed (${res.status})`); }
+      // Patch the badge immediately so it feels instant, but also re-fetch the full
+      // list from the server right after — the badge alone could drift from reality
+      // if two staff members update the same order around the same time.
+      const badge = document.querySelector(`#orderCard-${id} .status-badge`);
+      if(badge){ badge.className = `status-badge ${status}`; badge.textContent = STATUS_LABELS[status] || status; }
+      await loadOrders();
+    }catch(e){
+      alert(`Couldn't update status: ${e.message}`);
+      loadOrders();
+    }
+  }
+
+  // ---------- Startup ----------
+  (function init(){
+    const savedUrl = localStorage.getItem('azizoAdminBackendUrl');
+    if(savedUrl !== null) document.getElementById('backendUrlInput').value = savedUrl;
+    // If a token from this tab's session is still around, skip straight to the app
+    // (sessionStorage clears on tab close, so this never persists longer than that).
+    if(getAdminToken()){
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadProducts();
+    }
+  })();
+</script>
+<script src="admin-reports.js"></script>
+<script src="admin-areas.js"></script>
+<script src="admin-reviews.js"></script>
+<script src="admin-recipes.js"></script>
+<script src="admin-site.js"></script>
+</body>
+</html>
