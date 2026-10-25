@@ -1,0 +1,1393 @@
+{
+"config": {
+"baseFee": 100,
+"perKm": 25,
+"bandKm": 2,
+"maxFee": 450,
+"maxKm": 30,
+"roadFactor": 1.3,
+"nearerBranchKm": 2.5
+},
+"areas": [
+{
+"id": "nairobi-cbd",
+"region": "Nairobi CBD & Central",
+"name": "Nairobi CBD",
+"lat": -1.2864,
+"lng": 36.8172,
+"corridor": "CBD",
+"active": 1,
+"sort": 1
+},
+{
+"id": "upper-hill",
+"region": "Nairobi CBD & Central",
+"name": "Upper Hill",
+"lat": -1.298,
+"lng": 36.813,
+"corridor": "CBD",
+"active": 1,
+"sort": 2
+},
+{
+"id": "ngara",
+"region": "Nairobi CBD & Central",
+"name": "Ngara",
+"lat": -1.275,
+"lng": 36.827,
+"corridor": "CBD",
+"active": 1,
+"sort": 3
+},
+{
+"id": "pangani",
+"region": "Nairobi CBD & Central",
+"name": "Pangani",
+"lat": -1.272,
+"lng": 36.833,
+"corridor": "CBD",
+"active": 1,
+"sort": 4
+},
+{
+"id": "parliament-community",
+"region": "Nairobi CBD & Central",
+"name": "Parliament / Community",
+"lat": -1.289,
+"lng": 36.81,
+"corridor": "CBD",
+"active": 1,
+"sort": 5
+},
+{
+"id": "railway-industrial-area",
+"region": "Nairobi CBD & Central",
+"name": "Railway / Industrial Area",
+"lat": -1.305,
+"lng": 36.85,
+"corridor": "CBD",
+"active": 1,
+"sort": 6
+},
+{
+"id": "umoja-1",
+"region": "Umoja",
+"name": "Umoja 1",
+"lat": -1.28,
+"lng": 36.893,
+"corridor": "Eastern (Outer Ring Rd)",
+"active": 1,
+"sort": 7
+},
+{
+"id": "umoja-2",
+"region": "Umoja",
+"name": "Umoja 2",
+"lat": -1.286,
+"lng": 36.898,
+"corridor": "Eastern (Outer Ring Rd)",
+"active": 1,
+"sort": 8
+},
+{
+"id": "umoja-innercore",
+"region": "Umoja",
+"name": "Umoja Innercore",
+"lat": -1.279,
+"lng": 36.901,
+"corridor": "Eastern (Outer Ring Rd)",
+"active": 1,
+"sort": 9
+},
+{
+"id": "umoja-3-tena",
+"region": "Umoja",
+"name": "Umoja 3 / Tena",
+"lat": -1.287,
+"lng": 36.907,
+"corridor": "Eastern (Outer Ring Rd)",
+"active": 1,
+"sort": 10
+},
+{
+"id": "kariobangi-south",
+"region": "Umoja",
+"name": "Kariobangi South",
+"lat": -1.27,
+"lng": 36.878,
+"corridor": "Eastern (Outer Ring Rd)",
+"active": 1,
+"sort": 11
+},
+{
+"id": "kariobangi-north",
+"region": "Umoja",
+"name": "Kariobangi North",
+"lat": -1.25,
+"lng": 36.889,
+"corridor": "Eastern (Outer Ring Rd)",
+"active": 1,
+"sort": 12
+},
+{
+"id": "buruburu-phase-1",
+"region": "Buruburu & Eastlands",
+"name": "Buruburu Phase 1",
+"lat": -1.285,
+"lng": 36.87,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 13
+},
+{
+"id": "buruburu-phase-2",
+"region": "Buruburu & Eastlands",
+"name": "Buruburu Phase 2",
+"lat": -1.288,
+"lng": 36.876,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 14
+},
+{
+"id": "buruburu-phase-3",
+"region": "Buruburu & Eastlands",
+"name": "Buruburu Phase 3",
+"lat": -1.29,
+"lng": 36.879,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 15
+},
+{
+"id": "buruburu-phase-4",
+"region": "Buruburu & Eastlands",
+"name": "Buruburu Phase 4",
+"lat": -1.293,
+"lng": 36.883,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 16
+},
+{
+"id": "buruburu-phase-5",
+"region": "Buruburu & Eastlands",
+"name": "Buruburu Phase 5",
+"lat": -1.296,
+"lng": 36.887,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 17
+},
+{
+"id": "donholm",
+"region": "Buruburu & Eastlands",
+"name": "Donholm",
+"lat": -1.297,
+"lng": 36.895,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 18
+},
+{
+"id": "savannah",
+"region": "Buruburu & Eastlands",
+"name": "Savannah",
+"lat": -1.3,
+"lng": 36.901,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 19
+},
+{
+"id": "harambee-makadara",
+"region": "Buruburu & Eastlands",
+"name": "Harambee / Makadara",
+"lat": -1.298,
+"lng": 36.858,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 20
+},
+{
+"id": "maringo-hamza",
+"region": "Buruburu & Eastlands",
+"name": "Maringo / Hamza",
+"lat": -1.293,
+"lng": 36.862,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 21
+},
+{
+"id": "jericho-lumumba",
+"region": "Buruburu & Eastlands",
+"name": "Jericho / Lumumba",
+"lat": -1.29,
+"lng": 36.865,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 22
+},
+{
+"id": "kaloleni",
+"region": "Buruburu & Eastlands",
+"name": "Kaloleni",
+"lat": -1.287,
+"lng": 36.86,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 23
+},
+{
+"id": "shauri-moyo",
+"region": "Buruburu & Eastlands",
+"name": "Shauri Moyo",
+"lat": -1.283,
+"lng": 36.85,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 24
+},
+{
+"id": "mbotela-landimawe",
+"region": "Buruburu & Eastlands",
+"name": "Mbotela / Landimawe",
+"lat": -1.3,
+"lng": 36.852,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 25
+},
+{
+"id": "jogoo-road",
+"region": "Buruburu & Eastlands",
+"name": "Jogoo Road",
+"lat": -1.294,
+"lng": 36.853,
+"corridor": "Eastern (Jogoo Rd)",
+"active": 1,
+"sort": 26
+},
+{
+"id": "eastleigh-section-1",
+"region": "Eastleigh & Mathare",
+"name": "Eastleigh Section 1",
+"lat": -1.274,
+"lng": 36.845,
+"corridor": "Eastern (Juja Rd)",
+"active": 1,
+"sort": 27
+},
+{
+"id": "eastleigh-section-3",
+"region": "Eastleigh & Mathare",
+"name": "Eastleigh Section 3",
+"lat": -1.277,
+"lng": 36.853,
+"corridor": "Eastern (Juja Rd)",
+"active": 1,
+"sort": 28
+},
+{
+"id": "huruma",
+"region": "Eastleigh & Mathare",
+"name": "Huruma",
+"lat": -1.254,
+"lng": 36.868,
+"corridor": "Eastern (Juja Rd)",
+"active": 1,
+"sort": 29
+},
+{
+"id": "mathare-north",
+"region": "Eastleigh & Mathare",
+"name": "Mathare North",
+"lat": -1.256,
+"lng": 36.862,
+"corridor": "Eastern (Juja Rd)",
+"active": 1,
+"sort": 30
+},
+{
+"id": "mathare-hospital",
+"region": "Eastleigh & Mathare",
+"name": "Mathare Hospital",
+"lat": -1.26,
+"lng": 36.859,
+"corridor": "Eastern (Juja Rd)",
+"active": 1,
+"sort": 31
+},
+{
+"id": "imara-daima",
+"region": "Embakasi & Mombasa Road",
+"name": "Imara Daima",
+"lat": -1.322,
+"lng": 36.87,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 32
+},
+{
+"id": "pipeline",
+"region": "Embakasi & Mombasa Road",
+"name": "Pipeline",
+"lat": -1.315,
+"lng": 36.889,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 33
+},
+{
+"id": "fedha",
+"region": "Embakasi & Mombasa Road",
+"name": "Fedha",
+"lat": -1.31,
+"lng": 36.896,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 34
+},
+{
+"id": "embakasi-village",
+"region": "Embakasi & Mombasa Road",
+"name": "Embakasi Village",
+"lat": -1.32,
+"lng": 36.9,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 35
+},
+{
+"id": "nyayo-estate",
+"region": "Embakasi & Mombasa Road",
+"name": "Nyayo Estate",
+"lat": -1.315,
+"lng": 36.91,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 36
+},
+{
+"id": "tassia",
+"region": "Embakasi & Mombasa Road",
+"name": "Tassia",
+"lat": -1.32,
+"lng": 36.899,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 37
+},
+{
+"id": "kware",
+"region": "Embakasi & Mombasa Road",
+"name": "Kware",
+"lat": -1.33,
+"lng": 36.89,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 38
+},
+{
+"id": "mukuru-kwa-njenga",
+"region": "Embakasi & Mombasa Road",
+"name": "Mukuru kwa Njenga",
+"lat": -1.315,
+"lng": 36.875,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 39
+},
+{
+"id": "mukuru-kwa-reuben",
+"region": "Embakasi & Mombasa Road",
+"name": "Mukuru kwa Reuben",
+"lat": -1.325,
+"lng": 36.855,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 40
+},
+{
+"id": "airport-north-jkia",
+"region": "Embakasi & Mombasa Road",
+"name": "Airport North / JKIA",
+"lat": -1.32,
+"lng": 36.925,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 41
+},
+{
+"id": "embakasi-garrison",
+"region": "Embakasi & Mombasa Road",
+"name": "Embakasi Garrison",
+"lat": -1.335,
+"lng": 36.91,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 42
+},
+{
+"id": "gateway-mlolongo-north",
+"region": "Embakasi & Mombasa Road",
+"name": "Gateway / Mlolongo North",
+"lat": -1.355,
+"lng": 36.93,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 43
+},
+{
+"id": "kayole",
+"region": "Kayole & Eastern Bypass",
+"name": "Kayole",
+"lat": -1.275,
+"lng": 36.915,
+"corridor": "Spine Rd / Eastern Bypass",
+"active": 1,
+"sort": 44
+},
+{
+"id": "soweto-kayole",
+"region": "Kayole & Eastern Bypass",
+"name": "Soweto Kayole",
+"lat": -1.28,
+"lng": 36.91,
+"corridor": "Spine Rd / Eastern Bypass",
+"active": 1,
+"sort": 45
+},
+{
+"id": "komarock",
+"region": "Kayole & Eastern Bypass",
+"name": "Komarock",
+"lat": -1.273,
+"lng": 36.9,
+"corridor": "Spine Rd / Eastern Bypass",
+"active": 1,
+"sort": 46
+},
+{
+"id": "matopeni-spine-road",
+"region": "Kayole & Eastern Bypass",
+"name": "Matopeni / Spine Road",
+"lat": -1.265,
+"lng": 36.915,
+"corridor": "Spine Rd / Eastern Bypass",
+"active": 1,
+"sort": 47
+},
+{
+"id": "dandora",
+"region": "Kayole & Eastern Bypass",
+"name": "Dandora",
+"lat": -1.26,
+"lng": 36.905,
+"corridor": "Spine Rd / Eastern Bypass",
+"active": 1,
+"sort": 48
+},
+{
+"id": "njiru",
+"region": "Kayole & Eastern Bypass",
+"name": "Njiru",
+"lat": -1.245,
+"lng": 36.946,
+"corridor": "Spine Rd / Eastern Bypass",
+"active": 1,
+"sort": 49
+},
+{
+"id": "utawala",
+"region": "Kayole & Eastern Bypass",
+"name": "Utawala",
+"lat": -1.287,
+"lng": 36.96,
+"corridor": "Spine Rd / Eastern Bypass",
+"active": 1,
+"sort": 50
+},
+{
+"id": "ruai",
+"region": "Kayole & Eastern Bypass",
+"name": "Ruai",
+"lat": -1.262,
+"lng": 36.999,
+"corridor": "Spine Rd / Eastern Bypass",
+"active": 1,
+"sort": 51
+},
+{
+"id": "joska",
+"region": "Kayole & Eastern Bypass",
+"name": "Joska",
+"lat": -1.29,
+"lng": 37.02,
+"corridor": "Spine Rd / Eastern Bypass",
+"active": 1,
+"sort": 52
+},
+{
+"id": "mihango-kangundo-rd",
+"region": "Kayole & Eastern Bypass",
+"name": "Mihango / Kangundo Rd",
+"lat": -1.275,
+"lng": 36.965,
+"corridor": "Spine Rd / Eastern Bypass",
+"active": 1,
+"sort": 53
+},
+{
+"id": "eastern-bypass-gateway",
+"region": "Kayole & Eastern Bypass",
+"name": "Eastern Bypass Gateway",
+"lat": -1.24,
+"lng": 36.98,
+"corridor": "Spine Rd / Eastern Bypass",
+"active": 1,
+"sort": 54
+},
+{
+"id": "syokimau",
+"region": "Syokimau & Mlolongo",
+"name": "Syokimau",
+"lat": -1.381,
+"lng": 36.927,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 55
+},
+{
+"id": "mlolongo",
+"region": "Syokimau & Mlolongo",
+"name": "Mlolongo",
+"lat": -1.392,
+"lng": 36.94,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 56
+},
+{
+"id": "katani",
+"region": "Syokimau & Mlolongo",
+"name": "Katani",
+"lat": -1.41,
+"lng": 36.955,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 57
+},
+{
+"id": "mountain-mall-athi-river-rd",
+"region": "Syokimau & Mlolongo",
+"name": "Mountain Mall / Athi River Rd",
+"lat": -1.43,
+"lng": 36.965,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 58
+},
+{
+"id": "sabaki",
+"region": "Syokimau & Mlolongo",
+"name": "Sabaki",
+"lat": -1.395,
+"lng": 36.965,
+"corridor": "Mombasa Road",
+"active": 1,
+"sort": 59
+},
+{
+"id": "roysambu",
+"region": "Kasarani & Roysambu",
+"name": "Roysambu",
+"lat": -1.219,
+"lng": 36.886,
+"corridor": "Thika Road",
+"active": 1,
+"sort": 60
+},
+{
+"id": "zimmerman",
+"region": "Kasarani & Roysambu",
+"name": "Zimmerman",
+"lat": -1.2,
+"lng": 36.89,
+"corridor": "Thika Road",
+"active": 0,
+"sort": 61
+},
+{
+"id": "kasarani",
+"region": "Kasarani & Roysambu",
+"name": "Kasarani",
+"lat": -1.22,
+"lng": 36.897,
+"corridor": "Thika Road",
+"active": 1,
+"sort": 62
+},
+{
+"id": "mwiki",
+"region": "Kasarani & Roysambu",
+"name": "Mwiki",
+"lat": -1.2,
+"lng": 36.9,
+"corridor": "Thika Road",
+"active": 0,
+"sort": 63
+},
+{
+"id": "clay-city",
+"region": "Kasarani & Roysambu",
+"name": "Clay City",
+"lat": -1.229,
+"lng": 36.899,
+"corridor": "Thika Road",
+"active": 1,
+"sort": 64
+},
+{
+"id": "ruaraka",
+"region": "Kasarani & Roysambu",
+"name": "Ruaraka",
+"lat": -1.24,
+"lng": 36.878,
+"corridor": "Thika Road",
+"active": 1,
+"sort": 65
+},
+{
+"id": "baba-dogo",
+"region": "Kasarani & Roysambu",
+"name": "Baba Dogo",
+"lat": -1.243,
+"lng": 36.883,
+"corridor": "Thika Road",
+"active": 1,
+"sort": 66
+},
+{
+"id": "lucky-summer",
+"region": "Kasarani & Roysambu",
+"name": "Lucky Summer",
+"lat": -1.23,
+"lng": 36.88,
+"corridor": "Thika Road",
+"active": 1,
+"sort": 67
+},
+{
+"id": "garden-estate",
+"region": "Kasarani & Roysambu",
+"name": "Garden Estate",
+"lat": -1.236,
+"lng": 36.867,
+"corridor": "Thika Road",
+"active": 1,
+"sort": 68
+},
+{
+"id": "thome",
+"region": "Kasarani & Roysambu",
+"name": "Thome",
+"lat": -1.218,
+"lng": 36.812,
+"corridor": "Thika Road",
+"active": 0,
+"sort": 69
+},
+{
+"id": "githurai-44",
+"region": "Kasarani & Roysambu",
+"name": "Githurai 44",
+"lat": -1.193,
+"lng": 36.91,
+"corridor": "Thika Road",
+"active": 0,
+"sort": 70
+},
+{
+"id": "githurai-45",
+"region": "Kasarani & Roysambu",
+"name": "Githurai 45",
+"lat": -1.189,
+"lng": 36.92,
+"corridor": "Thika Road",
+"active": 0,
+"sort": 71
+},
+{
+"id": "kahawa-west",
+"region": "Kasarani & Roysambu",
+"name": "Kahawa West",
+"lat": -1.186,
+"lng": 36.91,
+"corridor": "Thika Road",
+"active": 0,
+"sort": 72
+},
+{
+"id": "kahawa-sukari",
+"region": "Kasarani & Roysambu",
+"name": "Kahawa Sukari",
+"lat": -1.19,
+"lng": 36.93,
+"corridor": "Thika Road",
+"active": 0,
+"sort": 73
+},
+{
+"id": "kahawa-wendani",
+"region": "Kasarani & Roysambu",
+"name": "Kahawa Wendani",
+"lat": -1.18,
+"lng": 36.945,
+"corridor": "Thika Road",
+"active": 0,
+"sort": 74
+},
+{
+"id": "westlands",
+"region": "Westlands & Parklands",
+"name": "Westlands",
+"lat": -1.2676,
+"lng": 36.8108,
+"corridor": "Waiyaki Way / Limuru Rd",
+"active": 1,
+"sort": 75
+},
+{
+"id": "parklands",
+"region": "Westlands & Parklands",
+"name": "Parklands",
+"lat": -1.263,
+"lng": 36.819,
+"corridor": "Waiyaki Way / Limuru Rd",
+"active": 1,
+"sort": 76
+},
+{
+"id": "highridge",
+"region": "Westlands & Parklands",
+"name": "Highridge",
+"lat": -1.261,
+"lng": 36.804,
+"corridor": "Waiyaki Way / Limuru Rd",
+"active": 1,
+"sort": 77
+},
+{
+"id": "riverside",
+"region": "Westlands & Parklands",
+"name": "Riverside",
+"lat": -1.272,
+"lng": 36.807,
+"corridor": "Waiyaki Way / Limuru Rd",
+"active": 1,
+"sort": 78
+},
+{
+"id": "spring-valley",
+"region": "Westlands & Parklands",
+"name": "Spring Valley",
+"lat": -1.257,
+"lng": 36.794,
+"corridor": "Waiyaki Way / Limuru Rd",
+"active": 0,
+"sort": 79
+},
+{
+"id": "brookside-rhapta-rd",
+"region": "Westlands & Parklands",
+"name": "Brookside / Rhapta Rd",
+"lat": -1.265,
+"lng": 36.79,
+"corridor": "Waiyaki Way / Limuru Rd",
+"active": 0,
+"sort": 80
+},
+{
+"id": "kangemi",
+"region": "Westlands & Parklands",
+"name": "Kangemi",
+"lat": -1.28,
+"lng": 36.747,
+"corridor": "Waiyaki Way / Limuru Rd",
+"active": 0,
+"sort": 81
+},
+{
+"id": "mountain-view",
+"region": "Westlands & Parklands",
+"name": "Mountain View",
+"lat": -1.265,
+"lng": 36.756,
+"corridor": "Waiyaki Way / Limuru Rd",
+"active": 0,
+"sort": 82
+},
+{
+"id": "uthiru",
+"region": "Westlands & Parklands",
+"name": "Uthiru",
+"lat": -1.268,
+"lng": 36.711,
+"corridor": "Waiyaki Way / Limuru Rd",
+"active": 0,
+"sort": 83
+},
+{
+"id": "lower-kabete",
+"region": "Westlands & Parklands",
+"name": "Lower Kabete",
+"lat": -1.254,
+"lng": 36.748,
+"corridor": "Waiyaki Way / Limuru Rd",
+"active": 0,
+"sort": 84
+},
+{
+"id": "loresho",
+"region": "Westlands & Parklands",
+"name": "Loresho",
+"lat": -1.253,
+"lng": 36.764,
+"corridor": "Waiyaki Way / Limuru Rd",
+"active": 0,
+"sort": 85
+},
+{
+"id": "kilimani",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Kilimani",
+"lat": -1.29,
+"lng": 36.787,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 86
+},
+{
+"id": "kileleshwa",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Kileleshwa",
+"lat": -1.283,
+"lng": 36.784,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 87
+},
+{
+"id": "lavington",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Lavington",
+"lat": -1.28,
+"lng": 36.774,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 88
+},
+{
+"id": "hurlingham",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Hurlingham",
+"lat": -1.295,
+"lng": 36.79,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 89
+},
+{
+"id": "valley-arcade",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Valley Arcade",
+"lat": -1.276,
+"lng": 36.776,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 90
+},
+{
+"id": "adams-arcade",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Adams Arcade",
+"lat": -1.3,
+"lng": 36.78,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 91
+},
+{
+"id": "woodley-kenyatta-market",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Woodley / Kenyatta Market",
+"lat": -1.301,
+"lng": 36.771,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 92
+},
+{
+"id": "dagoretti-corner",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Dagoretti Corner",
+"lat": -1.299,
+"lng": 36.744,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 93
+},
+{
+"id": "kawangware",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Kawangware",
+"lat": -1.285,
+"lng": 36.742,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 94
+},
+{
+"id": "riruta",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Riruta",
+"lat": -1.296,
+"lng": 36.737,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 95
+},
+{
+"id": "satellite",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Satellite",
+"lat": -1.295,
+"lng": 36.72,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 96
+},
+{
+"id": "waithaka",
+"region": "Kilimani, Kileleshwa & Lavington",
+"name": "Waithaka",
+"lat": -1.303,
+"lng": 36.72,
+"corridor": "Ngong Road",
+"active": 0,
+"sort": 97
+},
+{
+"id": "karen",
+"region": "Karen & Langata",
+"name": "Karen",
+"lat": -1.319,
+"lng": 36.709,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 0,
+"sort": 98
+},
+{
+"id": "hardy",
+"region": "Karen & Langata",
+"name": "Hardy",
+"lat": -1.338,
+"lng": 36.72,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 0,
+"sort": 99
+},
+{
+"id": "langata",
+"region": "Karen & Langata",
+"name": "Langata",
+"lat": -1.35,
+"lng": 36.742,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 0,
+"sort": 100
+},
+{
+"id": "langata-barracks-carnivore",
+"region": "Karen & Langata",
+"name": "Langata Barracks / Carnivore",
+"lat": -1.34,
+"lng": 36.79,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 0,
+"sort": 101
+},
+{
+"id": "wilson-airport",
+"region": "Karen & Langata",
+"name": "Wilson Airport",
+"lat": -1.322,
+"lng": 36.814,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 1,
+"sort": 102
+},
+{
+"id": "nairobi-west",
+"region": "Karen & Langata",
+"name": "Nairobi West",
+"lat": -1.31,
+"lng": 36.815,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 1,
+"sort": 103
+},
+{
+"id": "madaraka",
+"region": "Karen & Langata",
+"name": "Madaraka",
+"lat": -1.314,
+"lng": 36.807,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 1,
+"sort": 104
+},
+{
+"id": "south-b",
+"region": "Karen & Langata",
+"name": "South B",
+"lat": -1.308,
+"lng": 36.833,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 1,
+"sort": 105
+},
+{
+"id": "south-c",
+"region": "Karen & Langata",
+"name": "South C",
+"lat": -1.32,
+"lng": 36.83,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 1,
+"sort": 106
+},
+{
+"id": "nyayo-highrise-mugumoini",
+"region": "Karen & Langata",
+"name": "Nyayo Highrise / Mugumoini",
+"lat": -1.3,
+"lng": 36.835,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 1,
+"sort": 107
+},
+{
+"id": "otiende",
+"region": "Karen & Langata",
+"name": "Otiende",
+"lat": -1.33,
+"lng": 36.78,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 0,
+"sort": 108
+},
+{
+"id": "lang-ata-mall-area-kibera",
+"region": "Karen & Langata",
+"name": "Lang'ata Mall area (Kibera)",
+"lat": -1.312,
+"lng": 36.788,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 0,
+"sort": 109
+},
+{
+"id": "karen-hospital-dagoretti-rd",
+"region": "Karen & Langata",
+"name": "Karen Hospital / Dagoretti Rd",
+"lat": -1.328,
+"lng": 36.728,
+"corridor": "Ngong Rd / Langata Rd",
+"active": 0,
+"sort": 110
+},
+{
+"id": "muthaiga",
+"region": "Northern Suburbs",
+"name": "Muthaiga",
+"lat": -1.253,
+"lng": 36.835,
+"corridor": "Limuru Rd / Kiambu Rd",
+"active": 1,
+"sort": 111
+},
+{
+"id": "gigiri",
+"region": "Northern Suburbs",
+"name": "Gigiri",
+"lat": -1.233,
+"lng": 36.804,
+"corridor": "Limuru Rd / Kiambu Rd",
+"active": 0,
+"sort": 112
+},
+{
+"id": "runda",
+"region": "Northern Suburbs",
+"name": "Runda",
+"lat": -1.217,
+"lng": 36.805,
+"corridor": "Limuru Rd / Kiambu Rd",
+"active": 0,
+"sort": 113
+},
+{
+"id": "kitisuru",
+"region": "Northern Suburbs",
+"name": "Kitisuru",
+"lat": -1.233,
+"lng": 36.787,
+"corridor": "Limuru Rd / Kiambu Rd",
+"active": 0,
+"sort": 114
+},
+{
+"id": "karura-ngecha",
+"region": "Northern Suburbs",
+"name": "Karura / Ngecha",
+"lat": -1.23,
+"lng": 36.83,
+"corridor": "Limuru Rd / Kiambu Rd",
+"active": 1,
+"sort": 115
+},
+{
+"id": "kiambu-road",
+"region": "Northern Suburbs",
+"name": "Kiambu Road",
+"lat": -1.22,
+"lng": 36.835,
+"corridor": "Limuru Rd / Kiambu Rd",
+"active": 1,
+"sort": 116
+},
+{
+"id": "thindigua",
+"region": "Northern Suburbs",
+"name": "Thindigua",
+"lat": -1.205,
+"lng": 36.845,
+"corridor": "Limuru Rd / Kiambu Rd",
+"active": 0,
+"sort": 117
+},
+{
+"id": "ruaka",
+"region": "Northern Suburbs",
+"name": "Ruaka",
+"lat": -1.2,
+"lng": 36.77,
+"corridor": "Limuru Rd / Kiambu Rd",
+"active": 0,
+"sort": 118
+},
+{
+"id": "banana-limuru-rd",
+"region": "Northern Suburbs",
+"name": "Banana / Limuru Rd",
+"lat": -1.23,
+"lng": 36.73,
+"corridor": "Limuru Rd / Kiambu Rd",
+"active": 0,
+"sort": 119
+},
+{
+"id": "ridgeways",
+"region": "Northern Suburbs",
+"name": "Ridgeways",
+"lat": -1.215,
+"lng": 36.84,
+"corridor": "Limuru Rd / Kiambu Rd",
+"active": 1,
+"sort": 120
+},
+{
+"id": "kileleshwa-north-lavington-green",
+"region": "Northern Suburbs",
+"name": "Kileleshwa North / Lavington Green",
+"lat": -1.27,
+"lng": 36.77,
+"corridor": "Limuru Rd / Kiambu Rd",
+"active": 0,
+"sort": 121
+},
+{
+"id": "ongata-rongai",
+"region": "Rongai & Ngong",
+"name": "Ongata Rongai",
+"lat": -1.396,
+"lng": 36.744,
+"corridor": "Southern Bypass / Magadi Rd",
+"active": 0,
+"sort": 122
+},
+{
+"id": "kiserian",
+"region": "Rongai & Ngong",
+"name": "Kiserian",
+"lat": -1.42,
+"lng": 36.69,
+"corridor": "Southern Bypass / Magadi Rd",
+"active": 0,
+"sort": 123
+},
+{
+"id": "ngong-town",
+"region": "Rongai & Ngong",
+"name": "Ngong Town",
+"lat": -1.359,
+"lng": 36.66,
+"corridor": "Southern Bypass / Magadi Rd",
+"active": 0,
+"sort": 124
+},
+{
+"id": "matasia",
+"region": "Rongai & Ngong",
+"name": "Matasia",
+"lat": -1.38,
+"lng": 36.69,
+"corridor": "Southern Bypass / Magadi Rd",
+"active": 0,
+"sort": 125
+},
+{
+"id": "ngong-road-racecourse",
+"region": "Rongai & Ngong",
+"name": "Ngong Road Racecourse",
+"lat": -1.301,
+"lng": 36.76,
+"corridor": "Southern Bypass / Magadi Rd",
+"active": 0,
+"sort": 126
+},
+{
+"id": "embulbul",
+"region": "Rongai & Ngong",
+"name": "Embulbul",
+"lat": -1.39,
+"lng": 36.71,
+"corridor": "Southern Bypass / Magadi Rd",
+"active": 0,
+"sort": 127
+},
+{
+"id": "kikuyu-town",
+"region": "Kikuyu & Kiambu (outer)",
+"name": "Kikuyu Town",
+"lat": -1.246,
+"lng": 36.663,
+"corridor": "Waiyaki Way / Kiambu Rd",
+"active": 0,
+"sort": 128
+},
+{
+"id": "zambezi-kikuyu",
+"region": "Kikuyu & Kiambu (outer)",
+"name": "Zambezi / Kikuyu",
+"lat": -1.225,
+"lng": 36.7,
+"corridor": "Waiyaki Way / Kiambu Rd",
+"active": 0,
+"sort": 129
+},
+{
+"id": "kiambu-town",
+"region": "Kikuyu & Kiambu (outer)",
+"name": "Kiambu Town",
+"lat": -1.171,
+"lng": 36.835,
+"corridor": "Waiyaki Way / Kiambu Rd",
+"active": 0,
+"sort": 130
+},
+{
+"id": "ruiru",
+"region": "Kikuyu & Kiambu (outer)",
+"name": "Ruiru",
+"lat": -1.146,
+"lng": 36.96,
+"corridor": "Waiyaki Way / Kiambu Rd",
+"active": 0,
+"sort": 131
+},
+{
+"id": "juja",
+"region": "Kikuyu & Kiambu (outer)",
+"name": "Juja",
+"lat": -1.103,
+"lng": 37.014,
+"corridor": "Waiyaki Way / Kiambu Rd",
+"active": 0,
+"sort": 132
+},
+{
+"id": "thika-town",
+"region": "Kikuyu & Kiambu (outer)",
+"name": "Thika Town",
+"lat": -1.0332,
+"lng": 37.0693,
+"corridor": "Waiyaki Way / Kiambu Rd",
+"active": 0,
+"sort": 133
+},
+{
+"id": "athi-river-town",
+"region": "Kitengela & Athi River (outer)",
+"name": "Athi River Town",
+"lat": -1.454,
+"lng": 36.978,
+"corridor": "Mombasa Rd / Namanga Rd",
+"active": 0,
+"sort": 134
+},
+{
+"id": "kitengela",
+"region": "Kitengela & Athi River (outer)",
+"name": "Kitengela",
+"lat": -1.473,
+"lng": 36.96,
+"corridor": "Mombasa Rd / Namanga Rd",
+"active": 0,
+"sort": 135
+},
+{
+"id": "epz-athi-river",
+"region": "Kitengela & Athi River (outer)",
+"name": "EPZ / Athi River",
+"lat": -1.46,
+"lng": 36.99,
+"corridor": "Mombasa Rd / Namanga Rd",
+"active": 0,
+"sort": 136
+},
+{
+"id": "kerarapon",
+"region": "Kitengela & Athi River (outer)",
+"name": "Kerarapon",
+"lat": -1.43,
+"lng": 36.9,
+"corridor": "Mombasa Rd / Namanga Rd",
+"active": 1,
+"sort": 137
+},
+{
+"id": "isinya",
+"region": "Kitengela & Athi River (outer)",
+"name": "Isinya",
+"lat": -1.61,
+"lng": 36.8,
+"corridor": "Mombasa Rd / Namanga Rd",
+"active": 0,
+"sort": 138
+}
+]
+}

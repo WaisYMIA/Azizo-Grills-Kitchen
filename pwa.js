@@ -1,6 +1,6 @@
 /* Azizo — app install prompt + automatic update check (v1.9). Standalone; no dependencies. */
 (function(){
-  var APP_VERSION='3.1';
+  var APP_VERSION='3.2.1';
   var LS={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
   var standalone=function(){return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;};
   var deferred=null, regRef=null;

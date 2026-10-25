@@ -1,115 +1,92 @@
-# Azizo Butchery & Grill — Backend API
+# Azizo Butchery & Grill — Website + Backend
 
-A real backend with a database — products, orders (the after-sales record the
-business asked for), customer accounts, and M-Pesa STK Push. Built with
-Node.js, Express, and SQLite. Every endpoint has been tested locally
-(registration, login, order creation, admin listing, status updates, access
-control, and graceful M-Pesa failure when unconfigured) — this is working
-code, not a sketch.
+Full source for the Azizo Butchery and Grill website: a static, responsive
+multi-page frontend (home, fresh market, ready-to-eat, meal planner, meat budget planner, areas we serve, outdoor
+events, recipes, about, reviews, FAQ, contact) backed by an admin-managed
+product catalog and order log. The frontend adapts across mobile, tablet and
+desktop breakpoints and works as an installable PWA.
 
-## What's real vs. what needs your own credentials
+## Repo structure
 
-**Works immediately, no setup:** products, orders, customer accounts — all of it,
-the moment you run `npm install && npm start` with a `.env` file.
+```
+site/           Static frontend — HTML/CSS/JS, deploy as-is to any web host
+backend/        Node.js + Express + SQLite API (recommended)
+backend-php/    PHP + MySQL alternative API, for hosts without Node support
+```
 
-**Needs your own Safaricom developer account:** M-Pesa STK Push. The code is complete
-and correct, but nothing can make real Daraja API calls without your own Consumer Key,
-Consumer Secret, Shortcode, and Passkey — see `routes/mpesa.js` for the exact signup
-steps. Until configured, it fails safely with a clear error instead of pretending to work.
+Pick **one** backend, not both — `site/app.js`'s `CONFIG.API_BASE_URL` just
+needs to point at whichever one you deploy. Without any backend running, the
+site still works fully off the bundled `site/products.json` snapshot and
+sends orders over WhatsApp; the backend adds a live-editable catalog, an
+admin orders dashboard, and optional customer accounts.
 
-**Needs a public HTTPS URL:** the M-Pesa callback specifically — Safaricom's servers
-call it directly, so it can't be `localhost`. This only works once deployed.
-
-## Local setup
+## Quick start (Node backend, local)
 
 ```bash
 cd backend
 npm install
-cp .env.example .env
-# edit .env — at minimum set JWT_SECRET and ADMIN_PASSWORD
-npm start
+cp .env.example .env    # then edit ADMIN_PASSWORD, STAFF_PASSWORD and JWT_SECRET
+npm start                # or: node server.js
 ```
 
-Generate a real JWT_SECRET with:
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
+Then open `site/index.html` with `site/app.js`'s `CONFIG.API_BASE_URL` set to
+`http://localhost:3000` (or serve the whole repo with any static file server
+so relative paths resolve). Admin dashboard: `site/admin.html`; staff `site/staff.html`; riders `site/rider.html`.
 
-Server runs on the port in `.env` (default 3000). Try it:
-```bash
-curl http://localhost:3000/api/health
-```
+## Quick start (PHP backend, alternative)
 
-## Database
+See `backend-php/config.php` and `backend-php/schema.sql` — point a MySQL
+database at the schema, edit the config constants (or set the matching
+environment variables), and point your web server's document root at
+`backend-php/`.
 
-SQLite, file-based (`azizo.db`, created automatically on first run). Genuinely simple —
-no separate database server to install or manage. **One important caveat for cloud
-deployment:** some hosting platforms (most serverless ones) wipe the filesystem between
-deploys or restarts, which would silently erase your database. Deploy this to a host
-with **persistent disk** — Render, Railway, Fly.io, or a plain VPS all work. If you
-outgrow SQLite later (very high order volume, need multiple app servers), swapping to a
-hosted Postgres is a contained change mostly isolated to `db.js`.
+## Documentation
 
-## API endpoints
+- `DOCUMENTATION.md` - features, handbook, pricing, configuration, API reference, go-live checklist
+- `CHANGELOG.md` - what changed in each version
+- `backend/README.md` - Node backend setup and deployment
 
-| Method | Path | Auth | What it does |
-|---|---|---|---|
-| GET | `/api/health` | none | Confirms the server is running |
-| GET | `/api/products` | none | Returns `{freshItems, readyItems, groceryItems}` — same shape as `products.json`, so the frontend can switch to this with one line changed |
-| POST | `/api/products` | admin | Create or update a product |
-| DELETE | `/api/products/:id` | admin | Remove a product |
-| POST | `/api/auth/register` | none | Customer signs up — `{name, phone, password}` |
-| POST | `/api/auth/login` | none | Customer logs in — `{phone, password}` |
-| POST | `/api/auth/admin-login` | none | Admin logs in — `{password}` (from `.env`) |
-| POST | `/api/orders` | optional | Create an order. Works with or without a customer's Bearer token (guest checkout still works) |
-| GET | `/api/orders` | admin | List all orders — filter with `?status=` or `?phone=` |
-| GET | `/api/orders/:id` | admin | One order with its line items |
-| PATCH | `/api/orders/:id/status` | admin | Update status: `received`, `preparing`, `out_for_delivery`, `completed`, `cancelled` |
-| GET | `/api/orders/me/history` | customer | A logged-in customer's own past orders |
-| POST | `/api/mpesa/stkpush` | none | Trigger a real STK push — `{phone, amount, orderId}` |
-| POST | `/api/mpesa/callback` | none (Safaricom calls this) | Receives payment confirmation |
-| GET | `/api/mpesa/status/:checkoutRequestId` | none | Poll for payment result |
+## Deploying for real
 
-All admin/customer routes expect `Authorization: Bearer <token>`.
+- `backend/README.md` — Node backend setup, environment variables, and how
+  it connects to the frontend.
+- Before go-live: set real `ADMIN_PASSWORD`/`JWT_SECRET` values, add real
+  M-Pesa Daraja credentials and a Google Maps API key if you want live
+  delivery-distance pricing, replace placeholder product photos via the
+  admin dashboard, and verify branch GPS coordinates.
 
-## API endpoints added in v1.8
-Orders: `GET /api/orders/standing` (staff), `POST /api/orders/:id/repeat` (staff). Reviews: `POST /api/reviews`, `GET /api/reviews` (approved), admin: `GET /api/reviews/all`, `PATCH`/`DELETE /api/reviews/:id`. Branch stock: `GET /api/branch-stock`, `POST /api/branch-stock` (staff). Areas: `/api/areas`. The full table is in `DOCUMENTATION.md`.
+## What is new in v3.2
+Event Budget Planner enquiries: "Request a call back" with an Event enquiries inbox in Admin → Site, and shareable plan links. See `CHANGELOG.md`.
 
-Cooking hub (v2.0): `GET /api/recipes`, `GET`/`POST /api/recipes/:id/comments`, `POST /api/recipes/submit`, admin under `/api/recipes/admin/...` and `/api/media`. Details are in `DOCUMENTATION.md`.
+## What was new in v3.1
+**Event Budget Planner** (`event-budget.html`, admin on/off in the new **Site** tab) and a large Azizo Kitchens upgrade: M-Pesa pay-now, promo codes, riders with delivery codes, dispatch board, dashboard and economics, sub-role admin logins, audit log, customer messages outbox, per-area landing pages. New optional `.env` values: `KITCHENS_DISPATCH_PASSWORD`, `KITCHENS_ACCOUNTS_PASSWORD`, `SITE_URL`, `WA_TOKEN`, `WA_PHONE_ID`. Scripts in `scripts/` (health check, backup). **Read `docs/kitchens/05-PENDING-ON-YOUR-SIDE.md`** for what only you can do. Details in `CHANGELOG.md`.
 
-## Deploying (Render.com example — free tier, persistent disk)
+## What was new in v3.0 (Azizo Kitchens)
+Partner home-kitchen marketplace: `kitchens.html` (order), `kitchen-partners.html` (apply), `kitchen-portal.html` (cook login), `kitchens-admin.html` (separate admin). Set `KITCHENS_ADMIN_PASSWORD` in the backend `.env` (or `config.php`). On a static host set `API_BASE_URL` in `site/kk-config.js`. Operating documents are in `docs/kitchens/`. See DOCUMENTATION.md, "Azizo Kitchens (v3.0)".
 
-1. Push this `backend/` folder to a GitHub repo (separate from or alongside the site repo)
-2. On render.com: New → Web Service → connect the repo
-3. Build command: `npm install` — Start command: `npm start`
-4. Add your `.env` values under Render's "Environment" tab (never commit `.env` itself)
-5. Add a persistent disk (Render → Disks) mounted somewhere like `/data`, and set
-   `DB_PATH=/data/azizo.db` as an environment variable so the database survives redeploys
-6. Once deployed, your API is live at `https://your-service.onrender.com/api/...`
-7. Set `MPESA_CALLBACK_URL` to `https://your-service.onrender.com/api/mpesa/callback`
+## What was new in v2.0
+The Cooking Hub: 78 recipes and 8 butcher's guides with search, filters, sharing, comments, and a full Recipes manager in the admin panel (photos are yours to upload). See `CHANGELOG.md` and the Cooking Hub section of `DOCUMENTATION.md`.
 
-Railway and Fly.io work the same way with minor UI differences — same core steps
-(persistent disk, environment variables, build/start commands).
+## What was new in v1.9
+Install prompt for phones and PCs, plus automatic update checks. See `CHANGELOG.md` and `DOCUMENTATION.md`.
 
-## Connecting the frontend
+## What is in this version (v1.8)
 
-This is already done — `site/app.js` talks to this backend, not just `products.json`:
+The full feature guide, staff/admin handbook, delivery-pricing formula and API reference are in **`DOCUMENTATION.md`**.
+In short:
 
-- `loadProducts()` fetches `{API_BASE_URL}/api/products` first and only falls back to
-  the static `products.json` if that backend isn't reachable (or `API_BASE_URL` is
-  blank, e.g. before you've deployed one)
-- `placeOrder()` still opens the WhatsApp message (that stays the primary "order of
-  record" a human on your end sees in real time), and also fire-and-forgets a
-  `POST /api/orders` so the same order is saved to the database
-- Customer accounts are optional and skippable — guest checkout never requires
-  logging in. When `API_BASE_URL` is set, an "Account" button appears for
-  login/register/order-history, backed by `/api/auth/*` and `/api/orders/me/history`
-- `admin.html` has a full **Orders** tab (alongside Products) that lists every order
-  saved here, lets you filter by status or phone, expand one to see its line items,
-  and move it through `received → preparing → out_for_delivery → completed` (or
-  `cancelled`) via `PATCH /api/orders/:id/status`
+- **Customer site:** shop, cart and WhatsApp checkout with **preferred time**, **butcher instructions**, **area + nearest-branch** suggestions and **zone-banded delivery fees**; **Areas We Serve** (`areas.html`); **Meat Budget Planner** (`budget.html`); meal plans with recurring orders; order tracking; **verified reviews** (with photo); **your usual** and saved details for returning customers; floating Call and WhatsApp buttons.
+- **Staff (`staff.html`, `STAFF_PASSWORD`):** live orders with one-tap **WhatsApp status messages**, today's totals, **stock per branch**, **standing (recurring) orders** with one-tap repeat, promo codes, branch directory.
+- **Riders (`rider.html`):** today's deliveries grouped by branch and road, cash to collect, call / WhatsApp / map, delivered button.
+- **Admin (`admin.html`, `ADMIN_PASSWORD`):** Products (with private cost prices), Orders, **Branches** (add, show or hide, e.g. when closed), **Areas** (all Nairobi regions split into zones, tick which are served, delivery pricing), **Reviews** (moderation), **Reports** (sales, profit & loss, accountant Excel pack).
+- **Free map services:** delivery distance uses OSRM road distance (estimate if unreachable); address search uses Photon with OpenStreetMap Nominatim as backup. A Google key (optional) is used first when set.
+- **Catalog top-up:** on start-up an existing database gets new menu items once without touching your edits. Prices are placeholders: edit them in admin.
+- **Without a backend** the site still works from `products.json`, `branches.json` and `areas.json` and sends orders over WhatsApp; staff, rider, reviews, reports and admin need the backend.
+- **PHP backend:** same API as the Node one, but not yet run against a real MySQL server, and its products API has no groceries group.
 
-The one line that controls all of this is `CONFIG.API_BASE_URL` near the top of
-`site/app.js` — set it to this backend's real deployed URL and every piece above
-switches on automatically; leave it blank and the site still works standalone
-(static catalog, WhatsApp-only checkout, no Account button).
+## Responsive design
+
+Every page ships with mobile/tablet/desktop breakpoints (verified at
+375px, 768px and 1440px widths with zero horizontal overflow, including the
+admin orders dashboard) and a mobile-first checkout flow. No further work is
+needed here before launch.

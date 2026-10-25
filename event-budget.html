@@ -62,6 +62,7 @@
 <script src="eb-flag.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Azizo Event Budget Planner","applicationCategory":"BusinessApplication","operatingSystem":"Any","description":"Estimate the meat cost for a party, braai or corporate event from live Azizo Butchery & Grill prices, or turn a budget into quantities.","url":"https://www.azizobutchery.co.ke/event-budget.html","offers":{"@type":"Offer","price":"0","priceCurrency":"KES"},"provider":{"@type":"Organization","name":"Azizo Butchery & Grill"}}</script>
 </head>
 <body data-page="event-budget">
 
@@ -177,7 +178,9 @@
             <dl id="ebBreak"></dl>
             <div id="ebMsgs"></div>
             <a class="eb-primary" id="ebCall" href="#">📞 Talk to us about this event</a>
+            <button type="button" class="eb-secondary" id="ebLead" disabled>📞 Request a call back</button>
             <button type="button" class="eb-secondary" id="ebPdf" disabled>Download PDF</button>
+            <button type="button" class="eb-secondary" id="ebShare" disabled>🔗 Copy link to this plan</button>
             <p class="bp-fine" style="color:#d9cdb9">An estimate, not a quote. Final prices follow the day's price list and the cuts you confirm. Fixed event costs are quoted on the call.</p>
           </div>
         </aside>
@@ -186,6 +189,23 @@
   </div>
   <div class="eb-minibar" id="ebMini"><span><small>Estimate</small><br><strong id="ebMiniAmt">KSh 0</strong></span><a href="#ebSummary">See summary</a></div>
 </section>
+<div class="eb-modal" id="ebModal" role="dialog" aria-modal="true" aria-labelledby="ebModalH" hidden>
+  <div class="eb-sheet">
+    <button type="button" class="eb-xx" id="ebModalX" aria-label="Close">&times;</button>
+    <h3 id="ebModalH">Request a call back</h3>
+    <p class="bp-hint">We will call you to talk through the fixed costs (cooking facilities, fuel, chef) and confirm the meat. Your list and estimate are sent with the request.</p>
+    <div id="ebLeadDone" hidden class="eb-note"></div>
+    <form id="ebLeadForm" novalidate>
+      <label class="bp-field">Your name<input id="lName" maxlength="60" autocomplete="name" required></label>
+      <label class="bp-field">Phone number<input id="lPhone" type="tel" maxlength="20" autocomplete="tel" placeholder="07XX XXX XXX" required></label>
+      <div class="bp-grid2"><label class="bp-field">Event date<input id="lDate" type="date"></label><label class="bp-field">Venue or area<input id="lVenue" maxlength="120" placeholder="e.g. Syokimau"></label></div>
+      <label class="bp-field">Anything else?<textarea id="lNote" maxlength="400" rows="2" placeholder="e.g. need grill stations and a chef for 6 hours"></textarea></label>
+      <input id="lHp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+      <div id="lErr" role="alert" class="eb-msg warn" hidden></div>
+      <button type="submit" class="eb-primary" id="lGo" style="background:var(--maroon);color:var(--gold-soft)">Send request</button>
+    </form>
+  </div>
+</div>
 
 <!-- READY TO EAT -->
 

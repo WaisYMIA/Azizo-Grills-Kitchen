@@ -121,7 +121,7 @@
       msgs.push([gp < 250 ? 'warn' : '', gp < 250 ? `About ${Math.round(gp)} g per guest is on the light side. Most hosts plan 300–450 g of raw meat each.` : gp <= 500 ? `About ${Math.round(gp)} g per guest, a comfortable braai portion.` : `About ${Math.round(gp)} g per guest is generous; expect leftovers.`]); }
     if(c.lines.some(l => l.p && !l.p.inStock && (state.mode === 'qty' ? l.qty > 0 : l.qty > 0))) msgs.push(['warn', 'Some items are out of stock right now. We will suggest substitutes on the call.']);
     $('ebMsgs').innerHTML = msgs.map(m => `<div class="eb-msg ${m[0]}">${esc(m[1])}</div>`).join('');
-    const ok = c.total > 0; $('ebPdf').disabled = !ok;
+    const ok = c.total > 0; $('ebPdf').disabled = !ok; $('ebLead').disabled = !ok; $('ebShare').disabled = !ok;
     $('ebCall').href = waLink(c);
     $('ebBudgetHint').innerHTML = state.mode === 'qty' && c.budget ? `Your meat budget includes a ${c.c}% buffer, so about <b>${ksh(c.budget / (1 + c.c / 100))}</b> goes on meat. That is ${ksh(c.budget / g)} per guest.` : '';
   }
@@ -171,6 +171,44 @@
     doc.save('azizo-event-estimate.pdf');
   }
 
+
+  // ---------- share link ----------
+  function b64(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function unb64(s){ return JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))))); }
+  function shareUrl(){ return location.origin + location.pathname + '?p=' + b64({ n:state.name, g:state.guests, m:state.mode, b:state.budget, r:state.rows.map(r => [r.id, r.qty, r.share]) }); }
+  function loadShared(){
+    const p = new URLSearchParams(location.search).get('p'); if(!p) return false;
+    try{ const o = unb64(p); state.name = String(o.n || '').slice(0, 60); state.guests = clamp(parseInt(o.g) || 50, 1, 2000); state.mode = o.m === 'qty' ? 'qty' : 'cost'; state.budget = o.b ? String(o.b) : '';
+      state.rows = (Array.isArray(o.r) ? o.r : []).slice(0, 40).map(a => ({ id:String(a[0]), qty:clamp(Number(a[1]) || 0, 0, 9999), share:clamp(Number(a[2]) || 0, 0, 100) })); return true; }catch(e){ return false; }
+  }
+  async function copyLink(){
+    const u = shareUrl();
+    try{ await Promise.race([navigator.clipboard.writeText(u), new Promise((_, rej) => setTimeout(() => rej(new Error('slow')), 1200))]); toast('Link copied. Anyone who opens it sees your list at today\'s prices.'); }catch(e){ window.prompt('Copy this link:', u); }
+  }
+  // ---------- call-back request ----------
+  let leadOpener = null;
+  function openLead(){
+    leadOpener = document.activeElement; const m = $('ebModal'); m.hidden = false; $('ebLeadDone').hidden = true; $('ebLeadForm').hidden = false; $('lErr').hidden = true;
+    const d = $('lDate'); d.min = new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10); try{ $('lName').value = localStorage.getItem('azizoLeadName') || ''; $('lPhone').value = localStorage.getItem('azizoLeadPhone') || ''; }catch(e){}
+    setTimeout(() => $('lName').focus(), 30);
+  }
+  function closeLead(){ $('ebModal').hidden = true; if(leadOpener){ try{ leadOpener.focus(); }catch(e){} } }
+  async function sendLead(e){
+    e.preventDefault(); const err = $('lErr'); err.hidden = true; const c = compute(), name = $('lName').value.trim(), phone = $('lPhone').value.trim();
+    if(name.length < 2 || phone.replace(/\D/g, '').length < 9){ err.textContent = 'Please enter your name and a valid phone number.'; err.hidden = false; return; }
+    const body = { name, phone, eventDate:$('lDate').value, venue:$('lVenue').value, note:$('lNote').value, website:$('lHp').value, guests:clamp(state.guests, 1, 2000), estimate:c.total, mode:state.mode,
+      items:c.lines.filter(l => l.p && l.qty > 0).map(l => ({ name:l.p.name, qty:l.qty, unit:unitLabel(l.p), cost:l.cost })) };
+    if(state.name) body.note = ('Event: ' + state.name + '. ' + body.note).slice(0, 400);
+    $('lGo').disabled = true; $('lGo').textContent = 'Sending…';
+    try{
+      const res = await fetch((typeof apiAvailable === 'function' && apiAvailable() ? apiBase() : '') + '/api/site/leads', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body) });
+      const d = await res.json().catch(() => ({})); if(!res.ok) throw new Error(d.error || 'Could not send. Please use WhatsApp instead.');
+      try{ localStorage.setItem('azizoLeadName', name); localStorage.setItem('azizoLeadPhone', phone); }catch(x){}
+      $('ebLeadForm').hidden = true; $('ebLeadDone').hidden = false; $('ebLeadDone').textContent = 'Thank you, ' + name.split(' ')[0] + '. We have your request and will call you on ' + phone + '.';
+    }catch(x){ err.textContent = x.message + (typeof apiAvailable === 'function' && !apiAvailable() ? ' (This site has no backend connected; use the WhatsApp button.)' : ''); err.hidden = false; }
+    $('lGo').disabled = false; $('lGo').textContent = 'Send request';
+  }
+
   // ---------- live refresh ----------
   async function refresh(silent){
     const list = await fetchCatalog(); if(!list || !list.length) return;
@@ -200,7 +238,8 @@
     $('ebAddBtn').onclick = () => { const v = $('ebPick').value; if(v) add(v); else toast('Choose a product from the list first.'); };
     $('ebPick').addEventListener('change', e => { if(e.target.value) add(e.target.value); });
     $('ebSuggest').onclick = suggest; $('ebClear').onclick = () => { state.rows = []; save(); renderAll(); };
-    $('ebPdf').onclick = pdf;
+    $('ebPdf').onclick = pdf; $('ebShare').onclick = copyLink; $('ebLead').onclick = openLead; $('ebModalX').onclick = closeLead; $('ebLeadForm').addEventListener('submit', sendLead);
+    $('ebModal').addEventListener('click', e => { if(e.target.id === 'ebModal') closeLead(); }); document.addEventListener('keydown', e => { if(e.key === 'Escape' && !$('ebModal').hidden) closeLead(); });
     const tpl = $('ebTemplates'); TEMPLATES.forEach(t => { const b = document.createElement('button'); b.type = 'button'; b.className = 'eb-chip'; b.textContent = t.name; b.onclick = () => template(t); tpl.appendChild(b); });
     $('ebItems').addEventListener('click', e => {
       const b = e.target.closest('[data-act]'); if(!b) return; const row = b.closest('.eb-row'), r = state.rows[+row.dataset.i]; if(!r) return; const act = b.dataset.act, p = byId[r.id];
@@ -217,7 +256,7 @@
   }
 
   async function init(){
-    restore();
+    if(!loadShared()) restore();
     const [list, s] = await Promise.all([fetchCatalog(), window.AzizoSite.ready]);
     settings = s || settings;
     if(list && list.length) applyCatalog(list);

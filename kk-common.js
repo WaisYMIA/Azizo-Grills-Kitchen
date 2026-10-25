@@ -5,19 +5,36 @@
   K.esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
   K.money = function(n){ return 'KSh ' + Number(n || 0).toLocaleString('en-KE'); };
   K.$ = function(id){ return document.getElementById(id); };
-  K.base = function(){ var b = ''; try{ b = (window.KK_CONFIG && window.KK_CONFIG.API_BASE_URL) || localStorage.getItem('azizoAdminBackendUrl') || ''; }catch(e){} return String(b).replace(/\/+$/, ''); };
+  // Explicit address: kk-config.js, or one typed on an admin/portal sign-in screen. May be empty (same address as this page).
+  K.explicitBase = function(){ var b = ''; try{ b = (window.KK_CONFIG && window.KK_CONFIG.API_BASE_URL) || localStorage.getItem('azizoAdminBackendUrl') || ''; }catch(e){} return String(b).replace(/\/+$/, ''); };
+  // Fallback: the backend address the main shop already uses (app.js), remembered after the first successful discovery.
+  K.base = function(){ var b = K.explicitBase(); if(!b){ try{ b = localStorage.getItem('kkBaseGuess') || ''; }catch(e){} } return String(b).replace(/\/+$/, ''); };
+  K.discover = async function(){
+    try{ var r = await fetch('app.js', { cache: 'no-store' }); if(!r.ok) return ''; var m = (await r.text()).match(/API_BASE_URL:\s*"([^"]*)"/), v = m ? m[1].replace(/\/+$/, '') : '';
+      if(v){ try{ localStorage.setItem('kkBaseGuess', v); }catch(e){} } return v; }catch(e){ return ''; }
+  };
   K.get = function(k){ try{ return localStorage.getItem(k) || ''; }catch(e){ return ''; } };
   K.set = function(k, v){ try{ localStorage.setItem(k, v); }catch(e){} };
   K.tokenKey = null;
   K.api = async function(path, opts, token){
     opts = opts || {};
     var h = Object.assign({}, opts.body ? {'Content-Type':'application/json'} : {}, token ? {'Authorization':'Bearer ' + token} : {});
-    var res;
-    try{ res = await fetch(K.base() + '/api/kitchens' + path, Object.assign({}, opts, {headers:h, cache:'no-store'})); }
-    catch(e){ throw new Error('Cannot reach the server. Check your internet or the backend address.'); }
-    var data = {}; try{ data = await res.json(); }catch(e){}
-    if(!res.ok){ var er = new Error(data.error || ('Something went wrong (' + res.status + ')')); er.status = res.status; throw er; }
-    return data;
+    var once = async function(base){
+      var res; try{ res = await fetch(base + '/api/kitchens' + path, Object.assign({}, opts, {headers:h, cache:'no-store'})); }catch(e){ return { net: true }; }
+      var data = {}; try{ data = await res.json(); }catch(e){} return { res: res, data: data };
+    };
+    var base = K.base(), r = await once(base);
+    // Wrong address (page host has no backend, or the shop uses a separate backend address): try the one the shop uses.
+    if(!K.explicitBase() && (r.net || (r.res && (r.res.status === 404 || r.res.status === 405) && !r.data.error))){
+      var g = await K.discover(); if(g && g !== base){ var r2 = await once(g); if(!r2.net && r2.res && (r2.res.ok || r2.data.error)){ r = r2; base = g; } }
+    }
+    if(r.net) throw new Error('Cannot reach the server. Check your internet connection and try again.');
+    if(!r.res.ok){
+      var msg = r.data.error;
+      if(!msg && (r.res.status === 404 || r.res.status === 405)){ msg = 'The ordering service could not be found.'; try{ console.error('Azizo Kitchens: ' + base + '/api/kitchens' + path + ' returned ' + r.res.status + '. Set API_BASE_URL in kk-config.js to your backend address, and make sure the backend is updated to the latest version.'); }catch(e){} }
+      var er = new Error(msg || ('Something went wrong (' + r.res.status + ')')); er.status = r.res.status; throw er;
+    }
+    return r.data;
   };
   K.toast = function(msg){ var t = K.$('kkToast'); if(!t){ t = document.createElement('div'); t.id = 'kkToast'; t.className = 'toast'; document.body.appendChild(t); } t.textContent = msg; t.classList.add('show'); clearTimeout(K._t); K._t = setTimeout(function(){ t.classList.remove('show'); }, 2800); };
   K.today = function(){ var d = new Date(Date.now() + 3 * 3600000); return d.toISOString().slice(0, 10); };
@@ -49,7 +66,7 @@
       return '<optgroup label="' + K.esc(r) + '">' + g[r].map(function(a){ return '<option value="' + K.esc(a.id) + '"' + (a.id === selected ? ' selected' : '') + '>' + K.esc(a.name) + '</option>'; }).join('') + '</optgroup>';
     }).join('');
   };
-  K.gps = function(){ return new Promise(function(res, rej){ if(!navigator.geolocation) return rej(new Error('Location is not available on this device')); navigator.geolocation.getCurrentPosition(function(p){ res({lat:p.coords.latitude, lng:p.coords.longitude}); }, function(){ rej(new Error('We could not get your location. Please choose your area instead.')); }, {enableHighAccuracy:true, timeout:12000}); }); };
+  K.gps = function(){ return new Promise(function(res, rej){ if(!navigator.geolocation) return rej(new Error('Location is not available on this device')); navigator.geolocation.getCurrentPosition(function(p){ res({lat:p.coords.latitude, lng:p.coords.longitude}); }, function(){ rej(new Error(window.isSecureContext === false ? 'Location only works on a secure (https) page. Please choose your area instead.' : 'We could not get your location. Please allow location access, or choose your area instead.')); }, {enableHighAccuracy:true, timeout:12000}); }); };
   K.header = function(active){
     var L = [['kitchens.html','Order food','order'],['kitchen-partners.html','Cook with Azizo','partners'],['kitchen-portal.html','Kitchen login','portal'],['index.html','Azizo Butchery','shop']];
     var el = K.$('kkHeader'); if(!el) return;

@@ -24,6 +24,8 @@ Everything that can be built in code is built. These items need something only y
 - [ ] **Recruit riders**: add them in Kitchens Admin → Riders.
 - [ ] Decide the **Event Budget Planner** wording: set the note, buffer % and on/off in Admin → Site.
 
+- [ ] **Check Admin → Site → Event enquiries daily** and call new enquiries; a person is needed for this. Automatic messages to them need the WhatsApp API keys above.
+
 ## 4. Not built (and why)
 - **Real push notifications** (needs VAPID keys and a push service). Customers get updates by 20-second refresh plus a browser notification while the page is open.
 - **One-click database restore** (risky to expose). Manual restore is documented in DOCUMENTATION.md.
