@@ -19,19 +19,27 @@
   K.api = async function(path, opts, token){
     opts = opts || {};
     var h = Object.assign({}, opts.body ? {'Content-Type':'application/json'} : {}, token ? {'Authorization':'Bearer ' + token} : {});
-    var once = async function(base){
-      var res; try{ res = await fetch(base + '/api/kitchens' + path, Object.assign({}, opts, {headers:h, cache:'no-store'})); }catch(e){ return { net: true }; }
+    var tried = '';
+    var one = async function(url){
+      var res; try{ res = await fetch(url, Object.assign({}, opts, {headers:h, cache:'no-store'})); }catch(e){ return { net: true }; }
       var data = {}; try{ data = await res.json(); }catch(e){} return { res: res, data: data };
     };
+    var missing = function(r){ return r.res && (r.res.status === 404 || r.res.status === 405) && !r.data.error; };
+    var once = async function(base){
+      tried = base + '/api/kitchens' + path;
+      var r1 = await one(tried);
+      // PHP hosts where the .htaccess rewrite is not active: call the router file directly.
+      if(missing(r1)){ var r2 = await one(base + '/api/kitchens/index.php?p=' + path.replace('?', '&')); if(!r2.net && r2.res && !missing(r2)){ K._phpDirect = true; return r2; } }
+      return r1;
+    };
     var base = K.base(), r = await once(base);
-    // Wrong address (page host has no backend, or the shop uses a separate backend address): try the one the shop uses.
-    if(!K.explicitBase() && (r.net || (r.res && (r.res.status === 404 || r.res.status === 405) && !r.data.error))){
-      var g = await K.discover(); if(g && g !== base){ var r2 = await once(g); if(!r2.net && r2.res && (r2.res.ok || r2.data.error)){ r = r2; base = g; } }
+    if(!K.explicitBase() && (r.net || missing(r))){
+      var g = await K.discover(); if(g && g !== base){ var r3 = await once(g); if(!r3.net && r3.res && (r3.res.ok || r3.data.error)){ r = r3; base = g; } }
     }
     if(r.net) throw new Error('Cannot reach the server. Check your internet connection and try again.');
     if(!r.res.ok){
       var msg = r.data.error;
-      if(!msg && (r.res.status === 404 || r.res.status === 405)){ msg = 'The ordering service could not be found.'; try{ console.error('Azizo Kitchens: ' + base + '/api/kitchens' + path + ' returned ' + r.res.status + '. Set API_BASE_URL in kk-config.js to your backend address, and make sure the backend is updated to the latest version.'); }catch(e){} }
+      if(!msg && (r.res.status === 404 || r.res.status === 405)){ msg = 'The ordering service could not be found at ' + (base || location.origin) + '. The backend there needs the latest version, or set API_BASE_URL in kk-config.js to the right address.'; try{ console.error('Azizo Kitchens: ' + base + '/api/kitchens' + path + ' returned ' + r.res.status + '. Set API_BASE_URL in kk-config.js to your backend address, and make sure the backend is updated to the latest version.'); }catch(e){} }
       var er = new Error(msg || ('Something went wrong (' + r.res.status + ')')); er.status = r.res.status; throw er;
     }
     return r.data;
@@ -60,6 +68,8 @@
       fr.readAsDataURL(file);
     });
   };
+  // Area list straight from the website's own areas.json, used when the ordering service cannot be reached (the list still shows).
+  K.staticAreas = async function(){ try{ var r = await fetch('areas.json', {cache:'no-store'}); var j = await r.json(); return (j.areas || []).filter(function(a){ return a.active !== 0; }).map(function(a){ return {id:a.id, region:a.region, name:a.name, lat:a.lat, lng:a.lng}; }); }catch(e){ return []; } };
   K.areaOptions = function(areas, selected){
     var g = {}; areas.forEach(function(a){ (g[a.region] = g[a.region] || []).push(a); });
     return '<option value="">Choose your area…</option>' + Object.keys(g).sort().map(function(r){
@@ -72,8 +82,8 @@
     var el = K.$('kkHeader'); if(!el) return;
     el.innerHTML = '<a class="skip" href="#main">' + K.t('Skip to content') + '</a><header class="kk-nav"><div class="kk-nav-in"><a class="kk-brand" href="kitchens.html"><img src="logo.png" alt="Azizo logo"><b>Azizo <span>Kitchens</span></b></a>' +
       '<button class="kk-menu" aria-label="Menu" onclick="document.getElementById(\'kkLinks\').classList.toggle(\'open\')">&#9776;</button><nav class="kk-links" id="kkLinks">' +
-      L.map(function(l){ return '<a href="' + l[0] + '" class="' + (l[2] === active ? 'on' : '') + (l[2] === 'partners' ? ' cta' : '') + '" data-t>' + l[1] + '</a>'; }).join('') + '<button class="kk-lang" id="kkLang" type="button"></button></nav></div></header>';
-    var lb = K.$('kkLang'); if(lb) lb.onclick = function(){ K.setLang(K.lang === 'sw' ? 'en' : 'sw'); }; if(K.applyLang) K.applyLang();
+      L.map(function(l){ return '<a href="' + l[0] + '" class="' + (l[2] === active ? 'on' : '') + (l[2] === 'partners' ? ' cta' : '') + '" data-t>' + l[1] + '</a>'; }).join('') + '</nav></div></header>';
+    if(K.applyLang) K.applyLang();
   };
   K.footer = function(){
     var el = K.$('kkFooter'); if(!el) return;
@@ -91,7 +101,7 @@
     'Waiting for the kitchen to confirm':'Tunasubiri jiko lithibitishe','Confirmed. The cook has your order':'Imethibitishwa. Mpishi ana oda yako','Being cooked':'Inapikwa','Ready. Waiting for the rider':'Tayari. Inasubiri msafirishaji','On its way to you':'Inakuja kwako','Delivered. Enjoy!':'Imefika. Karibu mlo!',
     'Cancelled':'Imefutwa','Your delivery code':'Msimbo wako wa kupokea','Give this code to the rider when your food arrives.':'Mpe msafirishaji msimbo huu chakula chako kikifika.','Already ordered? Check your order or leave a rating.':'Umeagiza tayari? Angalia oda yako au toa maoni.',
     'Skip to content':'Ruka hadi maudhui','Vegetarian':'Mboga','Spicy':'Kali','Fish':'Samaki' };
-  K.lang = K.get('kkLang') === 'sw' ? 'sw' : 'en';
+  K.lang = 'en';   // translation is done site-wide by translate.js (Google); the old built-in word list is no longer used
   K.t = function(en){ return K.lang === 'sw' && SW[en] ? SW[en] : en; };
   K.applyLang = function(){
     document.documentElement.lang = K.lang === 'sw' ? 'sw' : 'en';
@@ -99,7 +109,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-tp]'), function(e){ if(!e.dataset.en) e.dataset.en = e.getAttribute('placeholder') || ''; e.setAttribute('placeholder', K.t(e.dataset.en)); });
     var b = K.$('kkLang'); if(b){ b.textContent = K.lang === 'sw' ? 'SW | en' : 'EN | sw'; b.setAttribute('aria-label', K.lang === 'sw' ? 'Switch to English' : 'Badilisha kuwa Kiswahili'); }
   };
-  K.setLang = function(l){ K.lang = l === 'sw' ? 'sw' : 'en'; K.set('kkLang', K.lang); K.applyLang(); if(window.azizoTranslate) window.azizoTranslate(K.lang); if(typeof K.onLang === 'function') K.onLang(); };
+  K.setLang = function(l){ if(window.azizoTranslate) window.azizoTranslate(l); };
   var opener = null;
   K.openModal = function(id){
     var m = K.$(id); if(!m) return; opener = document.activeElement; m.classList.add('show'); var sh = m.querySelector('.sheet');

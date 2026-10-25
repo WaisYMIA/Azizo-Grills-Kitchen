@@ -1,5 +1,10 @@
 # Changelog
 
+## v3.3.1 — 2026-10-26
+- **One language switch.** The old EN | SW button in the Kitchens header is removed; the Google-powered switch (bottom-left) is the only one, on every public page including Azizo Kitchens.
+- **Kitchens "service could not be found".** The site now also tries the PHP router file directly (`/api/kitchens/index.php?p=...`) when the clean address is missing (hosts where the `.htaccess` rewrite is off), and the error now names the address it tried.
+- **"Your area" always shows.** If the ordering service cannot be reached, the area list loads from the site's own `areas.json` (Kitchens page and Cook-with-Azizo page), so it is never empty. Ordering still needs the backend.
+
 ## v3.3.0 — 2026-10-26
 - **Whole-site Kiswahili.** A new `translate.js` uses Google's free Website Translator, so every word on every public page (including products, dishes, prices labels, menus loaded later) is translated, not only the header. A small EN | SW switch sits bottom-left on every public page; the Kitchens header switch drives the same thing. The choice is remembered, and `?lang=sw` in a link opens the page in Kiswahili. Staff, rider, admin and cook pages stay in English. Needs an internet connection; machine translation, so wording may be imperfect.
 

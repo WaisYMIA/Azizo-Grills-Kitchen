@@ -20,7 +20,11 @@
     if(!K.base() && location.protocol === 'file:'){ say('Ordering needs the Azizo server. Ask us on WhatsApp, or open this page from the live site.', 'err'); return; }
     try{
       var r = await Promise.all([K.api('/config'), K.api('/areas')]); CFG = r[0]; AREAS = r[1].areas;
-    }catch(e){ say(e.message + ' You can still order on WhatsApp: 0724 888 057.', 'err'); return; }
+    }catch(e){
+      say(e.message + ' You can still order on WhatsApp: 0724 888 057.', 'err');
+      var sa = await K.staticAreas(); if(sa.length){ AREAS = sa; $('area').innerHTML = K.areaOptions(sa, ''); $('area').disabled = false; }
+      return;
+    }
     var wantArea = params.get('area') || window.KK_AREA; if(wantArea && AREAS.some(function(a){ return a.id === wantArea; })) state.area = wantArea;
     $('area').innerHTML = K.areaOptions(AREAS, state.area); if(!AREAS.some(function(a){ return a.id === state.area; })) state.area = '';
     state.date = CFG.now.date; state.meal = mealOfDay();

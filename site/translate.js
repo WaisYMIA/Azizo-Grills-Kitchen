@@ -19,11 +19,11 @@
   css.textContent = '.goog-te-banner-frame,.goog-te-balloon-frame,#goog-gt-tt,.goog-tooltip,.VIpgJd-ZVi9od-ORHb-OEVmcd,.VIpgJd-ZVi9od-aZ2wEe-wOHMyf{display:none!important}'
     + 'body{top:0!important;position:static!important}.goog-text-highlight{background:none!important;box-shadow:none!important}'
     + '#azizoGT{position:absolute;left:-9999px;top:0;height:0;overflow:hidden}'
-    + '#azLangPill{position:fixed;left:12px;bottom:12px;z-index:9990;display:flex;gap:0;border-radius:999px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.28);font:700 13px/1 system-ui,sans-serif;background:#fff;border:1px solid rgba(0,0,0,.18)}'
+    + '#azLangPill{position:fixed;left:12px;bottom:12px;z-index:40;display:flex;gap:0;border-radius:999px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.28);font:700 13px/1 system-ui,sans-serif;background:#fff;border:1px solid rgba(0,0,0,.18)}'
     + '#azLangPill button{border:0;background:transparent;padding:10px 13px;min-height:40px;cursor:pointer;color:#333;font:inherit}'
     + '#azLangPill button[aria-pressed=true]{background:#b3131b;color:#fff}'
     + '#azLangMsg{position:fixed;left:12px;bottom:62px;z-index:9991;background:#222;color:#fff;border-radius:10px;padding:9px 12px;font:13px/1.35 system-ui,sans-serif;max-width:260px;box-shadow:0 4px 14px rgba(0,0,0,.3)}'
-    + '@media print{#azLangPill,#azLangMsg{display:none}}';
+    + 'body:has(.modal.show) #azLangPill,body:has(.eb-modal:not([hidden])) #azLangPill{display:none}@media print{#azLangPill,#azLangMsg{display:none}}';
   document.head.appendChild(css);
 
   function msg(t){
@@ -65,7 +65,7 @@
   window.azizoTranslate = set;
 
   function pill(){
-    if(document.getElementById('azLangPill') || document.getElementById('kkLang')) return;   // Kitchens pages have their own header toggle
+    if(document.getElementById('azLangPill')) return;
     var p = document.createElement('div'); p.id = 'azLangPill'; p.className = 'notranslate'; p.setAttribute('translate', 'no'); p.setAttribute('role', 'group'); p.setAttribute('aria-label', 'Language / Lugha');
     p.innerHTML = '<button type="button" aria-label="English">EN</button><button type="button" aria-label="Kiswahili">SW</button>';
     var b = p.querySelectorAll('button'); b[0].onclick = function(){ set('en'); }; b[1].onclick = function(){ set('sw'); };

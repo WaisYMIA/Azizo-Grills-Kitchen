@@ -82,7 +82,7 @@
 <script>
 (function(){
   var K = window.KK, $ = K.$, loc = null; K.header('partners'); K.footer();
-  K.api('/areas').then(function(r){ $('area').innerHTML = K.areaOptions(r.areas, ''); }).catch(function(){ $('area').innerHTML = '<option value="">Areas could not load</option>'; });
+  K.api('/areas').then(function(r){ $('area').innerHTML = K.areaOptions(r.areas, ''); }).catch(function(){ K.staticAreas().then(function(a){ $('area').innerHTML = a.length ? K.areaOptions(a, '') : '<option value="">Areas could not load</option>'; }); });
   $('gps').onclick = async function(){ try{ loc = await K.gps(); $('area').value = ''; $('gpsOk').style.display = ''; }catch(e){ K.toast(e.message); } };
   $('area').onchange = function(){ if(this.value){ loc = null; $('gpsOk').style.display = 'none'; } };
   function err(m){ $('out').innerHTML = '<div class="msg err">' + K.esc(m) + '</div>'; }
