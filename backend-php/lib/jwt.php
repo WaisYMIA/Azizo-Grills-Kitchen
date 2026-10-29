@@ -6,6 +6,7 @@
  * library; just hand-rolled.
  */
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/security.php';
 
 function base64url_encode(string $data): string {
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -17,6 +18,7 @@ function base64url_decode(string $data): string {
 function jwt_sign(array $payload, int $expiresInSeconds): string {
     $header = ['alg' => 'HS256', 'typ' => 'JWT'];
     $payload['iat'] = time();
+    $payload['ep'] = sec_epoch();   // tokens die when the admin uses "sign out everyone"
     $payload['exp'] = time() + $expiresInSeconds;
     $segments = [
         base64url_encode(json_encode($header)),
@@ -38,6 +40,7 @@ function jwt_verify(string $token): ?array {
     $payload = json_decode(base64url_decode($payloadB64), true);
     if (!is_array($payload)) return null;
     if (isset($payload['exp']) && time() > $payload['exp']) return null;
+    if (($payload['ep'] ?? 0) !== sec_epoch()) return null;
     return $payload;
 }
 

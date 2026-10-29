@@ -3,10 +3,26 @@ const db = require('../db');
 const { requireAuth, requireAdmin, requireStaff } = require('../middleware/auth');
 const router = express.Router();
 router.post('/', (req, res) => {
-  const { customer_name, customer_phone, fulfilment, branch, pickup_time, notes, area, recurring, delivery_address,
+  let { customer_name, customer_phone, fulfilment, branch, pickup_time, notes, area, recurring, delivery_address,
     delivery_lat, delivery_lng, delivery_fee, payment_method, promo_code, items_subtotal, total, items } = req.body;
+  const partnerIdIn = parseInt(req.body.partnerId, 10) || null;
   if (!customer_phone || !fulfilment || !payment_method || !total || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'customer_phone, fulfilment, payment_method, total, and a non-empty items array are required' });
+  }
+  // v3.4: kg items can be ordered in quarters (0.25 kg steps), so quantity is a positive number, not a whole number.
+  for (const it of items) {
+    it.qty = Number(it.qty);
+    if (!Number.isFinite(it.qty) || it.qty <= 0 || it.qty > 1000) return res.status(400).json({ error: 'Each item needs a quantity above zero' });
+    it.qty = Math.round(it.qty * 100) / 100;
+  }
+  // v4.0 marketplace: an order for a partner butchery is re-priced from that partner's own price list and pays the partner directly.
+  let partner = null;
+  if (partnerIdIn) {
+    if (!['cash', 'partner_pay'].includes(payment_method)) return res.status(400).json({ error: 'Pay the butchery directly (cash or its till) for this order' });
+    const priced = require('./market').priceOrder(partnerIdIn, items);
+    if (priced.error) return res.status(400).json({ error: priced.error });
+    partner = priced.partner; items_subtotal = priced.subtotal; delivery_fee = fulfilment === 'delivery' ? partner.delivery_fee : 0; total = priced.subtotal + delivery_fee;
+    notes = ('[Partner: ' + partner.name + '] ' + (notes || '')).slice(0, 300);
   }
   let customerId = null;
   const header = req.headers.authorization;
@@ -20,9 +36,9 @@ router.post('/', (req, res) => {
   }
   const insertOrder = db.prepare(`
     INSERT INTO orders (customer_id, customer_name, customer_phone, fulfilment, branch, pickup_time, notes, area, recurring,
-      delivery_address, delivery_lat, delivery_lng, delivery_fee, payment_method, promo_code, items_subtotal, total)
+      delivery_address, delivery_lat, delivery_lng, delivery_fee, payment_method, promo_code, items_subtotal, total, partner_id)
     VALUES (@customer_id, @customer_name, @customer_phone, @fulfilment, @branch, @pickup_time, @notes, @area, @recurring,
-      @delivery_address, @delivery_lat, @delivery_lng, @delivery_fee, @payment_method, @promo_code, @items_subtotal, @total)
+      @delivery_address, @delivery_lat, @delivery_lng, @delivery_fee, @payment_method, @promo_code, @items_subtotal, @total, @partner_id)
   `);
   const insertItem = db.prepare(`INSERT INTO order_items (order_id, product_id, name, qty, unit, unit_price, line_total, cost_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
   const costOf = db.prepare('SELECT cost_price FROM products WHERE id = ?');
@@ -32,11 +48,11 @@ router.post('/', (req, res) => {
       fulfilment, branch: branch || null, pickup_time: pickup_time || null, notes: notes ? String(notes).slice(0, 300) : null, area: area ? String(area).slice(0, 80) : null,
       recurring: ['Weekly', 'Bi-weekly', 'Monthly'].includes(recurring) ? recurring : null, delivery_address: delivery_address || null,
       delivery_lat: delivery_lat || null, delivery_lng: delivery_lng || null, delivery_fee: delivery_fee || 0,
-      payment_method, promo_code: promo_code || null, items_subtotal: items_subtotal || total, total });
+      payment_method, promo_code: promo_code || null, items_subtotal: items_subtotal || total, total, partner_id: partner ? partner.id : null });
     const orderId = result.lastInsertRowid;
     for (const item of items) {
       const c = item.id ? costOf.get(item.id) : null;
-      insertItem.run(orderId, item.id || null, item.name, item.qty, item.unit || '', item.price, item.price * item.qty, c ? c.cost_price : 0);
+      insertItem.run(orderId, item.id || null, item.name, item.qty, item.unit || '', item.price, Math.round(item.price * item.qty), c ? c.cost_price : 0);
     }
     logStatus.run(orderId);
     return orderId;
@@ -107,7 +123,7 @@ router.post('/:id/repeat', requireStaff, (req, res) => {
   const prod = db.prepare('SELECT price, cost_price FROM products WHERE id = ?');
   const create = db.transaction(() => {
     const lines = items.map(i => { const p = i.product_id ? prod.get(i.product_id) : null; const price = p ? p.price : i.unit_price; return { i, price, cost: p ? p.cost_price : i.cost_price || 0 }; });
-    const sub = lines.reduce((s, l) => s + l.price * l.i.qty, 0);
+    const sub = lines.reduce((s, l) => s + Math.round(l.price * l.i.qty), 0);
     const total = sub + (o.delivery_fee || 0);
     const r = db.prepare(`INSERT INTO orders (customer_id, customer_name, customer_phone, fulfilment, branch, pickup_time, notes, area, recurring,
         delivery_address, delivery_lat, delivery_lng, delivery_fee, payment_method, items_subtotal, total)
@@ -115,7 +131,7 @@ router.post('/:id/repeat', requireStaff, (req, res) => {
       o.area, o.recurring, o.delivery_address, o.delivery_lat, o.delivery_lng, o.delivery_fee || 0, o.payment_method === 'mpesa' ? 'cash' : o.payment_method, sub, total);
     const id = r.lastInsertRowid;
     const ins = db.prepare('INSERT INTO order_items (order_id, product_id, name, qty, unit, unit_price, line_total, cost_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-    lines.forEach(l => ins.run(id, l.i.product_id, l.i.name, l.i.qty, l.i.unit, l.price, l.price * l.i.qty, l.cost));
+    lines.forEach(l => ins.run(id, l.i.product_id, l.i.name, l.i.qty, l.i.unit, l.price, Math.round(l.price * l.i.qty), l.cost));
     db.prepare("INSERT INTO order_status_log (order_id, status) VALUES (?, 'received')").run(id);
     return { id, total };
   });

@@ -8,6 +8,7 @@ app.use(cors());
 app.use('/api/reviews', express.json({ limit: '1.5mb' }));
 app.use('/api/media', express.json({ limit: '6mb' }));
 app.use('/api/kitchens', express.json({ limit: '12mb' }));
+app.use('/api/market', express.json({ limit: '6mb' }));
 app.use('/api/recipes/admin/import', express.json({ limit: '10mb' }));
 app.use(express.json());
 // Uploaded product photos are served from here — e.g. an image saved as
@@ -25,6 +26,7 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/recipes', require('./routes/recipes'));
 app.use('/api/media', require('./routes/media'));
 app.use('/api/kitchens', require('./routes/kitchens'));
+app.use('/api/market', require('./routes/market'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/auth', require('./routes/auth'));

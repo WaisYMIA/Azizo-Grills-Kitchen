@@ -11,14 +11,17 @@ $password = (string)($body['password'] ?? '');
 if ($phone === '' || $password === '') json_error('phone and password are required');
 
 $pdo = get_db();
+throttle_check('cust', $phone, 8, 900);
 $stmt = $pdo->prepare('SELECT * FROM customers WHERE phone = ?');
 $stmt->execute([$phone]);
 $customer = $stmt->fetch();
 
 if (!$customer || !password_verify($password, $customer['password_hash'])) {
+    throttle_fail('cust', $phone);
     json_error('Incorrect phone number or password', 401);
 }
 
+throttle_clear('cust', $phone);
 $token = jwt_sign(['id' => $customer['id'], 'phone' => $customer['phone'], 'role' => 'customer'], 60 * 60 * 24 * 30);
 json_response([
     'token' => $token,

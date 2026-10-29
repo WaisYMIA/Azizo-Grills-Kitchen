@@ -161,7 +161,48 @@ const catalogV2Rows = [
 // a database that already has products gets the newer rows added ONCE (never overwriting a
 // row that exists, and never re-adding on later restarts — so an item you delete in admin
 // afterwards stays deleted). A brand-new database simply gets everything at first start.
-const CATALOG_VERSION = 3;
+const catalogV4Rows = [
+  ["f40", "fresh", "Beef", "red", "Beef Fillet", "The most tender cut, almost no fat. Quick sear on a very hot pan, rest, then slice.", 1500, "kg", "beef-raw.svg"],
+  ["f41", "fresh", "Beef", "red", "Beef Brisket", "Rich, well-flavoured cut that loves slow cooking. Braise or smoke until it falls apart.", 700, "kg", "beef-raw.svg"],
+  ["f42", "fresh", "Beef", "red", "Beef on the Bone (Stewing)", "Bone-in pieces for a deep, tasty mchuzi. The bones give the soup its body.", 600, "kg", "beef-raw.svg"],
+  ["f43", "fresh", "Beef", "red", "Boneless Beef Cubes", "Diced and ready for stew, kebabs or stir-fry. Tell us the size you like.", 720, "kg", "beef-raw.svg"],
+  ["f44", "fresh", "Beef", "red", "Beef Tripe (Matumbo)", "Cleaned and ready to boil. A Kenyan favourite with ugali or chapati.", 450, "kg", "beef-raw.svg"],
+  ["f45", "fresh", "Beef", "red", "Beef Tongue", "Boil until tender, then peel and slice. Delicious in stew or on its own.", 650, "kg", "beef-raw.svg"],
+  ["f46", "fresh", "Beef", "red", "Cow Hooves (Miguu ya Ng'ombe)", "Slow-simmered for a sticky, comforting soup. Cleaned and cut.", 300, "kg", "beef-raw.svg"],
+  ["f47", "fresh", "Goat", "red", "Goat Chops", "Bone-in goat chops, great for the grill. Marinate, then cook slowly over charcoal.", 900, "kg", "goat-raw.svg"],
+  ["f48", "fresh", "Goat", "red", "Goat Leg", "A whole leg for roasting or cutting into nyama choma pieces. Slow and gentle heat is best.", 850, "kg", "goat-raw.svg"],
+  ["f49", "fresh", "Goat", "red", "Goat Offals (Matumbo ya Mbuzi)", "Cleaned goat offal, ready to boil or fry with onions and spices.", 500, "kg", "goat-raw.svg"],
+  ["f50", "fresh", "Goat", "red", "Lamb Leg", "Tender lamb leg, perfect for a Sunday roast with garlic and rosemary.", 1000, "kg", "goat-raw.svg"],
+  ["f51", "fresh", "Pork", "red", "Pork Belly", "Layers of meat and fat. Roast for crackling or slice for stir-fry.", 700, "kg", "pork-raw.svg"],
+  ["f52", "fresh", "Pork", "red", "Pork Bacon", "Thin-sliced streaky bacon, ready to fry for breakfast or burgers.", 1100, "kg", "pork-raw.svg"],
+  ["f53", "fresh", "Chicken", "white", "Chicken Fillet (Boneless Thigh)", "Juicy boneless thigh meat. Cooks fast and stays moist.", 680, "kg", "chicken-raw.svg"],
+  ["f54", "fresh", "Chicken", "white", "Chicken Legs (Whole)", "Whole leg quarters. Roast, grill or stew.", 540, "kg", "chicken-raw.svg"],
+  ["f55", "fresh", "Chicken", "white", "Turkey Breast", "Lean white meat, great roasted or sliced for sandwiches.", 1100, "kg", "chicken-raw.svg"],
+  ["f56", "fresh", "Chicken", "white", "Turkey (Whole)", "Whole turkey for the festive table. Order early for Christmas.", 900, "kg", "chicken-raw.svg"],
+  ["f57", "fresh", "Fish", "white", "Tilapia Fillet", "Boneless, skinless fillets. Pan-fry or bake in minutes.", 800, "kg", "fish-raw.svg"],
+  ["f58", "fresh", "Fish", "white", "Catfish (Mumi)", "Firm, flavourful catfish. Great fried or in a coconut stew.", 600, "kg", "fish-raw.svg"],
+  ["f59", "fresh", "Fish", "white", "Squid (Calamari)", "Cleaned squid tubes and rings. Flash-fry or grill hot and fast.", 1100, "kg", "fish-raw.svg"],
+  ["f60", "fresh", "Packs", "red", "Marinated Nyama Choma Pack (Beef)", "Beef cut for the grill and marinated in our house spices. Just add charcoal.", 800, "kg", "pack.svg"],
+  ["f61", "fresh", "Packs", "red", "Beef Mishkaki Skewers", "Cubes of beef marinated and threaded on sticks, ready for the grill.", 900, "kg", "pack.svg"],
+  ["f62", "fresh", "Packs", "white", "Marinated Chicken Wings", "Wings in a tangy marinade. Grill, bake or air-fry.", 600, "kg", "pack.svg"],
+  ["f63", "fresh", "Packs", "red", "Beef Burger Patties (Pack of 6)", "Thick patties from fresh beef mince, seasoned and ready to grill.", 600, "pack", "pack.svg"],
+  ["r11", "ready", "Grilled", null, "Mishkaki (Beef Skewer)", "Marinated beef skewer grilled over charcoal and brushed with spiced sauce.", 120, "stick", "grilled.svg"],
+  ["r12", "ready", "Grilled", null, "Mutura (Kenyan Sausage)", "Traditional Kenyan sausage grilled to order and sliced with kachumbari.", 150, "piece", "grilled.svg"],
+  ["r13", "ready", "Grilled", null, "Nyama Choma (Goat)", "Goat roasted over charcoal and served with kachumbari and ugali on request.", 850, "kg", "grilled.svg"],
+  ["r14", "ready", "Grilled", null, "Grilled Chicken Wings (6 pieces)", "Marinated wings grilled until golden, with a dipping sauce.", 450, "plate", "grilled.svg"],
+  ["r15", "ready", "Fried", null, "Chips and Chicken Combo", "Crispy fried chicken pieces with a generous portion of chips.", 650, "plate", "fried.svg"],
+  ["g15", "groceries", "Vegetables", null, "Carrots", "Sweet, crunchy carrots for stews, salads and roasts.", 100, "kg", "veggies.svg"],
+  ["g16", "groceries", "Vegetables", null, "Capsicum (Green)", "Crisp green capsicum for stir-fry, kebabs and salads.", 200, "kg", "veggies.svg"],
+  ["g17", "groceries", "Vegetables", null, "Sukuma Wiki (Kale)", "Fresh kale, the classic partner for nyama choma and ugali.", 40, "bunch", "veggies.svg"],
+  ["g18", "groceries", "Vegetables", null, "Spinach", "Tender spinach leaves for stews and sides.", 40, "bunch", "veggies.svg"],
+  ["g19", "groceries", "Spices", null, "Black Pepper (Ground)", "Freshly ground black pepper for steaks and marinades.", 80, "packet", "spices.svg"],
+  ["g20", "groceries", "Spices", null, "Steak Rub", "A blend of salt, pepper, garlic and herbs. Rub on before grilling.", 250, "packet", "spices.svg"],
+  ["g21", "groceries", "Spices", null, "BBQ Marinade", "Smoky, tangy marinade for ribs, wings and nyama choma.", 300, "bottle", "spices.svg"],
+  ["g22", "groceries", "Spices", null, "Charcoal (3 kg bag)", "Lump charcoal for a long, even burn on the grill.", 250, "bag", "spices.svg"],
+  ["g23", "groceries", "Spices", null, "Ugali Flour (2 kg)", "Fine maize flour for soft, smooth ugali.", 180, "pack", "spices.svg"],
+  ["g24", "groceries", "Spices", null, "Rice (2 kg)", "Long-grain rice that goes with every stew.", 350, "pack", "spices.svg"]
+];
+const CATALOG_VERSION = 4;
 const V1_IDS = ['f28','f29','f30','r7','r8','g13','g14']; // the kienyeji / fish / eggs additions
 // v3: friendlier product descriptions. An existing database only gets the new wording for an item
 // whose description is STILL exactly the old built-in text — anything you rewrote in admin is left alone.
@@ -187,6 +228,7 @@ if (productCount === 0) {
   db.transaction(() => {
     seedRows.forEach(runSeed);
     catalogV2Rows.forEach(runSeed);
+    catalogV4Rows.forEach(runSeed);
     metaSet('catalog_version', CATALOG_VERSION);
   })();
 } else if (Number(metaGet('catalog_version') || 0) < CATALOG_VERSION) {
@@ -205,6 +247,8 @@ if (productCount === 0) {
       const upd = db.prepare('UPDATE products SET desc = ? WHERE id = ? AND desc = ?');
       for (const id of Object.keys(OLD_DESCS)) if (fresh[id]) upd.run(fresh[id], id, OLD_DESCS[id]);
     }
+    // v4: ~40 more items (more cuts, offals, turkey, marinated packs, grill sides). Added once, never overwriting.
+    if (had < 4) catalogV4Rows.forEach(runSeed);
     metaSet('catalog_version', CATALOG_VERSION);
   })();
 }
@@ -350,5 +394,30 @@ db.exec(`CREATE TABLE IF NOT EXISTS kk_demand (date TEXT NOT NULL, area_id TEXT 
 db.exec('CREATE INDEX IF NOT EXISTS idx_kk_orders_k ON kk_orders (kitchen_id, date, meal)');
 db.exec('CREATE INDEX IF NOT EXISTS idx_kk_orders_phone ON kk_orders (phone)');
 
+
+// ---- v4.0 Azizo Marketplace (partner butcheries). Additive: nothing here touches existing tables except one nullable orders.partner_id. ----
+db.exec(`
+  CREATE TABLE IF NOT EXISTS mk_partners (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT UNIQUE, name TEXT NOT NULL, owner TEXT DEFAULT '', phone TEXT DEFAULT '', email TEXT DEFAULT '',
+    password_hash TEXT DEFAULT '', area_id TEXT DEFAULT '', region TEXT DEFAULT '', address TEXT DEFAULT '', lat REAL, lng REAL,
+    story TEXT DEFAULT '', licence_no TEXT DEFAULT '', licence_expiry TEXT DEFAULT '', licence_verified INTEGER DEFAULT 0, health_cert_no TEXT DEFAULT '', halal INTEGER DEFAULT 0,
+    delivery_mode TEXT DEFAULT 'own', delivery_fee INTEGER DEFAULT 150, min_order INTEGER DEFAULT 500, pay_method TEXT DEFAULT 'till', pay_account TEXT DEFAULT '',
+    photos TEXT DEFAULT '[]', status TEXT DEFAULT 'applied', tier TEXT DEFAULT 'associate', paused INTEGER DEFAULT 0, hygiene_score INTEGER, last_inspection TEXT DEFAULT '',
+    admin_note TEXT DEFAULT '', created_at TEXT DEFAULT (datetime('now')), updated_at TEXT
+  );
+  CREATE TABLE IF NOT EXISTS mk_partner_items (
+    partner_id INTEGER NOT NULL, product_id TEXT NOT NULL, price INTEGER, in_stock INTEGER NOT NULL DEFAULT 1, updated_at TEXT DEFAULT (datetime('now')),
+    PRIMARY KEY (partner_id, product_id)
+  );
+  CREATE TABLE IF NOT EXISTS mk_catalog (product_id TEXT PRIMARY KEY, sw_name TEXT DEFAULT '', cut_family TEXT DEFAULT '', retired INTEGER DEFAULT 0);
+  CREATE TABLE IF NOT EXISTS mk_fee_rules (id INTEGER PRIMARY KEY AUTOINCREMENT, scope TEXT NOT NULL, key TEXT DEFAULT '', kind TEXT NOT NULL, value REAL NOT NULL DEFAULT 0, active INTEGER DEFAULT 1);
+  CREATE TABLE IF NOT EXISTS mk_invoices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, partner_id INTEGER NOT NULL, period_start TEXT, period_end TEXT, orders_count INTEGER DEFAULT 0, gross INTEGER DEFAULT 0,
+    fee INTEGER DEFAULT 0, extra INTEGER DEFAULT 0, total INTEGER DEFAULT 0, status TEXT DEFAULT 'unpaid', due_date TEXT, paid_at TEXT, reference TEXT DEFAULT '', created_at TEXT DEFAULT (datetime('now'))
+  );
+  CREATE TABLE IF NOT EXISTS mk_order_fees (order_id INTEGER PRIMARY KEY, partner_id INTEGER NOT NULL, base INTEGER DEFAULT 0, fee INTEGER DEFAULT 0, invoice_id INTEGER);
+  CREATE TABLE IF NOT EXISTS mk_audits (id INTEGER PRIMARY KEY AUTOINCREMENT, partner_id INTEGER NOT NULL, score INTEGER NOT NULL, notes TEXT DEFAULT '', audit_date TEXT, created_at TEXT DEFAULT (datetime('now')));
+`);
+if (!db.prepare("SELECT 1 FROM pragma_table_info('orders') WHERE name = 'partner_id'").get()) db.exec('ALTER TABLE orders ADD COLUMN partner_id INTEGER');
 db.metaGet = metaGet; db.metaSet = metaSet;
 module.exports = db;

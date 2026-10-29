@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 /** Sends the standard CORS headers and handles the OPTIONS preflight request. */
 function cors_and_preflight(): void {
+    sec_boot();
     header('Access-Control-Allow-Origin: ' . ALLOWED_ORIGIN);
     header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -30,3 +31,5 @@ function read_json_body(): array {
     $data = json_decode($raw, true);
     return is_array($data) ? $data : [];
 }
+
+require_once __DIR__ . '/security.php';

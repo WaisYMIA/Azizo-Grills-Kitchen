@@ -11,7 +11,7 @@ function read() {
   eb.enabled = eb.enabled !== false && eb.enabled !== 0 && eb.enabled !== '0';
   eb.contingencyPct = Math.min(50, Math.max(0, Number(eb.contingencyPct) || 0));
   eb.note = String(eb.note || '').slice(0, 300);
-  return { eventBudget: eb };
+  return { eventBudget: eb, marketplace: { enabled: !!(saved.marketplace && saved.marketplace.enabled) } };
 }
 router.get('/settings', (req, res) => { res.set('Cache-Control', 'no-store'); res.json(read()); });
 router.put('/settings', requireAdmin, (req, res) => {
@@ -21,7 +21,8 @@ router.put('/settings', requireAdmin, (req, res) => {
     note: 'note' in b ? String(b.note || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 300) : cur.note,
     contingencyPct: 'contingencyPct' in b ? Math.min(50, Math.max(0, Number(b.contingencyPct) || 0)) : cur.contingencyPct
   };
-  db.metaSet('site_settings', JSON.stringify({ eventBudget: next }));
+  let all = {}; try { all = JSON.parse(db.metaGet('site_settings') || '{}'); } catch (e) {}
+  all.eventBudget = next; db.metaSet('site_settings', JSON.stringify(all));
   res.json(read());
 });
 

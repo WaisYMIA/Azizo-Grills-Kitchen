@@ -15,7 +15,7 @@ function site_read(PDO $pdo): array {
     $eb['enabled'] = !in_array($eb['enabled'], [false, 0, '0'], true);
     $eb['contingencyPct'] = max(0, min(50, (float)$eb['contingencyPct']));
     $eb['note'] = mb_substr((string)$eb['note'], 0, 300);
-    return ['eventBudget' => $eb];
+    return ['eventBudget' => $eb, 'marketplace' => ['enabled' => !empty($saved['marketplace']['enabled'])]];
 }
 $method = $_SERVER['REQUEST_METHOD'];
 $leads = isset($_GET['leads']); $leadId = (int)($_GET['id'] ?? 0); $csv = isset($_GET['csv']);
@@ -60,7 +60,7 @@ if ($method === 'PUT' || $method === 'POST') {
         'note' => array_key_exists('note', $b) ? mb_substr(trim(preg_replace('/[\x00-\x1f]/', ' ', (string)$b['note'])), 0, 300) : $cur['note'],
         'contingencyPct' => array_key_exists('contingencyPct', $b) ? max(0, min(50, (float)$b['contingencyPct'])) : $cur['contingencyPct'],
     ];
-    $pdo->prepare("INSERT INTO kk_meta (skey, svalue) VALUES ('site_settings', ?) ON DUPLICATE KEY UPDATE svalue = VALUES(svalue)")->execute([json_encode(['eventBudget' => $next])]);
+    $pdo->prepare("INSERT INTO kk_meta (skey, svalue) VALUES ('site_settings', ?) ON DUPLICATE KEY UPDATE svalue = VALUES(svalue)")->execute([json_encode(['eventBudget' => $next, 'marketplace' => site_read($pdo)['marketplace']])]);
     json_response(site_read($pdo));
 }
 json_error('Method not allowed', 405);

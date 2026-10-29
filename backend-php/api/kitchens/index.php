@@ -276,7 +276,7 @@ if ($route === 'POST apply') {
     $limit(6, 'app'); $b = $body; if (!empty($b['website'])) json_response(['ok' => true], 201);
     $name = $clean($b['name'] ?? '', 80); $cook = $clean($b['cookName'] ?? '', 80); $phone = $clean($b['phone'] ?? '', 20); $email = strtolower($clean($b['email'] ?? '', 100)); $pass = (string)($b['password'] ?? '');
     if (mb_strlen($name) < 3) json_error('Give your kitchen a name (at least 3 letters)'); if (mb_strlen($cook) < 2) json_error("Enter the cook's name");
-    if (strlen($last9($phone)) < 9) json_error('Enter a valid phone number'); if (!filter_var($email, FILTER_VALIDATE_EMAIL)) json_error('Enter a valid email address'); if (strlen($pass) < 6) json_error('Password must be at least 6 characters');
+    if (strlen($last9($phone)) < 9) json_error('Enter a valid phone number'); if (!filter_var($email, FILTER_VALIDATE_EMAIL)) json_error('Enter a valid email address'); if (($pp = password_problem($pass)) !== null) json_error($pp);
     if ($one("SELECT 1 FROM kk_kitchens WHERE email = ? OR RIGHT(REPLACE(phone, ' ', ''), 9) = ?", [$email, $last9($phone)])) json_error('A kitchen with this email or phone is already registered. Please log in', 409);
     $p = $point($b); if (!$p) json_error('Choose your area and drop your kitchen pin (or share your location)');
     $area = !empty($b['areaId']) ? $one('SELECT region, name FROM areas WHERE id = ?', [(string)$b['areaId']]) : null; $region = $area ? $area['region'] : $clean($b['region'] ?? '', 60);
@@ -294,9 +294,10 @@ if ($route === 'POST apply') {
 
 // ================= PARTNER =================
 if ($route === 'POST partner/login') {
-    $limit(30, 'plog'); $id = strtolower($clean($body['login'] ?? '', 100));
+    $id = strtolower($clean($body['login'] ?? '', 100)); throttle_check('kkp', $id, 8, 900);
     $k = $one("SELECT * FROM kk_kitchens WHERE email = ? OR RIGHT(REPLACE(phone, ' ', ''), 9) = ?", [$id, $last9($id)]);
-    if (!$k || !password_verify((string)($body['password'] ?? ''), (string)$k['password_hash'])) json_error('Incorrect email/phone or password', 401);
+    if (!$k || !password_verify((string)($body['password'] ?? ''), (string)$k['password_hash'])) { throttle_fail('kkp', $id); json_error('Incorrect email/phone or password', 401); }
+    throttle_clear('kkp', $id);
     if (in_array($k['status'], ['delisted', 'rejected'], true)) json_error('This kitchen account is not active. Please contact Azizo.', 403);
     json_response(['token' => jwt_sign(['role' => 'kitchen', 'kitchenId' => (int)$k['id']], 14 * 86400)]);
 }
@@ -320,7 +321,7 @@ if ($P && $P[0] === 'partner') {
     }
     if ($route === 'POST partner/password') {
         $k = $one('SELECT * FROM kk_kitchens WHERE id = ?', [$kid]); if (!password_verify((string)($body['current'] ?? ''), (string)$k['password_hash'])) json_error('Current password is incorrect', 401);
-        if (strlen((string)($body['next'] ?? '')) < 6) json_error('New password must be at least 6 characters');
+        if (($pp = password_problem((string)($body['next'] ?? ''))) !== null) json_error($pp);
         $run('UPDATE kk_kitchens SET password_hash = ? WHERE id = ?', [password_hash((string)$body['next'], PASSWORD_BCRYPT), $kid]); json_response(['ok' => true]);
     }
     if ($route === 'POST partner/documents') {
@@ -364,8 +365,9 @@ if ($P && $P[0] === 'partner') {
 
 // ================= RIDER =================
 if ($route === 'POST rider/login') {
-    $limit(30, 'rlog'); $r = $one("SELECT * FROM kk_riders WHERE RIGHT(REPLACE(phone, ' ', ''), 9) = ? AND active = 1", [$last9($body['phone'] ?? '')]);
-    if (!$r || !password_verify((string)($body['pin'] ?? ''), (string)$r['pin_hash'])) json_error('Incorrect phone or PIN', 401);
+    $rph = $last9($body['phone'] ?? ''); throttle_check('kkr', $rph, 6, 900); $r = $one("SELECT * FROM kk_riders WHERE RIGHT(REPLACE(phone, ' ', ''), 9) = ? AND active = 1", [$last9($body['phone'] ?? '')]);
+    if (!$r || !password_verify((string)($body['pin'] ?? ''), (string)$r['pin_hash'])) { throttle_fail('kkr', $rph); json_error('Incorrect phone or PIN', 401); }
+    throttle_clear('kkr', $rph);
     json_response(['token' => jwt_sign(['role' => 'krider', 'riderId' => (int)$r['id']], 14 * 86400), 'name' => $r['name']]);
 }
 if ($P && $P[0] === 'rider') {
@@ -398,11 +400,12 @@ if ($P && $P[0] === 'rider') {
 
 // ================= ADMIN =================
 if ($route === 'POST admin-login') {
-    $limit(30, 'alog'); $pw = (string)($body['password'] ?? '');
+    $pw = (string)($body['password'] ?? ''); throttle_check('kka', 'kadmin', 6, 900);
     $roles = array_values(array_filter([[KITCHENS_ADMIN_PASSWORD, 'full'], [KITCHENS_DISPATCH_PASSWORD, 'dispatch'], [KITCHENS_ACCOUNTS_PASSWORD, 'accounts']], fn($r) => $r[0] !== ''));
     if (!$roles) json_error('Kitchens Admin is not set up yet: set KITCHENS_ADMIN_PASSWORD in config.php', 503);
+    foreach ($roles as $r) if (hash_equals($r[0], $pw)) { throttle_clear('kka', 'kadmin'); audit_log('login-ok', 'kitchens-' . $r[1], 'kitchens'); } 
     foreach ($roles as $r) if (hash_equals($r[0], $pw)) json_response(['token' => jwt_sign(['role' => 'kitchens', 'sub' => $r[1]], 12 * 3600), 'role' => $r[1]]);
-    json_error('Incorrect Kitchens Admin password', 401);
+    throttle_fail('kka', 'kadmin'); json_error('Incorrect Kitchens Admin password', 401);
 }
 if (!$P || $P[0] !== 'admin') json_error('Not found', 404);
 $authA = require_kitchens_admin(); $SUB = ($authA['role'] ?? '') === 'admin' ? 'full' : ($authA['sub'] ?? 'full');

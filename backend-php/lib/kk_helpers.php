@@ -55,7 +55,7 @@ function kk_stk(PDO $pdo, string $phone, int $amount, string $ref): string {
     $ts = date('YmdHis');
     $r = kk_http('POST', "$base/mpesa/stkpush/v1/processrequest", ['Authorization: Bearer ' . $t['body']['access_token'], 'Content-Type: application/json'], json_encode([
         'BusinessShortCode' => MPESA_SHORTCODE, 'Password' => base64_encode(MPESA_SHORTCODE . MPESA_PASSKEY . $ts), 'Timestamp' => $ts, 'TransactionType' => 'CustomerPayBillOnline', 'Amount' => $amount, 'PartyA' => $p, 'PartyB' => MPESA_SHORTCODE,
-        'PhoneNumber' => $p, 'CallBackURL' => MPESA_CALLBACK_URL, 'AccountReference' => $ref, 'TransactionDesc' => 'Azizo Kitchens order']));
+        'PhoneNumber' => $p, 'CallBackURL' => mpesa_callback_url(), 'AccountReference' => $ref, 'TransactionDesc' => 'Azizo Kitchens order']));
     $id = $r['body']['CheckoutRequestID'] ?? null; if ($r['status'] < 200 || $r['status'] >= 300 || !$id) throw new RuntimeException('M-Pesa could not start the payment. Try again or pay the rider.');
     $pdo->prepare("INSERT INTO mpesa_transactions (order_id, checkout_request_id, phone, amount, status) VALUES (NULL, ?, ?, ?, 'pending')")->execute([$id, $p, $amount]);
     return $id;

@@ -19,14 +19,26 @@ function get_db(): PDO {
     $pdo->exec(file_get_contents(__DIR__ . '/schema.sql'));
 
     // Databases created before v1.2 already have these tables without the new cost columns; add them once.
-    foreach ([['products', 'cost_price'], ['order_items', 'cost_price'], ['products', 'in_stock'], ['orders', 'notes'], ['orders', 'area'], ['orders', 'recurring']] as [$table, $col]) {
+    foreach ([['products', 'cost_price'], ['order_items', 'cost_price'], ['products', 'in_stock'], ['orders', 'notes'], ['orders', 'area'], ['orders', 'recurring'], ['orders', 'partner_id']] as [$table, $col]) {
         $has = $pdo->prepare('SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?');
         $has->execute([$table, $col]);
         if (!(int)$has->fetchColumn()) {
-            $def = $col === 'in_stock' ? 'TINYINT(1) NOT NULL DEFAULT 1' : ($col === 'notes' ? 'VARCHAR(300) NULL' : (in_array($col, ['area', 'recurring'], true) ? 'VARCHAR(80) NULL' : 'INT NOT NULL DEFAULT 0'));
+            $def = $col === 'in_stock' ? 'TINYINT(1) NOT NULL DEFAULT 1' : ($col === 'notes' ? 'VARCHAR(300) NULL' : (in_array($col, ['area', 'recurring'], true) ? 'VARCHAR(80) NULL' : ($col === 'partner_id' ? 'INT NULL' : 'INT NOT NULL DEFAULT 0')));
             $pdo->exec("ALTER TABLE `$table` ADD COLUMN `$col` $def");
         }
     }
+
+    // v4.1: partner token version (for databases created by v4.0) and indexes that keep many partners/orders fast.
+    $has = $pdo->prepare('SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?');
+    $has->execute(['mk_partners', 'token_ver']); if (!(int)$has->fetchColumn()) $pdo->exec('ALTER TABLE mk_partners ADD COLUMN token_ver INT NOT NULL DEFAULT 0');
+    foreach ([['orders', 'idx_orders_partner', 'partner_id, status'], ['orders', 'idx_orders_created', 'created_at'], ['orders', 'idx_orders_phone', 'customer_phone'], ['mk_partner_items', 'idx_mkpi_product', 'product_id'], ['mk_order_fees', 'idx_mkof_invoice', 'invoice_id'], ['mk_invoices', 'idx_mkinv_status', 'status, due_date']] as [$t, $ix, $cols]) {
+        $q = $pdo->prepare('SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?'); $q->execute([$t, $ix]);
+        if (!(int)$q->fetchColumn()) { try { $pdo->exec("ALTER TABLE `$t` ADD INDEX `$ix` ($cols)"); } catch (Exception $e) {} }
+    }
+
+    // v3.4: kg items can be ordered in quarters, so order_items.qty must hold decimals. Converted once.
+    $qt = $pdo->query("SELECT DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'order_items' AND COLUMN_NAME = 'qty'")->fetchColumn();
+    if ($qt && strtolower((string)$qt) === 'int') $pdo->exec('ALTER TABLE order_items MODIFY qty DECIMAL(8,2) NOT NULL');
 
     // v2.0: first run only - load the starter recipes and blog posts.
     if ((int)$pdo->query('SELECT COUNT(*) FROM recipes')->fetchColumn() === 0) {

@@ -6,16 +6,16 @@ cors_and_preflight();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') json_error('POST required', 405);
 
 $body = read_json_body();
-$name = trim($body['name'] ?? '');
+$name = trim(preg_replace('/[\x00-\x1f<>]/', ' ', (string)($body['name'] ?? '')));
 $phone = trim($body['phone'] ?? '');
 $password = (string)($body['password'] ?? '');
 
 if ($name === '' || $phone === '' || $password === '') {
     json_error('name, phone, and password are all required');
 }
-if (strlen($password) < 6) {
-    json_error('Password must be at least 6 characters');
-}
+rate_limit('register', 8, 3600);   // 8 new accounts per hour per visitor
+if (($pp = password_problem($password)) !== null) json_error($pp);
+if (mb_strlen($name) > 80 || strlen(preg_replace('/\D/', '', $phone)) < 9 || strlen($phone) > 20) json_error('Enter a valid name and phone number');
 
 $pdo = get_db();
 $existing = $pdo->prepare('SELECT id FROM customers WHERE phone = ?');

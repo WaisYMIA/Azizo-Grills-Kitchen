@@ -7,6 +7,7 @@ function signStaffToken() { return jwt.sign({ role: 'staff' }, SECRET, { expires
 function signKitchensAdminToken(sub) { return jwt.sign({ role: 'kitchens', sub: sub || 'full' }, SECRET, { expiresIn: '12h' }); }
 function signRiderToken(r) { return jwt.sign({ role: 'krider', riderId: r.id }, SECRET, { expiresIn: '14d' }); }
 function signKitchenToken(k) { return jwt.sign({ role: 'kitchen', kitchenId: k.id }, SECRET, { expiresIn: '14d' }); }
+function signPartnerToken(p) { return jwt.sign({ role: 'partner', partnerId: p.id }, SECRET, { expiresIn: '14d' }); }
 function requireAuth(req, res, next) {
   const h = req.headers.authorization;
   if (!h || !h.startsWith('Bearer ')) return res.status(401).json({ error: 'Missing or invalid Authorization header' });
@@ -54,4 +55,11 @@ function requireKitchen(req, res, next) {
     next();
   });
 }
-module.exports = { signRiderToken, requireRider, kkAllow, signKitchensAdminToken, signKitchenToken, requireKitchensAdmin, requireKitchen, signCustomerToken, signAdminToken, signStaffToken, requireAuth, requireAdmin, requireStaff, SECRET };
+// A signed-in marketplace partner butchery (req.user.partnerId).
+function requirePartner(req, res, next) {
+  requireAuth(req, res, () => {
+    if (req.user.role !== 'partner' || !req.user.partnerId) return res.status(403).json({ error: 'Partner access required' });
+    next();
+  });
+}
+module.exports = { signPartnerToken, requirePartner, signRiderToken, requireRider, kkAllow, signKitchensAdminToken, signKitchenToken, requireKitchensAdmin, requireKitchen, signCustomerToken, signAdminToken, signStaffToken, requireAuth, requireAdmin, requireStaff, SECRET };

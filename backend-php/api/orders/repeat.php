@@ -20,7 +20,7 @@ try {
         if (!empty($i['product_id'])) { $prod->execute([$i['product_id']]); $p = $prod->fetch(); }
         $price = $p ? (int)$p['price'] : (int)$i['unit_price'];
         $lines[] = [$i, $price, $p ? (int)$p['cost_price'] : (int)($i['cost_price'] ?? 0)];
-        $sub += $price * (int)$i['qty'];
+        $sub += (int)round($price * (float)$i['qty']);
     }
     $total = $sub + (int)($o['delivery_fee'] ?? 0);
     $pdo->prepare('INSERT INTO orders (customer_id, customer_name, customer_phone, fulfilment, branch, pickup_time, notes, area, recurring,
@@ -29,7 +29,7 @@ try {
             $o['delivery_address'], $o['delivery_lat'], $o['delivery_lng'], (int)($o['delivery_fee'] ?? 0), $o['payment_method'] === 'mpesa' ? 'cash' : $o['payment_method'], $sub, $total]);
     $newId = (int)$pdo->lastInsertId();
     $ins = $pdo->prepare('INSERT INTO order_items (order_id, product_id, name, qty, unit, unit_price, line_total, cost_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-    foreach ($lines as [$i, $price, $cost]) $ins->execute([$newId, $i['product_id'], $i['name'], $i['qty'], $i['unit'], $price, $price * (int)$i['qty'], $cost]);
+    foreach ($lines as [$i, $price, $cost]) $ins->execute([$newId, $i['product_id'], $i['name'], $i['qty'], $i['unit'], $price, (int)round($price * (float)$i['qty']), $cost]);
     $pdo->prepare("INSERT INTO order_status_log (order_id, status) VALUES (?, 'received')")->execute([$newId]);
     $pdo->commit();
 } catch (Throwable $e) { $pdo->rollBack(); json_error('Could not repeat the order', 500); }

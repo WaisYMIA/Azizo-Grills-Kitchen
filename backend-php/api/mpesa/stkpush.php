@@ -13,10 +13,18 @@ if (!mpesa_configured()) {
 }
 
 $body = read_json_body();
-$phone = $body['phone'] ?? '';
-$amount = $body['amount'] ?? null;
-$orderId = $body['orderId'] ?? null;
-if (!$phone || !$amount) json_error('phone and amount are required');
+$phone = preg_replace('/\D/', '', (string)($body['phone'] ?? ''));
+$orderId = (int)($body['orderId'] ?? 0);
+if ($orderId <= 0 || !$phone) json_error('orderId and phone are required');
+if (strlen($phone) === 10 && $phone[0] === '0') $phone = '254' . substr($phone, 1); elseif (strlen($phone) === 9) $phone = '254' . $phone;
+if (!preg_match('/^254[17]\d{8}$/', $phone)) json_error('Enter a valid Safaricom number');
+// Anti-harassment and anti-fraud: few prompts per visitor and per phone; the amount always comes from the saved order, never from the browser.
+rate_limit('stk-ip', 10, 3600); rate_limit('stk-phone', 3, 1800, $phone);
+$oq = get_db()->prepare('SELECT id, total, customer_phone, status, partner_id FROM orders WHERE id = ?'); $oq->execute([$orderId]); $ord = $oq->fetch();
+if (!$ord || substr(preg_replace('/\D/', '', (string)$ord['customer_phone']), -9) !== substr($phone, -9)) json_error('That order does not match this phone number', 403);
+if (!empty($ord['partner_id'])) json_error('This order is paid directly to the butchery', 400);
+if (in_array($ord['status'], ['cancelled', 'completed'], true)) json_error('This order is closed', 400);
+$amount = (int)$ord['total'];
 
 $baseUrl = MPESA_ENV === 'production' ? 'https://api.safaricom.co.ke' : 'https://sandbox.safaricom.co.ke';
 
@@ -48,13 +56,13 @@ try {
         json_encode([
             'BusinessShortCode' => MPESA_SHORTCODE, 'Password' => $password, 'Timestamp' => $timestamp,
             'TransactionType' => 'CustomerPayBillOnline', 'Amount' => round($amount), 'PartyA' => $phone,
-            'PartyB' => MPESA_SHORTCODE, 'PhoneNumber' => $phone, 'CallBackURL' => MPESA_CALLBACK_URL,
+            'PartyB' => MPESA_SHORTCODE, 'PhoneNumber' => $phone, 'CallBackURL' => mpesa_callback_url(),
             'AccountReference' => 'Azizo-' . ($orderId ?: 'Order'), 'TransactionDesc' => 'Azizo Butchery & Grill order',
         ])
     );
 
     if ($stkRes['status'] < 200 || $stkRes['status'] >= 300) {
-        json_error('Daraja rejected the STK push request', 502, ['details' => $stkRes['body']]);
+        error_log('[azizo] daraja rejected: ' . json_encode($stkRes['body'])); json_error('The payment request was rejected. Please try again.', 502);
     }
 
     $checkoutRequestId = $stkRes['body']['CheckoutRequestID'] ?? null;
@@ -64,5 +72,5 @@ try {
 
     json_response(['ok' => true, 'checkoutRequestId' => $checkoutRequestId, 'message' => 'STK push sent — customer should check their phone.']);
 } catch (Exception $e) {
-    json_error('Something went wrong sending the STK push', 500, ['details' => $e->getMessage()]);
+    error_log('[azizo] stkpush: ' . $e->getMessage()); json_error('Something went wrong sending the STK push', 500);
 }

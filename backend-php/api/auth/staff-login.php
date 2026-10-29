@@ -6,8 +6,11 @@ cors_and_preflight();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') json_error('POST required', 405);
 if (STAFF_PASSWORD === '') json_error('Staff login is not set up yet — ask the admin to set STAFF_PASSWORD on the server', 503);
 
+if (!sec_is_local() && strlen(STAFF_PASSWORD) < 8 && !SEC_ALLOW_WEAK) json_error('Staff login is locked until STAFF_PASSWORD is at least 8 characters. See docs/SECURITY.md.', 503);
 $body = read_json_body();
 $password = (string)($body['password'] ?? '');
-if ($password === '' || !hash_equals(STAFF_PASSWORD, $password)) json_error('Incorrect staff password', 401);
+throttle_check('staff', 'staff', 8, 900);
+if ($password === '' || !hash_equals(STAFF_PASSWORD, $password)) { throttle_fail('staff', 'staff'); json_error('Incorrect staff password', 401); }
+throttle_clear('staff', 'staff'); audit_log('login-ok', 'staff', 'staff');
 
-json_response(['token' => jwt_sign(['role' => 'staff'], 60 * 60 * 12)]);
+json_response(['token' => jwt_sign(['role' => 'staff'], 60 * 60 * 10)]);

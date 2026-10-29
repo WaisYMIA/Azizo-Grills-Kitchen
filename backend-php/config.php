@@ -9,6 +9,15 @@
  * the ones below are development placeholders, not secrets to keep.
  */
 
+// ---- Local overrides (v4.1) ----
+// Put your real secrets in config.local.php (same folder). It is never overwritten when you upload a new version, and is blocked from the web by .htaccess.
+// Copy config.local.sample.php to config.local.php and fill it in. Each value becomes an environment value read below.
+if (is_file(__DIR__ . '/config.local.php')) {
+    $__local = require __DIR__ . '/config.local.php';
+    if (is_array($__local)) foreach ($__local as $__k => $__v) putenv($__k . '=' . $__v);
+    unset($__local, $__k, $__v);
+}
+
 // ---- Database ----
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_NAME', getenv('DB_NAME') ?: 'azizo_db');
@@ -63,3 +72,15 @@ define('MPESA_ENV', getenv('MPESA_ENV') ?: 'sandbox'); // 'sandbox' or 'producti
 define('MPESA_CALLBACK_URL', getenv('MPESA_CALLBACK_URL') ?: '');
 
 date_default_timezone_set('Africa/Nairobi');
+
+// ---- Security (v4.1) ----
+// Admin 2-step code: set to a base32 secret (see docs/SECURITY.md) and the admin login will also ask for the 6-digit code from an authenticator app.
+define('ADMIN_TOTP_SECRET', getenv('ADMIN_TOTP_SECRET') ?: '');
+// Secret that Safaricom's callback URL must carry, so nobody can post a fake "payment received". 16+ random characters.
+define('MPESA_CALLBACK_SECRET', getenv('MPESA_CALLBACK_SECRET') ?: '');
+// Set to your proxy/CDN name (e.g. cloudflare) ONLY if the site really sits behind one; otherwise leave empty so visitors cannot fake their IP.
+define('TRUSTED_PROXY', getenv('TRUSTED_PROXY') ?: '');
+// Largest discount (percent of the item total) a promo may take off an order. Orders are re-priced on the server.
+define('MAX_DISCOUNT_PCT', (int)(getenv('MAX_DISCOUNT_PCT') !== false && getenv('MAX_DISCOUNT_PCT') !== '' ? getenv('MAX_DISCOUNT_PCT') : 25));
+// Emergency switch: 1 lets a real server run with weak/default secrets (not recommended). Leave 0.
+define('SEC_ALLOW_WEAK', (int)(getenv('SEC_ALLOW_WEAK') ?: 0));

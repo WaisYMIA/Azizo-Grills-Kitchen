@@ -38,3 +38,10 @@ function require_kitchen(): array {
     if (($payload['role'] ?? null) !== 'kitchen' || empty($payload['kitchenId'])) json_error('Kitchen partner access required', 403);
     return $payload;
 }
+
+/** A signed-in marketplace partner butchery; the payload carries partnerId. */
+function require_partner(): array {
+    $payload = require_auth();
+    if (($payload['role'] ?? null) !== 'partner' || empty($payload['partnerId'])) json_error('Partner access required', 403);
+    return $payload;
+}
