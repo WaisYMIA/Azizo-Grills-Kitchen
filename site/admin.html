@@ -435,8 +435,15 @@
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({password}),
       });
-      const data = await res.json().catch(() => ({}));
-      if(!res.ok) throw new Error(data.error || `Login failed (${res.status})`);
+      let data = await res.json().catch(() => ({}));
+      if(res.status === 401 && data.needCode){
+        // 2-step sign-in is switched on: ask for the 6-digit authenticator code, then retry.
+        const code = (window.prompt('Enter the 6-digit code from your authenticator app') || '').trim();
+        if(!code) throw new Error('A 6-digit code is required');
+        const r2 = await fetch(`${backendUrl.replace(/\/+$/, '')}/api/auth/admin-login`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({password, code}) });
+        data = await r2.json().catch(() => ({}));
+        if(!r2.ok) throw new Error(data.error || `Login failed (${r2.status})`);
+      } else if(!res.ok) throw new Error(data.error || `Login failed (${res.status})`);
       sessionStorage.setItem('azizoAdminToken', data.token);
       document.getElementById('gate').style.display = 'none';
       document.getElementById('app').style.display = 'block';

@@ -739,7 +739,24 @@
     renderGroceries(window.currentGroceryCat);
   }
 
-  function cardHTML(i, source){
+  // ---------- QUANTITIES (v3.4): kg items go up and down in quarters; everything else in ones ----------
+  function qtyStep(item){ return item && item.unit === 'kg' ? 0.25 : 1; }
+  function snapQty(q, item){ const s = qtyStep(item); return Math.round(Math.round(q / s) * s * 100) / 100; }
+  function fmtQty(q, item){
+    q = Number(q) || 0;
+    if(!item || item.unit !== 'kg') return String(Math.round(q * 100) / 100);
+    const whole = Math.floor(q + 1e-9), frac = Math.round((q - whole) * 4) / 4;
+    const sym = frac >= 1 ? '' : ({0:'', 0.25:'¼', 0.5:'½', 0.75:'¾'})[frac] || '';
+    const w = frac >= 1 ? whole + 1 : whole;
+    return (w ? String(w) : '') + sym || '0';
+  }
+  function lineTotal(item, qty){ return Math.round(item.price * qty); }
+  function qtyChipsHTML(id, source, qty){
+    return `<div class="qty-chips" role="group" aria-label="Quick quantity in kilograms">` +
+      [[0.25,'¼'],[0.5,'½'],[0.75,'¾'],[1,'1'],[2,'2']].map(([v,l]) => `<button type="button" class="${Math.abs(qty - v) < 0.001 ? 'on' : ''}" onclick="setCardQty('${id}','${source}',${v})" aria-label="${l} kilogram">${l}</button>`).join('') + `<span>kg</span></div>`;
+  }
+
+  function cardHTML(i, source, extraHTML){
     const qty = cart[i.id] ? cart[i.id].qty : 0;
     const photoHTML = i.img
       ? `<img src="${resolveImgSrc(i.img)}" alt="${i.name}" class="tag-photo" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('no-photo'); this.remove();">`
@@ -764,6 +781,7 @@
       </div>
       <h3>${i.name}</h3>
       <div class="badges-row">${badgesHTML}</div>
+      ${extraHTML || ''}
       <div class="tag-desc-wrap">
         <p class="tag-desc" id="desc-${i.id}">${i.desc}</p>
         ${hasMore ? `<div class="tag-more" id="more-${i.id}">${originHTML}${pairing ? `<span class="pairing">Pairs well with: ${pairing}</span>` : ''}</div>
@@ -774,16 +792,17 @@
         <div class="tag-actions">
           ${qty > 0
             ? `<div class="card-stepper">
-                 <button onclick="setCardQty('${i.id}','${source}',${qty}-1)">−</button>
-                 <span>${qty}</span>
-                 <button onclick="setCardQty('${i.id}','${source}',${qty}+1)">+</button>
+                 <button onclick="setCardQty('${i.id}','${source}',${qty - qtyStep(i)})" aria-label="Less ${i.name}">−</button>
+                 <span>${fmtQty(qty, i)}${i.unit==='kg' ? ' kg' : ''}</span>
+                 <button onclick="setCardQty('${i.id}','${source}',${qty + qtyStep(i)})" aria-label="More ${i.name}">+</button>
                </div>`
             : (i.inStock === false
-                ? `<button class="add-btn sold-out" id="add-${i.id}" disabled aria-label="${i.name} is sold out">Sold out</button>`
+                ? `<button class="add-btn sold-out" id="add-${i.id}" disabled aria-label="${i.name} is out of stock">Out of stock</button>`
                 : `<button class="add-btn" id="add-${i.id}" onclick="addToCart('${i.id}','${source}')">Add</button>`)
           }
         </div>
       </div>
+      ${qty > 0 && i.unit === 'kg' ? qtyChipsHTML(i.id, source, qty) : ''}
     </div>`;
   }
 
@@ -925,11 +944,11 @@
   }
 
   function setCardQty(id, source, qty){
-    qty = Math.max(0, qty);
-    if(qty === 0){
+    const item = findItem(id);
+    qty = snapQty(Math.max(0, qty), item);
+    if(qty <= 0){
       delete cart[id];
     } else {
-      const item = findItem(id);
       cart[id] = {item, qty, source};
     }
     updateCartUI();
@@ -957,7 +976,7 @@
 
   function changeQty(id, delta){
     if(!cart[id]) return;
-    cart[id].qty += delta;
+    cart[id].qty = snapQty(cart[id].qty + delta, cart[id].item);
     if(cart[id].qty <= 0) delete cart[id];
     updateCartUI();
     refreshProductGrids();
@@ -967,7 +986,7 @@
     saveCartToStorage();
     refreshStockNote();
     const ids = Object.keys(cart);
-    const count = ids.reduce((sum,id)=>sum+cart[id].qty,0);
+    const count = ids.length;   // v3.4: number of items in the cart (quantities can now be fractions of a kg)
     const countEl = document.getElementById('cartCount');
     countEl.textContent = count;
     countEl.classList.remove('bump');
@@ -990,12 +1009,13 @@
             <div class="ci-cat">${item.cat}</div>
             <div class="ci-name">${item.name}</div>
             <div class="qty-row">
-              <button onclick="changeQty('${id}',-1)">−</button>
-              <span>${qty}</span>
-              <button onclick="changeQty('${id}',1)">+</button>
+              <button onclick="changeQty('${id}',${-qtyStep(item)})" aria-label="Less ${item.name}">−</button>
+              <span>${fmtQty(qty, item)}${item.unit==='kg' ? ' kg' : ''}</span>
+              <button onclick="changeQty('${id}',${qtyStep(item)})" aria-label="More ${item.name}">+</button>
             </div>
+            ${item.unit === 'kg' ? qtyChipsHTML(id, cart[id].source || 'fresh', qty) : ''}
           </div>
-          <div class="ci-price">KSh ${item.price*qty}</div>
+          <div class="ci-price">KSh ${lineTotal(item, qty)}</div>
         </div>`;
       }).join('') + (function(){ const h = usualChipsHTML(ids); return h ? `<div class="usual-cart"><div class="usual-head"><strong>Your usual</strong> <span>add more</span></div>${h}</div>` : ''; })();
     }
@@ -1055,7 +1075,7 @@
   }
 
   function getItemsSubtotal(){
-    return Object.keys(cart).reduce((sum,id)=>sum+cart[id].item.price*cart[id].qty,0);
+    return Object.keys(cart).reduce((sum,id)=>sum+lineTotal(cart[id].item, cart[id].qty),0);
   }
 
 
@@ -1788,7 +1808,7 @@
       return;
     }
     const fullPhone = `254${digits}`;
-    const total = Object.keys(cart).reduce((sum,id)=>sum+cart[id].item.price*cart[id].qty,0);
+    const total = Object.keys(cart).reduce((sum,id)=>sum+lineTotal(cart[id].item, cart[id].qty),0);
 
     btn.disabled = true;
     status.textContent = `Sending payment prompt to +${fullPhone}...`;
@@ -1820,7 +1840,7 @@
     const ids = Object.keys(cart);
     const lines = ids.map((id,idx)=>{
       const {item, qty} = cart[id];
-      return {n: idx+1, name: item.name, cat: item.cat, qty, unit: item.unit, price: item.price, lineTotal: item.price*qty};
+      return {n: idx+1, name: item.name, cat: item.cat, qty, unit: item.unit, price: item.price, lineTotal: lineTotal(item, qty)};
     });
     const itemsSubtotal = lines.reduce((s,l)=>s+l.lineTotal,0);
     const clientName = document.getElementById('clientName').value.trim();
@@ -1928,7 +1948,7 @@
     y = doc.lastAutoTable.finalY + 8;
 
     // Line items table
-    const body = order.lines.map(l => [l.n, l.name, `${l.qty} ${l.unit}`, `KSh ${l.price}`, `KSh ${l.lineTotal}`]);
+    const body = order.lines.map(l => [l.n, l.name, `${fmtQty(l.qty, l)} ${l.unit}`, `KSh ${l.price}`, `KSh ${l.lineTotal}`]);
     doc.autoTable({
       startY: y,
       head: [['#','Item','Qty','Unit Price','Line Total']],
@@ -1999,7 +2019,7 @@
     msg += `${padR('#',3)}${padR('Item',20)}${padL('Qty',8)}${padL('Total',10)}\n`;
     msg += `${'-'.repeat(41)}\n`;
     order.lines.forEach(l=>{
-      msg += `${padR(l.n,3)}${padR(l.name,20)}${padL(l.qty+' '+l.unit,8)}${padL(l.lineTotal,10)}\n`;
+      msg += `${padR(l.n,3)}${padR(l.name,20)}${padL(fmtQty(l.qty, l)+' '+l.unit,8)}${padL(l.lineTotal,10)}\n`;
     });
     msg += `${'-'.repeat(41)}\n`;
     msg += `${padR('',23)}${padL('Items',8)}${padL(order.itemsSubtotal,10)}\n`;

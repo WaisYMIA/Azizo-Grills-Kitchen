@@ -90,3 +90,6 @@ Every page ships with mobile/tablet/desktop breakpoints (verified at
 375px, 768px and 1440px widths with zero horizontal overflow, including the
 admin orders dashboard) and a mobile-first checkout flow. No further work is
 needed here before launch.
+
+## Marketplace (v4.0.0)
+Partner butcheries are built in but switched off. See `docs/MARKETPLACE.md`.

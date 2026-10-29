@@ -1,5 +1,29 @@
 # Changelog
 
+## v4.1.0 — 2026-10-28
+- **Security hardening for multi-user use on cPanel (PHP backend).** Login lockout after repeated wrong passwords (admin, staff, customer, partner, rider), kept in the database so it survives restarts; rate limits on public forms; audit log of sign-ins and admin changes; "sign out everyone" switch; optional 2-step code for the admin (authenticator app); partner sign-ins stop working when their password changes or they are delisted.
+- **Orders are re-priced on the server** so nobody can change a price in the browser. **M-Pesa callback now needs a secret** so a fake "paid" message is ignored; STK push uses the order's own amount and phone.
+- **On a real server, admin and staff login stay locked until you set strong secrets** in `backend-php/config.local.php` (copy `config.local.sample.php`). Localhost / WAMP is exempt, so `majani90` still works for testing.
+- Web-server rules: config, libraries, private documents and data are blocked from the web; uploads can never run code; security headers added; password minimum is now 8 with a letter and a number.
+- Branch strip (Syokimau / Umoja / Buruburu / Utawala) removed from the top of the home and contact pages.
+- New docs: `docs/SECURITY.md`, `docs/WAMP-LOCAL.md`.
+
+## v4.0.0 — 2026-10-28
+- **Azizo Marketplace (partner butcheries), switched OFF by default.** New pages: `butcheries.html`, `butchery.html`, `sell-with-azizo.html`, `partner-portal.html`, `marketplace-admin.html`. Partners apply, are inspected and scored, list their own items and prices (recommended prices shown beside them), receive orders and pay-direct from customers, and are invoiced by Azizo. Built in both the Node and PHP backends. See `docs/MARKETPLACE.md`.
+- **Fee and invoice engine:** percent per category, tier or default, flat per order, joining fee, per-invoice fee, due dates, unpaid-invoice suspension. Nothing is charged until you set rules.
+- Orders gain an optional `partner_id`; existing orders and shop flows are unchanged. The Event Budget switch now keeps the marketplace flag when saved.
+- The Kitchens API helper can now reach any backend prefix (shared by the new pages).
+- Phone: language pill and Buy Now button move above the bottom bar so nothing overlaps.
+
+## v3.4.0 — 2026-10-27
+- **Quarter-kilo ordering.** Items priced per kg can be ordered in steps of ¼ kg (¼, ½, ¾, 1, 1¼ …) with quick buttons ¼ ½ ¾ 1 2. Adding an item starts at 1 kg. Totals are rounded to the whole shilling. Node and PHP backends now accept fractional quantities (PHP database column upgraded automatically).
+- **39 new products** (fresh meat, ready to eat, groceries) added once on upgrade; nothing existing is overwritten. **Prices on these are indicative, please confirm them** (see `docs/NEW-ITEMS-PRICE-CHECK.md`).
+- **Out of stock** items stay listed and are marked "Out of stock" until staff tick them back in (Staff portal, Stock tab, global or per branch) or the admin removes them.
+- **Find meat near you** (home and shop pages): search the whole market, results sorted by distance, items from further branches shown in red with the higher delivery fee, and never an empty page (if nothing matches, everything is shown). Kiswahili search words (mbuzi, kuku, samaki ...) work.
+- **Phone bottom bar** (Home, Shop, Search, Cart, Orders).
+- **Why trust Azizo** section on the home page combining butcher stories, sourcing, reviews and a hygiene score (shows "Audit in progress" until a real audit exists; nothing is invented).
+- Not yet built: loyalty/wallet/referral and OTP login.
+
 ## v3.3.2 — 2026-10-26
 - **Old EN / SW button removed from the main shop's navigation bar** on every page (the Google-powered switch is now the only one site-wide). The old built-in word list is switched off so it can't clash with it.
 - **No more overlap on the main shop.** The language switch now sits bottom-centre where the floating social buttons and the Buy Now button are, and checked at five screen sizes to clear them.

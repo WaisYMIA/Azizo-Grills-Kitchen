@@ -109,3 +109,4 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .mini{display:flex;gap:8px;flex-wrap:wrap}.mini input{flex:1;min-width:140px}
 .again{margin:0 0 14px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.mk-steps{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));margin:16px 0}.mk-steps .step{min-width:0}

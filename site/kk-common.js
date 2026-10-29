@@ -16,7 +16,9 @@
   K.get = function(k){ try{ return localStorage.getItem(k) || ''; }catch(e){ return ''; } };
   K.set = function(k, v){ try{ localStorage.setItem(k, v); }catch(e){} };
   K.tokenKey = null;
-  K.api = async function(path, opts, token){
+  K.api = function(path, opts, token){ return K.apiAt('/api/kitchens', path, opts, token); };
+  // Same discovery logic for any backend prefix (the Marketplace pages use '/api/market'; '' reaches /api/orders and /api/auth).
+  K.apiAt = async function(prefix, path, opts, token){
     opts = opts || {};
     var h = Object.assign({}, opts.body ? {'Content-Type':'application/json'} : {}, token ? {'Authorization':'Bearer ' + token} : {});
     var tried = '';
@@ -26,10 +28,10 @@
     };
     var missing = function(r){ return r.res && (r.res.status === 404 || r.res.status === 405) && !r.data.error; };
     var once = async function(base){
-      tried = base + '/api/kitchens' + path;
+      tried = base + prefix + path;
       var r1 = await one(tried);
       // PHP hosts where the .htaccess rewrite is not active: call the router file directly.
-      if(missing(r1)){ var r2 = await one(base + '/api/kitchens/index.php?p=' + path.replace('?', '&')); if(!r2.net && r2.res && !missing(r2)){ K._phpDirect = true; return r2; } }
+      if(missing(r1)){ var r2 = await one(base + (prefix === '/api/kitchens' || prefix === '/api/market' ? prefix + '/index.php?p=' + path.replace('?', '&') : prefix + path)); if(!r2.net && r2.res && !missing(r2)){ K._phpDirect = true; return r2; } }
       return r1;
     };
     var base = K.base(), r = await once(base);
