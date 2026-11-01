@@ -24,6 +24,33 @@ router.post('/', (req, res) => {
     partner = priced.partner; items_subtotal = priced.subtotal; delivery_fee = fulfilment === 'delivery' ? partner.delivery_fee : 0; total = priced.subtotal + delivery_fee;
     notes = ('[Partner: ' + partner.name + '] ' + (notes || '')).slice(0, 300);
   }
+  // v4.1: delivery fee floor — never accept less than the shop's own rules give (nearest open branch, banded; free over the free-delivery amount).
+  if (!partner) {
+    let c = { baseFee: 100, perKm: 25, bandKm: 2, maxFee: 450, freeOver: 3000 };
+    try { const r = db.prepare("SELECT value FROM meta WHERE key = 'delivery_config'").get(); if (r) { const d = JSON.parse(r.value); for (const k of Object.keys(c)) if (Number.isFinite(Number(d[k]))) c[k] = Number(d[k]); } } catch (e) {}
+    // prices come from the shop's own list whenever the product exists
+    const pq = db.prepare('SELECT price FROM products WHERE id = ?');
+    let priceDiff = 0;
+    for (const it of items) { const pr = it.id ? pq.get(String(it.id)) : null; if (pr) { if (Number(it.price) < pr.price) priceDiff += (pr.price - Number(it.price || 0)) * it.qty; it.price = pr.price; } }
+    const sub = items.reduce((t, it) => t + Math.round((Number(it.price) || 0) * it.qty), 0);
+    const oldFee = Math.max(0, Number(delivery_fee) || 0), claimed = Math.max(0, Number(items_subtotal || sub) + oldFee - Number(total));
+    let fee = 0;
+    if (fulfilment === 'delivery' && sub < c.freeOver) {
+      let near = null; const la = Number(delivery_lat), lo = Number(delivery_lng);
+      if (la && lo) for (const b of db.prepare('SELECT lat, lng FROM branches WHERE listed = 1 AND lat IS NOT NULL AND lng IS NOT NULL').all()) {
+        const rad = x => x * Math.PI / 180, h = Math.sin(rad(b.lat - la) / 2) ** 2 + Math.cos(rad(la)) * Math.cos(rad(b.lat)) * Math.sin(rad(b.lng - lo) / 2) ** 2;
+        const km = 12742 * Math.asin(Math.min(1, Math.sqrt(h))); if (near === null || km < near) near = km;
+      }
+      const band = Math.max(c.bandKm, Math.ceil((near || 0) / Math.max(0.1, c.bandKm)) * c.bandKm);
+      const floor = near === null ? c.baseFee : Math.min(c.maxFee, Math.round((c.baseFee + c.perKm * band) / 10) * 10);
+      fee = Math.max(floor, Math.min(Math.round(oldFee), c.maxFee));
+    }
+    const off = promo_code ? Math.min(claimed, Math.round(sub * 0.25)) : 0;
+    try { const sm = require('../secmon'); const asked = Number(req.body.total) || 0;
+      if (priceDiff > 0 || (asked > 0 && asked < Math.round((sub + fee) * 0.7))) sm.event(req, 'order-tamper', priceDiff > 0 ? 'high' : 'med', 'Order priced lower in the browser (short by KSh ' + priceDiff + ', claimed total ' + asked + ' vs real ' + (sub + fee) + ') — corrected by the server');
+      if (fulfilment === 'delivery' && oldFee < fee) sm.event(req, 'fee-tamper', 'med', 'Delivery fee claimed KSh ' + oldFee + ' but the minimum is KSh ' + fee + ' — corrected'); } catch (e) {}
+    delivery_fee = fee; items_subtotal = sub; total = Math.max(1, sub + fee - off);
+  }
   let customerId = null;
   const header = req.headers.authorization;
   if (header && header.startsWith('Bearer ')) {
@@ -57,7 +84,8 @@ router.post('/', (req, res) => {
     logStatus.run(orderId);
     return orderId;
   });
-  res.status(201).json({ ok: true, orderId: createOrder() });
+  const newId = createOrder(); try { require('../secmon').sign(newId); } catch (e) {}
+  res.status(201).json({ ok: true, orderId: newId });
 });
 // Orders change the moment staff touch them in admin.html, and the admin tool polls
 // this right after every status update (including on a fresh page load) to show the

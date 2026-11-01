@@ -3,6 +3,8 @@
 require_once __DIR__ . '/../../lib/response.php';
 require_once __DIR__ . '/../../lib/auth_guard.php';
 require_once __DIR__ . '/../../db.php';
+require_once __DIR__ . '/../../lib/inspection.php';
+require_once __DIR__ . '/../../lib/ops_helpers.php';
 cors_and_preflight();
 $pdo = get_db();
 header('Cache-Control: no-store');
@@ -48,7 +50,7 @@ $stats = function ($id) use ($one) {
     return ['orders' => $d, 'completionPct' => ($d + $c) ? (int)round($d * 100 / ($d + $c)) : null];
 };
 $pub = fn($p) => ['id' => (int)$p['id'], 'slug' => $p['slug'], 'name' => $p['name'], 'area' => $p['area_id'], 'region' => $p['region'], 'address' => $p['address'], 'story' => $p['story'], 'halal' => (bool)$p['halal'], 'tier' => $p['tier'],
-    'hygieneScore' => $p['hygiene_score'] === null ? null : (int)$p['hygiene_score'], 'lastInspection' => $p['last_inspection'] ?? '', 'licenceVerified' => (bool)$p['licence_verified'], 'deliveryMode' => $p['delivery_mode'], 'deliveryFee' => (int)$p['delivery_fee'],
+    'inspected' => $p['hygiene_score'] !== null && (int)$p['hygiene_score'] >= 70, 'lastInspection' => $p['last_inspection'] ?? '', 'licenceVerified' => (bool)$p['licence_verified'], 'deliveryMode' => $p['delivery_mode'], 'deliveryFee' => (int)$p['delivery_fee'],
     'minOrder' => (int)$p['min_order'], 'photos' => $jp($p['photos'], []), 'lat' => $p['lat'] === null ? null : (float)$p['lat'], 'lng' => $p['lng'] === null ? null : (float)$p['lng'], 'stats' => $stats($p['id'])];
 $itemsOf = function ($p, $onlyListed) use ($all, $settings, $jp) {
     $rows = $all('SELECT pi.product_id, pi.price AS pprice, pi.in_stock AS pstock, pr.name, pr.cat, pr.kind, pr.category_group, pr.unit, pr.img, pr.price, pr.badges, pr.in_stock AS gstock, c.sw_name, c.cut_family, COALESCE(c.retired, 0) AS retired
@@ -63,7 +65,7 @@ $itemsOf = function ($p, $onlyListed) use ($all, $settings, $jp) {
     return $out;
 };
 $invoiceOut = fn($i) => ['id' => (int)$i['id'], 'periodStart' => $i['period_start'], 'periodEnd' => $i['period_end'], 'orders' => (int)$i['orders_count'], 'gross' => (int)$i['gross'], 'fee' => (int)$i['fee'], 'extra' => (int)$i['extra'], 'total' => (int)$i['total'], 'status' => $i['status'], 'dueDate' => $i['due_date'], 'paidAt' => $i['paid_at'], 'reference' => $i['reference'], 'overdue' => $i['status'] === 'unpaid' && $i['due_date'] < $today()];
-$adminP = fn($p) => $pub($p) + ['owner' => $p['owner'], 'phone' => $p['phone'], 'email' => $p['email'], 'status' => $p['status'], 'paused' => (bool)$p['paused'], 'licenceNo' => $p['licence_no'], 'licenceExpiry' => $p['licence_expiry'], 'healthCertNo' => $p['health_cert_no'], 'payMethod' => $p['pay_method'], 'payAccount' => $p['pay_account'], 'adminNote' => $p['admin_note'], 'createdAt' => $p['created_at']];
+$adminP = fn($p) => $pub($p) + ['hygieneScore' => $p['hygiene_score'] === null ? null : (int)$p['hygiene_score'], 'owner' => $p['owner'], 'phone' => $p['phone'], 'email' => $p['email'], 'status' => $p['status'], 'paused' => (bool)$p['paused'], 'licenceNo' => $p['licence_no'], 'licenceExpiry' => $p['licence_expiry'], 'healthCertNo' => $p['health_cert_no'], 'payMethod' => $p['pay_method'], 'payAccount' => $p['pay_account'], 'adminNote' => $p['admin_note'], 'createdAt' => $p['created_at']];
 $myPartner = function () use ($one) {
     $t = require_partner(); $p = $one('SELECT * FROM mk_partners WHERE id = ?', [(int)$t['partnerId']]);
     // A token stops working when the password changes, the admin resets it, or the partner is delisted/rejected.
@@ -219,8 +221,83 @@ if ($M === 'PATCH' && $a === 'partner' && $b1 === 'orders' && ctype_digit($b2) &
 if ($M === 'GET' && $a === 'partner' && $b1 === 'invoices') { $p = $myPartner(); json_response(['invoices' => array_map($invoiceOut, $all('SELECT * FROM mk_invoices WHERE partner_id = ? ORDER BY id DESC', [$p['id']]))]); }
 
 // ================= ADMIN =================
+
+// ---- v4.4 partner inspections (scores are visible to Azizo officials and the admin only) ----
+$INSP_TITLES = ['Quality Assurance Officer', 'Food Safety Inspector', 'Operations Manager', 'Partner Onboarding Officer', 'Director'];
+$VISITS = ['Pre-approval visit', 'Routine inspection', 'Follow-up / re-inspection', 'Complaint visit', 'Unannounced spot check'];
+$inspOut = function ($r, $full) use ($jp) {
+    $o = ['id' => (int)$r['id'], 'ref' => $r['ref'], 'partnerId' => (int)$r['partner_id'], 'inspectorName' => $r['inspector_name'], 'inspectorTitle' => $r['inspector_title'], 'visitType' => $r['visit_type'], 'inspectedAt' => $r['inspected_at'], 'score' => (float)$r['score'], 'grade' => $r['grade'], 'stars' => (int)$r['stars'], 'result' => $r['result'], 'criticalFails' => (int)$r['critical_fails'], 'catScores' => $jp($r['cat_scores'], []), 'nextDue' => $r['next_due'], 'sealOk' => insp_seal_ok($r), 'stdVersion' => $r['std_version']];
+    if ($full) $o += ['answers' => $jp($r['answers'], new stdClass()), 'notes' => $r['notes'], 'actions' => $r['actions'], 'actionDue' => $r['action_due'], 'repName' => $r['rep_name'], 'repRole' => $r['rep_role'], 'inspectorSig' => $r['insp_sig'], 'repSig' => $r['rep_sig']];
+    return $o;
+};
+if ($M === 'POST' && $a === 'inspector' && $b1 === 'login' && !empty($body['username'])) {
+    // v5.0 named inspector accounts (created by the admin in Operations > Accounts)
+    throttle_check('mki', 'inspector', 8, 900);
+    $ac = $one('SELECT * FROM ops_accounts WHERE username = ? AND active = 1', [strtolower($clean($body['username'], 30))]);
+    if (!$ac || !password_verify((string)($body['password'] ?? ''), $ac['password_hash'])) { throttle_fail('mki', 'inspector'); sec_event('login-fail', 'low', 'inspector account login failed'); json_error('Incorrect username or password', 401); }
+    throttle_clear('mki', 'inspector'); $run('UPDATE ops_accounts SET last_login = ? WHERE id = ?', [$now(), $ac['id']]); audit_log('login-ok', 'inspector account ' . $ac['username'], 'inspector');
+    json_response(['token' => jwt_sign(['role' => 'inspector', 'name' => $ac['name']], 12 * 3600), 'name' => $ac['name'], 'title' => $ac['title']]);
+}
+if ($M === 'POST' && $a === 'inspector' && $b1 === 'login') {
+    if (INSPECTOR_PASSWORD === '') json_error('Inspector login is not set up. Use the admin password, or set INSPECTOR_PASSWORD.', 503);
+    throttle_check('mki', 'inspector', 8, 900); $nm = $clean($body['name'] ?? '', 60);
+    if (!hash_equals(INSPECTOR_PASSWORD, (string)($body['password'] ?? ''))) { throttle_fail('mki', 'inspector'); json_error('Incorrect inspector password', 401); }
+    if (mb_strlen($nm) < 3) json_error('Enter your full name');
+    throttle_clear('mki', 'inspector'); audit_log('login-ok', 'inspector ' . $nm, 'inspector');
+    json_response(['token' => jwt_sign(['role' => 'inspector', 'name' => $nm], 12 * 3600), 'name' => $nm]);
+}
+if ($a === 'inspection') {
+    require_inspector();
+    if ($M === 'GET' && $b1 === 'standard') json_response(['standard' => insp_std(), 'titles' => $INSP_TITLES, 'visits' => $VISITS]);
+    if ($M === 'GET' && $b1 === 'partners') json_response(['partners' => array_map(fn($p) => ['id' => (int)$p['id'], 'name' => $p['name'], 'owner' => $p['owner'], 'phone' => $p['phone'], 'address' => $p['address'], 'licenceNo' => $p['licence_no'], 'licenceExpiry' => $p['licence_expiry'], 'healthCertNo' => $p['health_cert_no'], 'status' => $p['status']], $all("SELECT id, name, owner, phone, address, licence_no, licence_expiry, health_cert_no, status FROM mk_partners WHERE status NOT IN ('rejected','delisted') ORDER BY name"))]);
+    if ($M === 'POST' && $b1 === '') {
+        rate_limit('insp-save', 60, 3600);
+        $p = $one('SELECT * FROM mk_partners WHERE id = ?', [(int)($body['partnerId'] ?? 0)]); if (!$p) json_error('Choose the butchery being inspected');
+        $name = $clean($body['inspectorName'] ?? '', 60); $title = $clean($body['inspectorTitle'] ?? '', 60); if (mb_strlen($name) < 3 || mb_strlen($title) < 3) json_error('Enter the inspector\'s name and official title');
+        $visit = in_array($body['visitType'] ?? '', $VISITS, true) ? $body['visitType'] : 'Routine inspection';
+        $date = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($body['date'] ?? '')) ? $body['date'] : $today(); if ($date > $addDays($today(), 1) || $date < $addDays($today(), -30)) json_error('The inspection date must be within the last 30 days and not in the future');
+        $time = preg_match('/^\d{2}:\d{2}$/', (string)($body['time'] ?? '')) ? $body['time'] : '00:00';
+        $r = insp_score($body['answers'] ?? null); if (isset($r['error'])) json_error($r['error']);
+        $repName = $clean($body['repName'] ?? '', 60); if (mb_strlen($repName) < 3) json_error('Enter the name of the partner representative who was present');
+        $sig = fn($s) => (is_string($s) && strlen($s) <= 90000 && preg_match('#^data:image/png;base64,[A-Za-z0-9+/=]+$#', $s)) ? $s : '';
+        $sI = $sig($body['inspectorSig'] ?? ''); $sR = $sig($body['repSig'] ?? ''); if ($sI === '') json_error('The inspector must sign the form');
+        $nextDue = $addDays($date, (int)$r['reinspectDays']); $at = $date . ' ' . $time; $answers = json_encode($r['answers']);
+        $pdo->beginTransaction();
+        try {
+            $run('INSERT INTO mk_inspections (partner_id, inspector_name, inspector_title, visit_type, inspected_at, score, grade, stars, result, critical_fails, answers, cat_scores, notes, actions, action_due, rep_name, rep_role, insp_sig, rep_sig, std_version, next_due) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                [$p['id'], $name, $title, $visit, $at, $r['score'], $r['grade'], $r['stars'], $r['result'], count($r['criticalFails']), $answers, json_encode($r['catScores']), $clean($body['notes'] ?? '', 1500), $clean($body['actions'] ?? '', 1500), preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($body['actionDue'] ?? '')) ? $body['actionDue'] : '', $repName, $clean($body['repRole'] ?? '', 60), $sI, $sR, insp_std()['version'], $nextDue]);
+            $iid = (int)$pdo->lastInsertId(); $ref = 'AZ-QHI-' . substr($date, 0, 4) . '-' . str_pad((string)$iid, 4, '0', STR_PAD_LEFT);
+            $row = ['id' => $iid, 'ref' => $ref, 'partner_id' => $p['id'], 'score' => $r['score'], 'grade' => $r['grade'], 'inspected_at' => $at, 'inspector_name' => $name, 'answers' => $answers];
+            $run('UPDATE mk_inspections SET ref = ?, seal = ? WHERE id = ?', [$ref, insp_seal($row), $iid]);
+            $run('UPDATE mk_partners SET hygiene_score = ?, last_inspection = ? WHERE id = ?', [(int)round($r['score']), $date, $p['id']]);
+            $pdo->commit();
+        } catch (Throwable $e) { $pdo->rollBack(); error_log('[azizo] inspection save failed: ' . $e->getMessage()); json_error('Could not save the inspection. Please try again.', 500); }
+        audit_log('inspection', 'Inspected ' . $p['name'] . ' (' . $r['score'] . ', grade ' . $r['grade'] . ') by ' . $name, 'inspector');
+        json_response(['ok' => true, 'id' => $iid, 'ref' => $ref, 'score' => $r['score'], 'grade' => $r['grade'], 'stars' => $r['stars'], 'label' => $r['label'], 'result' => $r['result'], 'action' => $r['action'], 'nextDue' => $nextDue], 201);
+    }
+    json_error('Not found', 404);
+}
+
 if ($a === 'admin') {
     require_admin();
+    if ($M === 'GET' && $b1 === 'inspections' && $seg(2) === 'board') {
+        $t = $today(); $parts = $all("SELECT id, name, region, area_id, status, owner, phone FROM mk_partners WHERE status NOT IN ('rejected','delisted') ORDER BY name"); $board = [];
+        foreach ($parts as $p) {
+            $rows = $all('SELECT * FROM mk_inspections WHERE partner_id = ? ORDER BY id DESC', [$p['id']]); $last = $rows[0] ?? null; $prev = $rows[1] ?? null;
+            $board[] = ['id' => (int)$p['id'], 'name' => $p['name'], 'area' => $p['region'] ?: $p['area_id'], 'status' => $p['status'], 'owner' => $p['owner'], 'phone' => $p['phone'], 'count' => count($rows), 'avg' => $rows ? round(array_sum(array_map(fn($r) => (float)$r['score'], $rows)) / count($rows), 1) : null,
+                'last' => $last ? $inspOut($last, false) : null, 'prevScore' => $prev ? (float)$prev['score'] : null, 'overdue' => !$last || $last['next_due'] < $t, 'neverInspected' => !$last,
+                'history' => array_map(fn($r) => ['id' => (int)$r['id'], 'date' => substr($r['inspected_at'], 0, 10), 'score' => (float)$r['score'], 'grade' => $r['grade']], array_reverse(array_slice($rows, 0, 12)))];
+        }
+        $done = array_values(array_filter($board, fn($b) => $b['last']));
+        json_response(['today' => $t, 'kpi' => ['partners' => count($board), 'inspected' => count($done), 'avg' => $done ? round(array_sum(array_map(fn($b) => $b['last']['score'], $done)) / count($done), 1) : null, 'overdue' => count(array_filter($board, fn($b) => $b['overdue'])), 'failing' => count(array_filter($done, fn($b) => $b['last']['result'] === 'Fail')), 'critical' => count(array_filter($done, fn($b) => $b['last']['criticalFails'] > 0)), 'tampered' => count(array_filter($done, fn($b) => !$b['last']['sealOk']))],
+            'board' => $board, 'standard' => ['version' => insp_std()['version'], 'categories' => array_map(fn($c) => ['id' => $c['id'], 'name' => $c['name'], 'weight' => $c['weight']], insp_std()['categories']), 'bands' => insp_std()['bands']]]);
+    }
+    if ($M === 'GET' && $b1 === 'inspections' && $seg(2) === '') { $pid = (int)($_GET['partnerId'] ?? 0); json_response(['inspections' => array_map(fn($r) => $inspOut($r, false), $all('SELECT * FROM mk_inspections ' . ($pid ? 'WHERE partner_id = ? ' : '') . 'ORDER BY id DESC LIMIT 300', $pid ? [$pid] : []))]); }
+    if ($M === 'GET' && $b1 === 'inspections' && ctype_digit($seg(2))) {
+        $r = $one('SELECT * FROM mk_inspections WHERE id = ?', [(int)$seg(2)]); if (!$r) json_error('Not found', 404); $p = $one('SELECT * FROM mk_partners WHERE id = ?', [$r['partner_id']]) ?: [];
+        json_response(['inspection' => $inspOut($r, true), 'partner' => ['id' => $p['id'] ?? null, 'name' => $p['name'] ?? '', 'owner' => $p['owner'] ?? '', 'phone' => $p['phone'] ?? '', 'address' => $p['address'] ?? '', 'licenceNo' => $p['licence_no'] ?? '', 'healthCertNo' => $p['health_cert_no'] ?? ''], 'standard' => insp_std()]);
+    }
+
     $STATUS = ['applied', 'pilot', 'live', 'suspended', 'delisted', 'rejected']; $TIERS = ['associate', 'partner', 'premium'];
     if ($M === 'GET' && $b1 === 'overview') {
         $inv = $one("SELECT COUNT(*) AS n, COALESCE(SUM(total),0) AS s FROM mk_invoices WHERE status = 'unpaid'");
@@ -244,6 +321,12 @@ if ($a === 'admin') {
             $b = $body; $has = fn($k) => array_key_exists($k, $b);
             if ($has('status') && !in_array($b['status'], $STATUS, true)) json_error('Unknown status'); if ($has('tier') && !in_array($b['tier'], $TIERS, true)) json_error('Unknown tier');
             if (!empty($b['newPassword']) && ($pp = password_problem((string)$b['newPassword'])) !== null) json_error($pp);
+            // v5.0 go-live gate: no pilot/live until licence, inspection, items and onboarding are in order (admin may override with a written reason)
+            if ($has('status') && $b['status'] !== $p['status'] && in_array($b['status'], ['pilot', 'live'], true)) {
+                $g = ops_gate_for($pdo, (int)$p['id']);
+                if (!$g['ok']) { $why = $clean($b['overrideReason'] ?? '', 300); if (mb_strlen($why) < 10) json_error('Go-live checklist is not complete', 409, ['gate' => $g, 'needsOverride' => true]);
+                    audit_log('golive-override', $p['name'] . ' -> ' . $b['status'] . ': ' . $why); $b['adminNote'] = $clean(($p['admin_note'] ?? '') . ' Go-live override ' . $today() . ': ' . $why, 500); $has = fn($k) => array_key_exists($k, $b); }
+            }
             $run('UPDATE mk_partners SET status = ?, tier = ?, paused = ?, licence_verified = ?, delivery_mode = ?, admin_note = ?, password_hash = ?, token_ver = token_ver + ? WHERE id = ?', [$has('status') ? $b['status'] : $p['status'], $has('tier') ? $b['tier'] : $p['tier'], $has('paused') ? (!empty($b['paused']) ? 1 : 0) : $p['paused'],
                 $has('licenceVerified') ? (!empty($b['licenceVerified']) ? 1 : 0) : $p['licence_verified'], in_array($b['deliveryMode'] ?? '', $DMODES, true) ? $b['deliveryMode'] : $p['delivery_mode'], $has('adminNote') ? $clean($b['adminNote'], 500) : $p['admin_note'], !empty($b['newPassword']) ? password_hash((string)$b['newPassword'], PASSWORD_BCRYPT) : $p['password_hash'], (!empty($b['newPassword']) || ($has('status') && in_array($b['status'], ['delisted', 'rejected', 'suspended'], true))) ? 1 : 0, $p['id']]);
             audit_log('partner-update', '#' . $p['id'] . ' ' . $p['name'] . ' status=' . ($has('status') ? $b['status'] : $p['status']) . ' tier=' . ($has('tier') ? $b['tier'] : $p['tier']) . (!empty($b['newPassword']) ? ' password-reset' : ''));

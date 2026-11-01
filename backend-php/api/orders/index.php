@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     // v4.1 security: public order endpoint is throttled, fields are bounded, and every price is taken from the server's own price list.
     rate_limit('order-ip', 40, 3600);
+    $clientTotalClaim = (int)($body['total'] ?? 0); $clientFeeClaim = (int)($body['delivery_fee'] ?? 0); $clientPriceDiff = 0;
     $cl = fn($v, $n) => mb_substr(trim(preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f]/', ' ', (string)($v ?? ''))), 0, $n);
     if (!in_array($body['fulfilment'], ['pickup', 'delivery'], true)) json_error('fulfilment must be pickup or delivery');
     if (count($body['items']) > 100) json_error('Too many items in one order');
@@ -53,13 +54,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pq->execute([(string)($it['id'] ?? '')]); $pr = $pq->fetch();
             if (!$pr) json_error('An item in your cart is no longer on the menu. Please refresh the page and try again.');
             if ((int)$pr['in_stock'] === 0) json_error($pr['name'] . ' is out of stock right now');
+            if (isset($it['price']) && (int)$it['price'] < (int)$pr['price']) $clientPriceDiff += ((int)$pr['price'] - (int)$it['price']);
             $body['items'][$k] = ['id' => $it['id'], 'name' => $pr['name'], 'unit' => $pr['unit'], 'price' => (int)$pr['price'], 'qty' => $qty]; $sub += (int)round($pr['price'] * $qty);
         }
         $clientBefore = (int)($body['items_subtotal'] ?? $body['total']) + (int)($body['delivery_fee'] ?? 0); $claimed = max(0, $clientBefore - (int)$body['total']);
-        $maxFee = 450; $dq = $pdo->prepare("SELECT svalue FROM kk_meta WHERE skey = 'delivery_config'"); $dq->execute(); if ($dr = $dq->fetch()) { $dc = json_decode($dr['svalue'], true); if (isset($dc['maxFee'])) $maxFee = max(0, (int)$dc['maxFee']); }
-        $fee = $body['fulfilment'] === 'delivery' ? max(0, min((int)($body['delivery_fee'] ?? 0), $maxFee)) : 0;
+        // v4.1: the delivery fee can no longer be talked down. The server works out the lowest fee the shop's own rules allow
+        // (straight-line distance to the nearest open branch, banded; free over the free-delivery amount) and never accepts less.
+        $dcfg = ['baseFee' => 100, 'perKm' => 25, 'bandKm' => 2, 'maxFee' => 450, 'freeOver' => 3000];
+        $dq = $pdo->prepare("SELECT svalue FROM kk_meta WHERE skey = 'delivery_config'"); $dq->execute();
+        if ($dr = $dq->fetch()) { $dc = json_decode($dr['svalue'], true); if (is_array($dc)) foreach ($dcfg as $ck => $cv) if (isset($dc[$ck]) && is_numeric($dc[$ck])) $dcfg[$ck] = (float)$dc[$ck]; }
+        $maxFee = max(0, (int)$dcfg['maxFee']); $floorFee = 0;
+        if ($body['fulfilment'] === 'delivery' && $sub < $dcfg['freeOver']) {
+            $dLat = (float)($body['delivery_lat'] ?? 0); $dLng = (float)($body['delivery_lng'] ?? 0); $near = null;
+            if ($dLat && $dLng) foreach ($pdo->query('SELECT lat, lng FROM branches WHERE listed = 1 AND lat IS NOT NULL AND lng IS NOT NULL')->fetchAll() as $br) {
+                $dl = deg2rad((float)$br['lat'] - $dLat); $dg = deg2rad((float)$br['lng'] - $dLng);
+                $h = sin($dl / 2) ** 2 + cos(deg2rad($dLat)) * cos(deg2rad((float)$br['lat'])) * sin($dg / 2) ** 2; $km = 12742 * asin(min(1, sqrt($h)));
+                if ($near === null || $km < $near) $near = $km;
+            }
+            $band = max($dcfg['bandKm'], ceil(($near ?? 0) / max(0.1, $dcfg['bandKm'])) * $dcfg['bandKm']);
+            $floorFee = $near === null ? (int)$dcfg['baseFee'] : min($maxFee, (int)(round(($dcfg['baseFee'] + $dcfg['perKm'] * $band) / 10) * 10));
+        }
+        $fee = $body['fulfilment'] === 'delivery' ? ($sub >= $dcfg['freeOver'] ? 0 : max($floorFee, min((int)($body['delivery_fee'] ?? 0), $maxFee))) : 0;
         $off = $body['promo_code'] !== '' ? min($claimed, (int)round($sub * MAX_DISCOUNT_PCT / 100)) : 0;
         $body['items_subtotal'] = $sub; $body['delivery_fee'] = $fee; $body['total'] = max(1, $sub + $fee - $off);
+        // v4.3: tell the Security Center when the browser claimed something cheaper than the shop's own rules allow.
+        if ($clientPriceDiff > 0 || ($clientTotalClaim > 0 && $clientTotalClaim < (int)round(($sub + $fee) * 0.7))) sec_event('order-tamper', $clientPriceDiff > 0 ? 'high' : 'med', 'Order priced lower in the browser (prices short by KSh ' . $clientPriceDiff . ', claimed total ' . $clientTotalClaim . ' vs real ' . ($sub + $fee) . ') — corrected by the server');
+        if ($body['fulfilment'] === 'delivery' && $clientFeeClaim < $floorFee) sec_event('fee-tamper', 'med', 'Delivery fee claimed KSh ' . $clientFeeClaim . ' but the minimum is KSh ' . $floorFee . ' — corrected');
     }
     $customerId = null;
     $token = bearer_token();
@@ -91,6 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $itemStmt->execute([$orderId, $item['id'] ?? null, $item['name'], $item['qty'], $item['unit'] ?? '', $item['price'], (int)round($item['price'] * $item['qty']), $cost]);
         }
         $pdo->prepare("INSERT INTO order_status_log (order_id, status) VALUES (?, 'received')")->execute([$orderId]);
+        order_sign($pdo, $orderId);   // v4.3 tamper signature
         $pdo->commit();
     } catch (Exception $e) {
         $pdo->rollBack();

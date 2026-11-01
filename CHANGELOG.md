@@ -1,5 +1,43 @@
 # Changelog
 
+## v5.0.0 — 2026-11-01
+Operations release, for Azizo Butchery, Ready to Eat and Azizo Kitchens.
+- **Admin Operations page** (`operations.html`, linked from Admin): analytics (sales, average order, repeat customers, cancellations, busiest hours, top items, branches, Kitchens, ratings, and a visit-to-order funnel), support tickets, customer privacy and reward requests, the go-live gate, named inspector accounts and the SOP handbook.
+- **Partner portal:** new Dashboard (sales today / 7 / 30 days, orders to handle, rating, best sellers), printable and CSV Statements (sales, Azizo fee, net), Go-live progress, Support tickets and the SOP handbook. Azizo Kitchens portal gets Support and the SOP handbook.
+- **Go-live gate:** a partner cannot go to trial or live until licence and health certificate are verified, an inspection scores 70+ with no critical fail, 5 items are listed and the 5 onboarding steps are ticked. The admin can override with a written reason, which is recorded in the audit trail.
+- **Named inspector accounts:** each inspector signs in with their own username, so every inspection is traced to a person. The shared inspector password still works.
+- **23 SOPs** (Butchery B01-B09, Ready to Eat R01-R04, Kitchens K01-K04, General G01-G06) in `backend/sop` and `backend-php/data/sop` (copies in `docs/sop`).
+- **Shoppers:** delivery windows that only show times still ahead, an estimated delivery or pickup time, the "replace or refund within 24 hours" promise and weight-estimate note at checkout, **Azizo Rewards** page (1 point per KES 100; Bronze, Silver, Gold; staff-approved redemption), and a **Refunds, privacy and allergens** page with data requests (Kenya Data Protection Act).
+- **Backups:** `backend-php/cron/backup.php` (daily SQL dump, keeps 14) and `npm run backup` for Node.
+- Anonymous funnel counts (visit, cart, checkout, order). No personal data.
+- Older tests updated for the new gate. PHP side tested on a SQLite stand-in only.
+
+## v4.4.0 — 2026-10-30
+- **Partner inspection module:** web checklist form (`inspection-form.html`) on Azizo letterhead with the inspector's name and official title, 44 items in 9 categories (standard `AZ-QHI-1.0`, form `AZ/QHI/001`). Pass / Partial / Fail / N/A per item, weighted 1-3; a failed critical item caps the total at 59. Grades A-E with stars, re-inspection interval and suspend rule. Inspector and partner-representative signatures, draft autosave, mobile friendly.
+- **Live in the admin portal:** new Inspections tab in Marketplace admin: live board of every franchise (refreshes every 20 s), KPI cards, scoring standard, per-partner history and a printable sealed report. Each inspection is tamper-sealed and the server always recalculates the score.
+- **Scores are private:** only administrators and Azizo inspectors see numbers. The public directory shows just an "Azizo-inspected" badge (score 70+). Partners cannot see scores.
+- Set `INSPECTOR_PASSWORD` in `config.local.php` / `.env` for inspector logins (admin can also open the form).
+- **Azizo Kitchens orders** are now sealed with tamper signatures too (Node and PHP), checked in the Security Center.
+- Note: the standard is an internal Azizo standard informed by Codex Alimentarius / HACCP / ISO 22000 principles. It is not a government certificate; have a Kenyan food-safety professional or county public health officer review it.
+
+## v4.3.0 — 2026-10-29
+- **Security Center** (`security-center.html`, opened from the Admin page): overview of the last 24 hours, a searchable **attack and failure log** (wrong passwords, lockouts, injection attempts, scanner probes, forged logins and M-Pesa payments, order price tampering) with CSV download, blocked addresses (block/unblock yourself), order integrity check, audit trail, health checklist and "sign everyone out".
+- **Automatic defence:** repeat attackers are blocked (1 hour, then 24 hours, then 7 days); hacking tools (sqlmap, nikto ...) are refused at once; SQL/script/path/command injection patterns are stopped; decoy addresses (wp-login.php, .env, phpmyadmin ...) trap scanners; unusual request methods and oversized requests are refused.
+- **Tamper-proof orders:** every order is sealed with a secret signature. If someone edits an order, its items, price or phone number directly in the database, the Security Center shows it and (with a cron job) emails you.
+- **Alerts:** set `SEC_ALERT_EMAIL` and critical events (forged payments, tampered orders, blocked attackers) are emailed to you, at most once an hour per kind.
+- **Server hardening:** HSTS, more health checks (PHP version, file permissions, signatures), a cron script (`backend-php/cron/security-watch.php`), blocked `cron/` folder.
+- Node backend has the same Security Center, blocking, seals and an authenticated M-Pesa callback.
+- Phone-test copy now stays in step with the main `app.js` automatically.
+
+## v4.2.0 — 2026-10-29
+- **No more fraction buttons.** The ¼ ½ ¾ quick buttons and fraction symbols are gone everywhere (shop, cart, ready to eat, partner butcheries). Items sold per kg start at 1 kg; **+** adds a whole kilo and **−** steps down by itself: 1 → 0.75 → 0.5 → 0.25 kg. Totals still work out to the shilling.
+- **Fresh Meat Market opens on everything.** All products are listed, grouped under Beef, Goat, Chicken, Fish, Pork, Sausages, Packs, Nyama choma and Eggs; tapping a category narrows the list. (Nyama choma and Eggs are pulled in from Ready to Eat and Groceries; they still appear in their own tabs too.)
+- **Footer:** a new "Azizo Specials" panel makes Azizo Kitchens, Curated Boxes, Meal Plan, Meat Budget Planner, Outdoor Events, Event Budget Planner and Cook with Azizo easy to spot; the Shop list is shorter.
+- "½kg" in the Fish Lover's Basket description now reads 500g.
+
+## v4.1.1 — 2026-10-29
+- **Delivery fee can no longer be talked down.** The server now works out the lowest allowed fee (straight-line distance to the nearest open branch, banded by your Areas settings; free over KSh 3,000) and never accepts less, and caps it at your maximum. Pickup orders always carry no fee. The Node backend now also takes prices from your product list and recomputes totals, like the PHP one.
+
 ## v4.1.0 — 2026-10-28
 - **Security hardening for multi-user use on cPanel (PHP backend).** Login lockout after repeated wrong passwords (admin, staff, customer, partner, rider), kept in the database so it survives restarts; rate limits on public forms; audit log of sign-ins and admin changes; "sign out everyone" switch; optional 2-step code for the admin (authenticator app); partner sign-ins stop working when their password changes or they are delisted.
 - **Orders are re-priced on the server** so nobody can change a price in the browser. **M-Pesa callback now needs a secret** so a fake "paid" message is ignored; STK push uses the order's own amount and phone.

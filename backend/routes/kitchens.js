@@ -210,6 +210,7 @@ router.post('/orders', limiter(10, 'ord'), async (req, res) => {
     if (promoId) db.prepare('UPDATE kk_promos SET used = used + 1 WHERE id = ?').run(promoId);
     return r.lastInsertRowid;
   })();
+  try { require('../secmon').kkSign(id); } catch (e) {}
   notify.queue('placed', lastOrderFull(id), { kitchen: k.name });
   let stk = null;
   if (payment === 'mpesa_now') {

@@ -8,6 +8,7 @@ function signKitchensAdminToken(sub) { return jwt.sign({ role: 'kitchens', sub: 
 function signRiderToken(r) { return jwt.sign({ role: 'krider', riderId: r.id }, SECRET, { expiresIn: '14d' }); }
 function signKitchenToken(k) { return jwt.sign({ role: 'kitchen', kitchenId: k.id }, SECRET, { expiresIn: '14d' }); }
 function signPartnerToken(p) { return jwt.sign({ role: 'partner', partnerId: p.id }, SECRET, { expiresIn: '14d' }); }
+function signInspectorToken(name) { return jwt.sign({ role: 'inspector', name: String(name || '').slice(0, 60) }, SECRET, { expiresIn: '12h' }); }
 function requireAuth(req, res, next) {
   const h = req.headers.authorization;
   if (!h || !h.startsWith('Bearer ')) return res.status(401).json({ error: 'Missing or invalid Authorization header' });
@@ -55,6 +56,13 @@ function requireKitchen(req, res, next) {
     next();
   });
 }
+// Azizo inspection officials (own password INSPECTOR_PASSWORD) and the admin may fill in inspection forms.
+function requireInspector(req, res, next) {
+  requireAuth(req, res, () => {
+    if (req.user.role !== 'inspector' && req.user.role !== 'admin') return res.status(403).json({ error: 'Inspector access required' });
+    next();
+  });
+}
 // A signed-in marketplace partner butchery (req.user.partnerId).
 function requirePartner(req, res, next) {
   requireAuth(req, res, () => {
@@ -62,4 +70,4 @@ function requirePartner(req, res, next) {
     next();
   });
 }
-module.exports = { signPartnerToken, requirePartner, signRiderToken, requireRider, kkAllow, signKitchensAdminToken, signKitchenToken, requireKitchensAdmin, requireKitchen, signCustomerToken, signAdminToken, signStaffToken, requireAuth, requireAdmin, requireStaff, SECRET };
+module.exports = { signInspectorToken, requireInspector, signPartnerToken, requirePartner, signRiderToken, requireRider, kkAllow, signKitchensAdminToken, signKitchenToken, requireKitchensAdmin, requireKitchen, signCustomerToken, signAdminToken, signStaffToken, requireAuth, requireAdmin, requireStaff, SECRET };

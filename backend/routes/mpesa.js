@@ -53,6 +53,10 @@ router.post('/stkpush', async (req, res) => {
   }
 });
 router.post('/callback', (req, res) => {
+  // v4.3: only Safaricom (who is given the secret in the callback address) may mark a payment as paid.
+  const sec = process.env.MPESA_CALLBACK_SECRET || '';
+  const okKey = sec ? String(req.query.k || '') === require('crypto').createHmac('sha256', sec).update('mpesa-callback').digest('hex').slice(0, 32) : /^(127\.|::1$|::ffff:127\.|10\.|192\.168\.)/.test(String(req.ip || ''));
+  if (!okKey) { require('../secmon').event(req, 'mpesa-forged', 'crit', 'Payment callback without the correct secret key'); return res.status(403).json({}); }
   const stkCallback = req.body?.Body?.stkCallback;
   if (!stkCallback) return res.status(400).json({ error: 'Unexpected callback shape' });
   const { CheckoutRequestID, ResultCode, CallbackMetadata } = stkCallback;

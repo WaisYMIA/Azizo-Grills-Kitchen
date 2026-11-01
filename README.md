@@ -93,3 +93,6 @@ needed here before launch.
 
 ## Marketplace (v4.0.0)
 Partner butcheries are built in but switched off. See `docs/MARKETPLACE.md`.
+
+## v5.0 operations
+See `docs/OPERATIONS.md`, `docs/PENDING-ON-YOUR-SIDE.md` and `docs/sop/`.

@@ -9,7 +9,8 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const db = require('../db');
-const { requireAdmin, requirePartner, signPartnerToken } = require('../middleware/auth');
+const { requireAdmin, requirePartner, signPartnerToken, requireInspector, signInspectorToken } = require('../middleware/auth');
+const insp = require('../inspection');
 const router = express.Router();
 
 const noStore = (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); };
@@ -52,7 +53,7 @@ function stats(id) {
   return { orders: done, completionPct: done + cx ? Math.round(done * 100 / (done + cx)) : null };
 }
 const pub = p => ({ id: p.id, slug: p.slug, name: p.name, area: p.area_id, region: p.region, address: p.address, story: p.story, halal: !!p.halal, tier: p.tier,
-  hygieneScore: p.hygiene_score, lastInspection: p.last_inspection || '', licenceVerified: !!p.licence_verified, deliveryMode: p.delivery_mode, deliveryFee: p.delivery_fee, minOrder: p.min_order,
+  inspected: p.hygiene_score != null && p.hygiene_score >= 70, lastInspection: p.last_inspection || '', licenceVerified: !!p.licence_verified, deliveryMode: p.delivery_mode, deliveryFee: p.delivery_fee, minOrder: p.min_order,
   photos: jparse(p.photos, []), lat: p.lat, lng: p.lng, stats: stats(p.id) });
 function itemsOf(p, onlyListed) {
   const rows = db.prepare(`SELECT pi.product_id, pi.price AS pprice, pi.in_stock AS pstock, pr.name, pr.cat, pr.kind, pr.category_group, pr.unit, pr.img, pr.price, pr.badges, pr.in_stock AS gstock, c.sw_name, c.cut_family, COALESCE(c.retired, 0) AS retired
@@ -214,7 +215,7 @@ function enforce() {
 }
 
 // ---------- admin ----------
-const adminP = p => Object.assign(pub(p), { owner: p.owner, phone: p.phone, email: p.email, status: p.status, paused: !!p.paused, licenceNo: p.licence_no, licenceExpiry: p.licence_expiry, healthCertNo: p.health_cert_no, payMethod: p.pay_method, payAccount: p.pay_account, adminNote: p.admin_note, createdAt: p.created_at });
+const adminP = p => Object.assign(pub(p), { hygieneScore: p.hygiene_score, owner: p.owner, phone: p.phone, email: p.email, status: p.status, paused: !!p.paused, licenceNo: p.licence_no, licenceExpiry: p.licence_expiry, healthCertNo: p.health_cert_no, payMethod: p.pay_method, payAccount: p.pay_account, adminNote: p.admin_note, createdAt: p.created_at });
 router.get('/admin/overview', requireAdmin, noStore, (req, res) => {
   const c = db.prepare('SELECT status, COUNT(*) AS n FROM mk_partners GROUP BY status').all(), inv = db.prepare("SELECT COUNT(*) AS n, COALESCE(SUM(total),0) AS s FROM mk_invoices WHERE status = 'unpaid'").get();
   res.json({ enabled: isOn(), partners: c, unpaid: inv, overdue: db.prepare("SELECT COUNT(*) AS n FROM mk_invoices WHERE status = 'unpaid' AND due_date < ?").get(today()).n });
@@ -240,6 +241,12 @@ router.patch('/admin/partners/:id(\\d+)', requireAdmin, (req, res) => {
   if (b.status !== undefined && !STATUS.includes(b.status)) return res.status(400).json({ error: 'Unknown status' });
   if (b.tier !== undefined && !TIERS.includes(b.tier)) return res.status(400).json({ error: 'Unknown tier' });
   if (b.newPassword !== undefined && String(b.newPassword).length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  // v5.0 go-live gate: a partner cannot go to pilot/live until licence, inspection, items and onboarding are all in order (admin may override with a written reason)
+  if (b.status !== undefined && b.status !== p.status && (b.status === 'pilot' || b.status === 'live')) {
+    const g = require('../ops').gateFor(p.id);
+    if (!g.ok) { const why = clean(b.overrideReason, 300); if (why.length < 10) return res.status(409).json({ error: 'Go-live checklist is not complete', gate: g, needsOverride: true });
+      try { require('../secmon').audit(req, 'golive-override', p.name + ' -> ' + b.status + ': ' + why); } catch (e) {} b.adminNote = clean((p.admin_note || '') + ' Go-live override ' + today() + ': ' + why, 500); }
+  }
   db.prepare("UPDATE mk_partners SET status = ?, tier = ?, paused = ?, licence_verified = ?, delivery_mode = ?, admin_note = ?, password_hash = ? WHERE id = ?").run(
     b.status === undefined ? p.status : b.status, b.tier === undefined ? p.tier : b.tier, b.paused === undefined ? p.paused : (b.paused ? 1 : 0), b.licenceVerified === undefined ? p.licence_verified : (b.licenceVerified ? 1 : 0),
     DMODES.includes(b.deliveryMode) ? b.deliveryMode : p.delivery_mode, b.adminNote === undefined ? p.admin_note : clean(b.adminNote, 500), b.newPassword ? bcrypt.hashSync(String(b.newPassword), 10) : p.password_hash, p.id);
@@ -293,4 +300,55 @@ router.priceOrder = function (partnerId, items) {
   if (subtotal < p.min_order) return { error: 'This butchery\'s minimum order is KSh ' + p.min_order };
   return { partner: p, subtotal };
 };
+
+// ---------- v4.4 partner inspections (scores are visible to Azizo officials and the admin only) ----------
+const INSP_TITLES = ['Quality Assurance Officer', 'Food Safety Inspector', 'Operations Manager', 'Partner Onboarding Officer', 'Director'];
+const VISITS = ['Pre-approval visit', 'Routine inspection', 'Follow-up / re-inspection', 'Complaint visit', 'Unannounced spot check'];
+router.post('/inspector/login', limiter(15, 'inl'), (req, res) => {
+  const b = req.body || {};
+  if (b.username) { const a = require('../ops').accountLogin(b.username, b.password); if (!a) { try { require('../secmon').event(req, 'login-fail', 'low', 'inspector account login failed'); } catch (e) {} return res.status(401).json({ error: 'Incorrect username or password' }); } return res.json({ token: a.token, name: a.name, title: a.title }); }
+  const pw = process.env.INSPECTOR_PASSWORD || '';
+  if (!pw) return res.status(503).json({ error: 'Inspector login is not set up. Use the admin password, or set INSPECTOR_PASSWORD.' });
+  const a = Buffer.from(String(b.password || '')), z = Buffer.from(pw);
+  if (a.length !== z.length || !crypto.timingSafeEqual(a, z)) { try { require('../secmon').event(req, 'login-fail', 'low', 'inspector login failed'); } catch (e) {} return res.status(401).json({ error: 'Incorrect inspector password' }); }
+  const name = clean(b.name, 60); if (name.length < 3) return res.status(400).json({ error: 'Enter your full name' });
+  res.json({ token: signInspectorToken(name), name });
+});
+router.get('/inspection/standard', requireInspector, noStore, (req, res) => res.json({ standard: insp.STD, titles: INSP_TITLES, visits: VISITS }));
+router.get('/inspection/partners', requireInspector, noStore, (req, res) => res.json({ partners: db.prepare("SELECT id, name, owner, phone, address, licence_no, licence_expiry, health_cert_no, status FROM mk_partners WHERE status NOT IN ('rejected','delisted') ORDER BY name").all().map(p => ({ id: p.id, name: p.name, owner: p.owner, phone: p.phone, address: p.address, licenceNo: p.licence_no, licenceExpiry: p.licence_expiry, healthCertNo: p.health_cert_no, status: p.status })) }));
+const sigOk = s => { s = String(s || ''); return /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(s) && s.length <= 90000 ? s : ''; };
+router.post('/inspection', requireInspector, limiter(60, 'insp'), (req, res) => {
+  const b = req.body || {}, p = db.prepare('SELECT * FROM mk_partners WHERE id = ?').get(parseInt(b.partnerId, 10)); if (!p) return res.status(400).json({ error: 'Choose the butchery being inspected' });
+  const name = clean(b.inspectorName, 60), title = clean(b.inspectorTitle, 60); if (name.length < 3 || title.length < 3) return res.status(400).json({ error: 'Enter the inspector\'s name and official title' });
+  const visit = VISITS.includes(b.visitType) ? b.visitType : 'Routine inspection';
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(String(b.date || '')) ? b.date : today(); if (date > addDays(today(), 1) || date < addDays(today(), -30)) return res.status(400).json({ error: 'The inspection date must be within the last 30 days and not in the future' });
+  const time = /^\d{2}:\d{2}$/.test(String(b.time || '')) ? b.time : '00:00'; const r = insp.score(b.answers); if (r.error) return res.status(400).json({ error: r.error });
+  const repName = clean(b.repName, 60); if (repName.length < 3) return res.status(400).json({ error: 'Enter the name of the partner representative who was present' });
+  const sI = sigOk(b.inspectorSig), sR = sigOk(b.repSig); if (!sI) return res.status(400).json({ error: 'The inspector must sign the form' });
+  const nextDue = addDays(date, r.reinspectDays), at = date + ' ' + time, answers = JSON.stringify(r.answers);
+  const id = db.transaction(() => {
+    const ins = db.prepare('INSERT INTO mk_inspections (partner_id, inspector_name, inspector_title, visit_type, inspected_at, score, grade, stars, result, critical_fails, answers, cat_scores, notes, actions, action_due, rep_name, rep_role, insp_sig, rep_sig, std_version, next_due) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(p.id, name, title, visit, at, r.score, r.grade, r.stars, r.result, r.criticalFails.length, answers, JSON.stringify(r.catScores), clean(b.notes, 1500), clean(b.actions, 1500), /^\d{4}-\d{2}-\d{2}$/.test(String(b.actionDue || '')) ? b.actionDue : '', repName, clean(b.repRole, 60), sI, sR, insp.STD.version, nextDue);
+    const iid = ins.lastInsertRowid, ref = 'AZ-QHI-' + date.slice(0, 4) + '-' + String(iid).padStart(4, '0'), row = { id: iid, ref, partner_id: p.id, score: r.score, grade: r.grade, inspected_at: at, inspector_name: name, answers };
+    db.prepare('UPDATE mk_inspections SET ref = ?, seal = ? WHERE id = ?').run(ref, insp.seal(row), iid);
+    db.prepare('UPDATE mk_partners SET hygiene_score = ?, last_inspection = ? WHERE id = ?').run(Math.round(r.score), date, p.id);
+    return iid;
+  })();
+  try { require('../secmon').audit(req, 'inspection', 'Inspected ' + p.name + ' (' + r.score + ', grade ' + r.grade + ') by ' + name, 'inspector'); } catch (e) {}
+  res.status(201).json({ ok: true, id, ref: 'AZ-QHI-' + date.slice(0, 4) + '-' + String(id).padStart(4, '0'), score: r.score, grade: r.grade, stars: r.stars, label: r.label, result: r.result, action: r.action, nextDue });
+});
+const inspOut = (r, full) => Object.assign({ id: r.id, ref: r.ref, partnerId: r.partner_id, inspectorName: r.inspector_name, inspectorTitle: r.inspector_title, visitType: r.visit_type, inspectedAt: r.inspected_at, score: r.score, grade: r.grade, stars: r.stars, result: r.result, criticalFails: r.critical_fails, catScores: jparse(r.cat_scores, []), nextDue: r.next_due, sealOk: insp.sealOk(r), stdVersion: r.std_version }, full ? { answers: jparse(r.answers, {}), notes: r.notes, actions: r.actions, actionDue: r.action_due, repName: r.rep_name, repRole: r.rep_role, inspectorSig: r.insp_sig, repSig: r.rep_sig } : {});
+router.get('/admin/inspections/board', requireAdmin, noStore, (req, res) => {
+  const parts = db.prepare("SELECT id, name, region, area_id, status, owner, phone FROM mk_partners WHERE status NOT IN ('rejected','delisted') ORDER BY name").all(), t = today();
+  const board = parts.map(p => { const rows = db.prepare('SELECT * FROM mk_inspections WHERE partner_id = ? ORDER BY id DESC').all(p.id), last = rows[0], prev = rows[1];
+    return { id: p.id, name: p.name, area: p.region || p.area_id, status: p.status, owner: p.owner, phone: p.phone, count: rows.length, avg: rows.length ? Math.round(rows.reduce((s, r) => s + r.score, 0) / rows.length * 10) / 10 : null, last: last ? inspOut(last, false) : null, prevScore: prev ? prev.score : null, overdue: !last || last.next_due < t, neverInspected: !last,
+      history: rows.slice(0, 12).reverse().map(r => ({ id: r.id, date: r.inspected_at.slice(0, 10), score: r.score, grade: r.grade })) }; });
+  const done = board.filter(b => b.last);
+  res.json({ today: t, kpi: { partners: board.length, inspected: done.length, avg: done.length ? Math.round(done.reduce((s, b) => s + b.last.score, 0) / done.length * 10) / 10 : null, overdue: board.filter(b => b.overdue).length, failing: done.filter(b => b.last.result === 'Fail').length, critical: done.filter(b => b.last.criticalFails > 0).length, tampered: done.filter(b => !b.last.sealOk).length }, board, standard: { version: insp.STD.version, categories: insp.STD.categories.map(c => ({ id: c.id, name: c.name, weight: c.weight })), bands: insp.STD.bands } });
+});
+router.get('/admin/inspections', requireAdmin, noStore, (req, res) => { const pid = parseInt(req.query.partnerId, 10) || 0; res.json({ inspections: db.prepare('SELECT * FROM mk_inspections ' + (pid ? 'WHERE partner_id = ? ' : '') + 'ORDER BY id DESC LIMIT 300').all(...(pid ? [pid] : [])).map(r => inspOut(r, false)) }); });
+router.get('/admin/inspections/:id(\\d+)', requireAdmin, noStore, (req, res) => {
+  const r = db.prepare('SELECT * FROM mk_inspections WHERE id = ?').get(req.params.id); if (!r) return res.status(404).json({ error: 'Not found' });
+  const p = db.prepare('SELECT * FROM mk_partners WHERE id = ?').get(r.partner_id) || {};
+  res.json({ inspection: inspOut(r, true), partner: { id: p.id, name: p.name, owner: p.owner, phone: p.phone, address: p.address, licenceNo: p.licence_no, healthCertNo: p.health_cert_no }, standard: insp.STD });
+});
 module.exports = router;

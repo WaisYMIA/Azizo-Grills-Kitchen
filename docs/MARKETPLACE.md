@@ -35,3 +35,12 @@ Partner orders also appear in the Staff queue (note starts with `[Partner: name]
 
 ## Not included yet
 Online upload of private documents (licences), automatic payments to Azizo, multi-partner carts, partner delivery tracking, scheduled invoice runs, partner reviews. Rider dispatch for "Azizo riders" mode is a label only for now.
+
+
+## Partner inspections (v4.4.0)
+- Form: `/inspection-form.html` (use `?partner=ID` to preselect a butchery). Inspectors sign in with their name and `INSPECTOR_PASSWORD`; admins can also open it.
+- Scoring: Pass 100%, Partial 50%, Fail 0%, N/A excluded; item weight 1-3; at least 60% of items must be assessed; critical items cannot be N/A; any failed critical item caps the total at 59.
+- Grades: 90+ A (5 stars, re-inspect 180 days), 80 B (120), 70 C (90), 60 D (30, conditional), under 60 E (7 days, suspend).
+- Categories: Licensing 10, Sourcing 15, Cold chain 20, Personal hygiene 10, Premises 12, Equipment 10, Pest and waste 8, Water 5, Management and records 10 = 100.
+- Results appear at once under Marketplace admin, Inspections. Scores are never shown to the public or partners.
+- This is an internal standard, not a government certificate. Have a food-safety professional or county PHO review it.

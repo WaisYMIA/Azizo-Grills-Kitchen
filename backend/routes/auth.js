@@ -7,9 +7,10 @@ const router = express.Router();
 // v4.1 — login lockout (in memory; this Node backend is the local/phone-test one — the cPanel PHP backend keeps its counters in the database).
 const fails = new Map();
 function locked(key){ const f = fails.get(key); return f && f.n >= 8 && Date.now() - f.t < 15 * 60e3; }
-function bad(key){ const f = fails.get(key); if (!f || Date.now() - f.t > 15 * 60e3) fails.set(key, { n: 1, t: Date.now() }); else { f.n++; f.t = Date.now(); } }
+function bad(key, req){ try { require('../secmon').event(req || {}, 'login-fail', 'low', key.split(':')[0] + ' login failed'); } catch (e) {} bad0(key); }
+function bad0(key){ const f = fails.get(key); if (!f || Date.now() - f.t > 15 * 60e3) fails.set(key, { n: 1, t: Date.now() }); else { f.n++; f.t = Date.now(); } }
 function same(a, b){ const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); }
-const guard = (scope) => (req, res, next) => { const k = scope + ':' + (req.ip || ''); if (locked(k)) return res.status(429).json({ error: 'Too many wrong tries. Please wait 15 minutes and try again.' }); req._k = k; next(); };
+const guard = (scope) => (req, res, next) => { const k = scope + ':' + (req.ip || ''); if (locked(k)) { require('../secmon').event(req, 'lockout', 'med', 'Locked out: ' + scope); return res.status(429).json({ error: 'Too many wrong tries. Please wait 15 minutes and try again.' }); } req._k = k; next(); };
 router.post('/register', (req, res) => {
   const { name, phone, password } = req.body;
   if (!name || !phone || !password) return res.status(400).json({ error: 'name, phone, and password are all required' });
@@ -25,12 +26,12 @@ router.post('/login', guard('cust'), (req, res) => {
   const { phone, password } = req.body;
   if (!phone || !password) return res.status(400).json({ error: 'phone and password are required' });
   const customer = db.prepare('SELECT * FROM customers WHERE phone = ?').get(phone);
-  if (!customer || !bcrypt.compareSync(password, customer.password_hash)) { bad(req._k); return res.status(401).json({ error: 'Incorrect phone number or password' }); }
+  if (!customer || !bcrypt.compareSync(password, customer.password_hash)) { bad(req._k, req); return res.status(401).json({ error: 'Incorrect phone number or password' }); }
   res.json({ token: signCustomerToken(customer), customer: { id: customer.id, name: customer.name, phone: customer.phone } });
 });
 router.post('/admin-login', guard('admin'), (req, res) => {
   const { password } = req.body;
-  if (!password || !process.env.ADMIN_PASSWORD || !same(password, process.env.ADMIN_PASSWORD)) { bad(req._k); return res.status(401).json({ error: 'Incorrect admin password' }); }
+  if (!password || !process.env.ADMIN_PASSWORD || !same(password, process.env.ADMIN_PASSWORD)) { bad(req._k, req); return res.status(401).json({ error: 'Incorrect admin password' }); }
   fails.delete(req._k);
   res.json({ token: signAdminToken() });
 });
@@ -39,7 +40,7 @@ router.post('/admin-login', guard('admin'), (req, res) => {
 router.post('/staff-login', guard('staff'), (req, res) => {
   const { password } = req.body || {};
   if (!process.env.STAFF_PASSWORD) return res.status(503).json({ error: 'Staff login is not set up yet — ask the admin to set STAFF_PASSWORD on the server' });
-  if (!password || !same(password, process.env.STAFF_PASSWORD)) { bad(req._k); return res.status(401).json({ error: 'Incorrect staff password' }); }
+  if (!password || !same(password, process.env.STAFF_PASSWORD)) { bad(req._k, req); return res.status(401).json({ error: 'Incorrect staff password' }); }
   fails.delete(req._k);
   res.json({ token: signStaffToken() });
 });

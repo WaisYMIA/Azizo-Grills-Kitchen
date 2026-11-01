@@ -237,6 +237,7 @@ if ($route === 'POST orders') {
         $oid = (int)$pdo->lastInsertId();
         foreach ($rows as $l) $run('INSERT INTO kk_order_items (order_id, dish_id, name, qty, unit_price, options_text, line_total) VALUES (?,?,?,?,?,?,?)', [$oid, $l['d']['id'], $l['d']['name'], $l['qty'], $l['unit'], $l['text'], $l['total']]);
         if ($promoId) $run('UPDATE kk_promos SET used = used + 1 WHERE id = ?', [$promoId]);
+        kk_order_sign($pdo, $oid);   // v4.4 tamper seal
         $pdo->commit();
     } catch (Throwable $e) { $pdo->rollBack(); json_error('Could not save your order, please try again', 500); }
     kk_queue($pdo, 'placed', kk_last_order($oid), ['kitchen' => $k['name']]);

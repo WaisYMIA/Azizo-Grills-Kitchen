@@ -31,6 +31,7 @@ try {
     $ins = $pdo->prepare('INSERT INTO order_items (order_id, product_id, name, qty, unit, unit_price, line_total, cost_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
     foreach ($lines as [$i, $price, $cost]) $ins->execute([$newId, $i['product_id'], $i['name'], $i['qty'], $i['unit'], $price, (int)round($price * (float)$i['qty']), $cost]);
     $pdo->prepare("INSERT INTO order_status_log (order_id, status) VALUES (?, 'received')")->execute([$newId]);
+    order_sign($pdo, $newId);
     $pdo->commit();
 } catch (Throwable $e) { $pdo->rollBack(); json_error('Could not repeat the order', 500); }
 json_response(['ok' => true, 'orderId' => $newId, 'total' => $total], 201);

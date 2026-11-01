@@ -11,6 +11,9 @@ app.use('/api/kitchens', express.json({ limit: '12mb' }));
 app.use('/api/market', express.json({ limit: '6mb' }));
 app.use('/api/recipes/admin/import', express.json({ limit: '10mb' }));
 app.use(express.json());
+const secmon = require('./secmon');
+app.disable('x-powered-by');
+app.use(secmon.guard);   // v4.3: blocked addresses, scanner decoys and attack signatures
 // Uploaded product photos are served from here — e.g. an image saved as
 // /uploads/f1-171234.jpg is reachable at <this server's URL>/uploads/f1-171234.jpg.
 // On cPanel, this folder lives under your app's home directory and survives restarts
@@ -27,8 +30,10 @@ app.use('/api/recipes', require('./routes/recipes'));
 app.use('/api/media', require('./routes/media'));
 app.use('/api/kitchens', require('./routes/kitchens'));
 app.use('/api/market', require('./routes/market'));
+app.use('/api/ops', require('./ops').router);   // v5.0: analytics, loyalty, tickets, SOPs, dashboards
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/orders', require('./routes/orders'));
+app.use('/api/auth/security', secmon.router);
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/mpesa', require('./routes/mpesa'));
 app.use((err, req, res, next) => {
