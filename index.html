@@ -81,7 +81,6 @@
       <a href="contact.html" data-page="contact" data-i18n="nav.branches">Branches</a>
     </nav>
     <div class="nav-utils">
-      <button class="lang-toggle" onclick="toggleLanguage()" id="langToggle" title="Switch language" aria-label="Switch between English and Swahili">EN / SW</button>
       <button class="cart-btn" onclick="openCart()">
         <span data-i18n="nav.cart">Cart</span> <span class="cart-count" id="cartCount">0</span>
       </button>
@@ -132,15 +131,8 @@
     </div>
   </div>
 </section>
+<div id="marketSearchMount"></div>
 
-<div class="branch-strip">
-  <div class="branch-row" id="branches">
-    <div class="branch-item"><div class="bname">Syokimau</div><div class="btag">Main branch · Open 24hrs</div></div>
-    <div class="branch-item"><div class="bname">Umoja</div><div class="btag">Open 24hrs</div></div>
-    <div class="branch-item"><div class="bname">Buruburu</div><div class="btag">Open 24hrs</div></div>
-    <div class="branch-item"><div class="bname">Utawala</div><div class="btag">Open 24hrs</div></div>
-  </div>
-</div>
 
 <div class="section-fade fade-to-light"></div>
 <section class="section">
@@ -234,10 +226,44 @@
   </div>
 </section>
 
+<section class="section" id="whyTrust">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <div class="sec-eyebrow">Why Trust Azizo</div>
+        <h2>Our butchers, our sourcing, our standards</h2>
+      </div>
+      <p class="sec-desc">Every cut comes from a butcher we know, handled cold and checked against the same hygiene scorecard.</p>
+    </div>
+    <div class="trust-grid">
+      <div class="trust-card"><h3>Butcher stories</h3><p>Azizo Butchery and Grill has served Nairobi families from Syokimau, Umoja, Buruburu and Utawala. Each butcher in our network has a short story page: how long they have cut meat and what they are proud of.</p></div>
+      <div class="trust-card"><h3>Sourcing</h3><p>We say where the meat comes from. Beef, goat, lamb, chicken and fish are sourced from suppliers we know, cut to order and packed cold.</p></div>
+      <div class="trust-card"><h3>Customer reviews</h3><p>Real reviews from real orders. <a href="reviews.html">Read what customers say</a> or leave your own after delivery.</p></div>
+      <div class="trust-card trust-score"><h3>Hygiene score</h3><div class="trust-meter" id="hygieneScore">Audit in progress</div><p>Each butchery is scored on hygiene, cold storage, documents and reliability. A score is shown here only after Azizo has inspected the premises.</p></div>
+    </div>
+    <ul class="trust-strip">
+      <li data-mk-link><a href="butcheries.html">Partner butcheries near you</a></li><li data-mk-link><a href="sell-with-azizo.html">Sell with Azizo</a></li><li>Packed cold</li><li>Cut to order</li><li>M-Pesa or cash</li><li>Tracked delivery</li><li>Order help on WhatsApp</li>
+    </ul>
+  </div>
+</section>
+
 <div class="section-fade fade-to-dark"></div>
 
 <footer>
   <div class="wrap">
+    <div class="foot-specials" aria-label="Azizo specials">
+      <h5>Azizo Specials</h5>
+      <div class="fs-row">
+        <a href="kitchens.html" class="fs-tile"><b>🍲 Azizo Kitchens</b><span>Home-cooked meals delivered</span></a>
+        <a href="fresh-market.html#boxes" class="fs-tile"><b>📦 Curated Boxes</b><span>Ready-made meat boxes</span></a>
+        <a href="meal-planner.html" class="fs-tile"><b>🗓️ Meal Plan</b><span>Plan your week's meat</span></a>
+        <a href="budget.html" class="fs-tile"><b>💰 Meat Budget Planner</b><span>Shop within your budget</span></a>
+        <a href="outdoor-events.html" class="fs-tile"><b>🔥 Outdoor Events</b><span>Grill and catering</span></a>
+        <a href="event-budget.html" class="fs-tile" data-eb-link><b>🎉 Event Budget Planner</b><span>How much meat for your event</span></a>
+        <a href="kitchen-partners.html" class="fs-tile"><b>👩‍🍳 Cook with Azizo</b><span>Earn by cooking for us</span></a>
+      </div>
+    </div>
+    <p class="foot-policy" style="text-align:center;margin:14px 0;font-size:.9rem"><a href="rewards.html">⭐ Azizo Rewards</a> &nbsp;·&nbsp; <a href="privacy.html">Refunds, privacy and allergens</a></p>
     <div class="foot-grid">
       <div class="foot-brand">
         <a href="index.html" class="brand" style="margin-bottom:14px;display:flex;">
@@ -249,17 +275,10 @@
       <div>
         <h5>Shop</h5>
         <ul>
-          <li><a href="fresh-market.html#boxes">Curated Boxes</a></li>
           <li><a href="fresh-market.html">Fresh Meat Market</a></li>
-          <li><a href="meal-planner.html">Meal Plan</a></li>
-          <li><a href="budget.html">Meat Budget Planner</a></li>
-          <li><a href="areas.html">Areas We Serve</a></li>
           <li><a href="ready-to-eat.html">Ready to Eat</a></li>
-          <li><a href="kitchens.html">Azizo Kitchens</a></li>
-          <li><a href="kitchen-partners.html">Cook with Azizo</a></li>
           <li><a href="groceries.html">Groceries</a></li>
-          <li><a href="outdoor-events.html">Outdoor Events</a></li>
-          <li data-eb-link><a href="event-budget.html">Event Budget Planner</a></li>
+          <li><a href="areas.html">Areas We Serve</a></li>
         </ul>
       </div>
       <div>
@@ -469,7 +488,8 @@
 </div>
 
 
-<script src="app.js"></script>
+<script src="app.js"></script><script src="ops-shop.js"></script>
+<script src="market.js"></script>
 <script src="pwa.js" defer></script>
 </body>
 </html>

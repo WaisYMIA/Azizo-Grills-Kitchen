@@ -24,10 +24,10 @@
     app.innerHTML = '<div style="padding:18px 0 0"><div class="eyebrow">Kitchen portal</div><h2 style="margin:0">' + esc(k.name) + ' <span class="pill ' + k.status + '">' + esc(k.status) + '</span></h2></div>' +
       '<div class="msg info">' + esc(STATUS_NOTE[k.status] || '') + (k.queuePosition ? ' Your place in line: #' + k.queuePosition + '.' : '') + (k.strikes ? ' Strikes on record: ' + k.strikes + '.' : '') + '</div>' +
       (me.ins && me.ins.docAlerts && me.ins.docAlerts.length ? '<div class="msg err" role="alert"><b>Documents need attention:</b> ' + me.ins.docAlerts.map(function(d){ return esc(d.type) + (d.level === 'expired' ? ' has expired (' : ' expires ') + esc(d.expiry) + (d.level === 'expired' ? ')' : ''); }).join(' · ') + '. Upload the renewed document under Profile.</div>' : '') + '<div class="dash"><div class="side" id="side"></div><div id="pane"></div></div>';
-    var T = [['orders', 'Orders'], ['menu', 'Menu'], ['score', 'Scorecard'], ['supply', 'Meat supply'], ['earn', 'Earnings'], ['profile', 'Profile'], ['std', 'Standards']];
+    var T = [['orders', 'Orders'], ['menu', 'Menu'], ['score', 'Scorecard'], ['supply', 'Meat supply'], ['earn', 'Earnings'], ['profile', 'Profile'], ['std', 'Standards'], ['sup', 'Support'], ['sop', 'SOP handbook']];
     $('side').innerHTML = T.map(function(t){ return '<button data-t="' + t[0] + '" class="' + (tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '<button id="lo">Log out</button>';
     $('side').querySelectorAll('[data-t]').forEach(function(b){ b.onclick = function(){ tab = b.dataset.t; draw(); }; }); $('lo').onclick = logout;
-    ({ orders: ordersTab, menu: menuTab, score: scoreTab, supply: supplyTab, earn: earnTab, profile: profileTab, std: stdTab })[tab]();
+    ({ orders: ordersTab, menu: menuTab, score: scoreTab, supply: supplyTab, earn: earnTab, profile: profileTab, std: stdTab, sup: function(){ OPS.ticketPanel($('pane'), tok()); }, sop: function(){ OPS.sopPanel($('pane'), tok(), 'Kitchens').catch(function(e){ $('pane').innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }); } })[tab]();
   }
   async function ordersTab(quiet){
     var pane = $('pane'); if(!quiet) pane.innerHTML = '<div class="empty">Loading orders…</div>';

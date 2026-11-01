@@ -20,7 +20,15 @@
     if(!K.base() && location.protocol === 'file:'){ say('Ordering needs the Azizo server. Ask us on WhatsApp, or open this page from the live site.', 'err'); return; }
     try{
       var r = await Promise.all([K.api('/config'), K.api('/areas')]); CFG = r[0]; AREAS = r[1].areas;
-    }catch(e){ say(e.message + ' You can still order on WhatsApp: 0724 888 057.', 'err'); return; }
+    }catch(e){
+      say(e.message + ' You can still order on WhatsApp: 0724 888 057.', 'err');
+      var sa = await K.staticAreas(); if(sa.length){ AREAS = sa; $('area').innerHTML = K.areaOptions(sa, ''); $('area').disabled = false; }
+      // No ordering server: let the customer still start an order on WhatsApp for the area they pick.
+      var s = $('status'), a = document.createElement('a'); a.id = 'waFallback'; a.className = 'btn gold'; a.target = '_blank'; a.rel = 'noopener'; a.style.cssText = 'display:inline-block;margin-top:10px;text-decoration:none';
+      var wa = function(){ var an = ''; try{ an = $('area').selectedOptions[0].textContent; }catch(e){} a.href = 'https://wa.me/254724888057?text=' + encodeURIComponent('Hello Azizo Kitchens, I would like to order home-cooked food' + (an && $('area').value ? ' delivered to ' + an : '') + '. What is available today?'); };
+      a.textContent = 'Order on WhatsApp'; wa(); $('area').onchange = wa; s.appendChild(document.createElement('br')); s.appendChild(a);
+      return;
+    }
     var wantArea = params.get('area') || window.KK_AREA; if(wantArea && AREAS.some(function(a){ return a.id === wantArea; })) state.area = wantArea;
     $('area').innerHTML = K.areaOptions(AREAS, state.area); if(!AREAS.some(function(a){ return a.id === state.area; })) state.area = '';
     state.date = CFG.now.date; state.meal = mealOfDay();

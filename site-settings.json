@@ -1,1 +1,1 @@
-{ "_readme": "Used only when the site has no backend. With a backend, the admin dashboard (Site tab) controls this.", "eventBudget": { "enabled": true, "note": "", "contingencyPct": 10 } }
+{ "_readme": "Used only when the site has no backend. With a backend, the admin dashboard (Site tab) controls this.", "eventBudget": { "enabled": true, "note": "", "contingencyPct": 10 }, "marketplace": { "enabled": false } }

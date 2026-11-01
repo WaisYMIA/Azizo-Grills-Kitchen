@@ -675,28 +675,34 @@
   let cart = loadCartFromStorage(); // id -> {item, qty, source}
 
   // ---------- RENDER FILTERS + GRIDS ----------
+  // v4.2: the Fresh Meat Market opens on EVERYTHING, grouped by category in this order; a shopper only narrows it by tapping a category.
+  const MEAT_ORDER = ['Beef','Goat','Chicken','Fish','Pork','Sausages','Packs','Nyama choma','Eggs'];
+  function meatPool(){
+    const nyama = readyItems.filter(i => /nyama choma|mishkaki/i.test(i.name || '')).map(i => ({i, c:'Nyama choma'}));
+    const eggs = groceryItems.filter(i => i.cat === 'Eggs').map(i => ({i, c:'Eggs'}));
+    return freshItems.map(i => ({i, c:i.cat})).concat(nyama, eggs);
+  }
   function renderFresh(activeKind='all', activeCat='all'){
     if(!document.getElementById('freshFilters')) return;
-    const kinds = [
-      {k:'all', label:'All Meat'},
-      {k:'red', label:'Red Meat', dot:'dot-red'},
-      {k:'white', label:'White Meat', dot:'dot-white'},
-    ];
-    const cats = ['all', ...new Set(freshItems.map(i=>i.cat))];
+    if(activeCat !== 'all' && activeCat !== undefined && !MEAT_ORDER.concat(freshItems.map(i=>i.cat)).includes(activeCat)) activeCat = 'all';
+    const pool = meatPool();
+    const present = new Set(pool.map(p => p.c));
+    const cats = MEAT_ORDER.filter(c => present.has(c)).concat([...present].filter(c => !MEAT_ORDER.includes(c)));
     const bar = document.getElementById('freshFilters');
     const favOnly = !!window.freshFavOnly;
-    bar.innerHTML = kinds.map(k=>`<button class="chip ${activeKind===k.k?'active':''}" onclick="renderFresh('${k.k}', currentFreshCat)">${k.dot?`<span class="dot ${k.dot}"></span>`:''}${k.label}</button>`).join('')
-      + `<span style="width:1px;background:var(--line);margin:0 4px;"></span>`
-      + cats.map(c=>`<button class="chip ${activeCat===c?'active':''}" onclick="renderFresh(currentFreshKind, '${c}')">${c==='all'?'All Categories':c}</button>`).join('')
+    bar.innerHTML = `<button class="chip ${activeCat==='all'?'active':''}" onclick="renderFresh('all', 'all')">All Meat</button>`
+      + cats.map(c=>`<button class="chip ${activeCat===c?'active':''}" onclick="renderFresh('all', '${c}')">${c}</button>`).join('')
       + `<span style="width:1px;background:var(--line);margin:0 4px;"></span>`
       + `<button class="chip fav-chip ${favOnly?'active':''}" onclick="toggleFreshFavFilter()">♥ Favorites</button>`;
-
-    window.currentFreshKind = activeKind;
+    window.currentFreshKind = 'all';
     window.currentFreshCat = activeCat;
-
-    let filtered = freshItems.filter(i => (activeKind==='all'||i.kind===activeKind) && (activeCat==='all'||i.cat===activeCat));
-    if(favOnly) filtered = filtered.filter(i => isFavorite(i.id));
-    document.getElementById('freshGrid').innerHTML = filtered.map(i=>cardHTML(i,'fresh')).join('') || `<p style="color:var(--ink-soft);">${favOnly ? "No favorites saved yet — tap the heart on any item." : "No items match this filter."}</p>`;
+    let list = pool.filter(p => activeCat==='all' || p.c===activeCat);
+    if(favOnly) list = list.filter(p => isFavorite(p.i.id));
+    let html = '';
+    if(activeCat === 'all' && !favOnly){
+      cats.forEach(c => { const rows = list.filter(p => p.c === c); if(rows.length) html += `<h3 class="cat-head" style="grid-column:1/-1;margin:18px 0 2px;font-family:var(--display,inherit);">${c} <small style="font-weight:400;opacity:.6">(${rows.length})</small></h3>` + rows.map(p => cardHTML(p.i,'fresh')).join(''); });
+    } else html = list.map(p => cardHTML(p.i,'fresh')).join('');
+    document.getElementById('freshGrid').innerHTML = html || `<p style="color:var(--ink-soft);">${favOnly ? "No favorites saved yet — tap the heart on any item." : "No items match this filter."}</p>`;
   }
   function toggleFreshFavFilter(){
     window.freshFavOnly = !window.freshFavOnly;
@@ -739,7 +745,21 @@
     renderGroceries(window.currentGroceryCat);
   }
 
-  function cardHTML(i, source){
+  // ---------- QUANTITIES (v3.4): kg items go up and down in quarters; everything else in ones ----------
+  function qtyStep(item){ return item && item.unit === 'kg' ? 0.25 : 1; }
+  function snapQty(q, item){ const s = qtyStep(item); return Math.round(Math.round(q / s) * s * 100) / 100; }
+  // v4.2: whole kilos go up by 1; the − button steps down 1 → 0.75 → 0.5 → 0.25 by itself. No fraction buttons are shown.
+  function stepUp(q, item){ if(!item || item.unit !== 'kg') return q + 1; return q < 1 - 1e-9 ? Math.round((q + 0.25) * 100) / 100 : Math.floor(q + 1e-9) + 1; }
+  function stepDown(q, item){ if(!item || item.unit !== 'kg') return q - 1; return q > 1 + 1e-9 ? Math.ceil(q - 1e-9) - 1 : Math.round((q - 0.25) * 100) / 100; }
+  function fmtQty(q, item){ q = Math.round((Number(q) || 0) * 100) / 100; return String(q); }
+  function lineTotal(item, qty){ return Math.round(item.price * qty); }
+  function qtyChipsHTML(id, source, qty){
+    return '';
+    return `<div class="qty-chips" role="group" aria-label="Quick quantity in kilograms">` +
+      [[0.25,'¼'],[0.5,'½'],[0.75,'¾'],[1,'1'],[2,'2']].map(([v,l]) => `<button type="button" class="${Math.abs(qty - v) < 0.001 ? 'on' : ''}" onclick="setCardQty('${id}','${source}',${v})" aria-label="${l} kilogram">${l}</button>`).join('') + `<span>kg</span></div>`;
+  }
+
+  function cardHTML(i, source, extraHTML){
     const qty = cart[i.id] ? cart[i.id].qty : 0;
     const photoHTML = i.img
       ? `<img src="${resolveImgSrc(i.img)}" alt="${i.name}" class="tag-photo" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('no-photo'); this.remove();">`
@@ -764,6 +784,7 @@
       </div>
       <h3>${i.name}</h3>
       <div class="badges-row">${badgesHTML}</div>
+      ${extraHTML || ''}
       <div class="tag-desc-wrap">
         <p class="tag-desc" id="desc-${i.id}">${i.desc}</p>
         ${hasMore ? `<div class="tag-more" id="more-${i.id}">${originHTML}${pairing ? `<span class="pairing">Pairs well with: ${pairing}</span>` : ''}</div>
@@ -774,16 +795,17 @@
         <div class="tag-actions">
           ${qty > 0
             ? `<div class="card-stepper">
-                 <button onclick="setCardQty('${i.id}','${source}',${qty}-1)">−</button>
-                 <span>${qty}</span>
-                 <button onclick="setCardQty('${i.id}','${source}',${qty}+1)">+</button>
+                 <button onclick="setCardQty('${i.id}','${source}',${stepDown(qty, i)})" aria-label="Less ${i.name}">−</button>
+                 <span>${fmtQty(qty, i)}${i.unit==='kg' ? ' kg' : ''}</span>
+                 <button onclick="setCardQty('${i.id}','${source}',${stepUp(qty, i)})" aria-label="More ${i.name}">+</button>
                </div>`
             : (i.inStock === false
-                ? `<button class="add-btn sold-out" id="add-${i.id}" disabled aria-label="${i.name} is sold out">Sold out</button>`
+                ? `<button class="add-btn sold-out" id="add-${i.id}" disabled aria-label="${i.name} is out of stock">Out of stock</button>`
                 : `<button class="add-btn" id="add-${i.id}" onclick="addToCart('${i.id}','${source}')">Add</button>`)
           }
         </div>
       </div>
+      ${qty > 0 && i.unit === 'kg' ? qtyChipsHTML(i.id, source, qty) : ''}
     </div>`;
   }
 
@@ -925,11 +947,11 @@
   }
 
   function setCardQty(id, source, qty){
-    qty = Math.max(0, qty);
-    if(qty === 0){
+    const item = findItem(id);
+    qty = snapQty(Math.max(0, qty), item);
+    if(qty <= 0){
       delete cart[id];
     } else {
-      const item = findItem(id);
       cart[id] = {item, qty, source};
     }
     updateCartUI();
@@ -957,7 +979,7 @@
 
   function changeQty(id, delta){
     if(!cart[id]) return;
-    cart[id].qty += delta;
+    cart[id].qty = snapQty(cart[id].qty + delta, cart[id].item);
     if(cart[id].qty <= 0) delete cart[id];
     updateCartUI();
     refreshProductGrids();
@@ -967,7 +989,7 @@
     saveCartToStorage();
     refreshStockNote();
     const ids = Object.keys(cart);
-    const count = ids.reduce((sum,id)=>sum+cart[id].qty,0);
+    const count = ids.length;   // v3.4: number of items in the cart (quantities can now be fractions of a kg)
     const countEl = document.getElementById('cartCount');
     countEl.textContent = count;
     countEl.classList.remove('bump');
@@ -990,12 +1012,13 @@
             <div class="ci-cat">${item.cat}</div>
             <div class="ci-name">${item.name}</div>
             <div class="qty-row">
-              <button onclick="changeQty('${id}',-1)">−</button>
-              <span>${qty}</span>
-              <button onclick="changeQty('${id}',1)">+</button>
+              <button onclick="changeQty('${id}',${Math.round((stepDown(qty, item) - qty) * 100) / 100})" aria-label="Less ${item.name}">−</button>
+              <span>${fmtQty(qty, item)}${item.unit==='kg' ? ' kg' : ''}</span>
+              <button onclick="changeQty('${id}',${Math.round((stepUp(qty, item) - qty) * 100) / 100})" aria-label="More ${item.name}">+</button>
             </div>
+            ${item.unit === 'kg' ? qtyChipsHTML(id, cart[id].source || 'fresh', qty) : ''}
           </div>
-          <div class="ci-price">KSh ${item.price*qty}</div>
+          <div class="ci-price">KSh ${lineTotal(item, qty)}</div>
         </div>`;
       }).join('') + (function(){ const h = usualChipsHTML(ids); return h ? `<div class="usual-cart"><div class="usual-head"><strong>Your usual</strong> <span>add more</span></div>${h}</div>` : ''; })();
     }
@@ -1055,7 +1078,7 @@
   }
 
   function getItemsSubtotal(){
-    return Object.keys(cart).reduce((sum,id)=>sum+cart[id].item.price*cart[id].qty,0);
+    return Object.keys(cart).reduce((sum,id)=>sum+lineTotal(cart[id].item, cart[id].qty),0);
   }
 
 
@@ -1788,7 +1811,7 @@
       return;
     }
     const fullPhone = `254${digits}`;
-    const total = Object.keys(cart).reduce((sum,id)=>sum+cart[id].item.price*cart[id].qty,0);
+    const total = Object.keys(cart).reduce((sum,id)=>sum+lineTotal(cart[id].item, cart[id].qty),0);
 
     btn.disabled = true;
     status.textContent = `Sending payment prompt to +${fullPhone}...`;
@@ -1820,7 +1843,7 @@
     const ids = Object.keys(cart);
     const lines = ids.map((id,idx)=>{
       const {item, qty} = cart[id];
-      return {n: idx+1, name: item.name, cat: item.cat, qty, unit: item.unit, price: item.price, lineTotal: item.price*qty};
+      return {n: idx+1, name: item.name, cat: item.cat, qty, unit: item.unit, price: item.price, lineTotal: lineTotal(item, qty)};
     });
     const itemsSubtotal = lines.reduce((s,l)=>s+l.lineTotal,0);
     const clientName = document.getElementById('clientName').value.trim();
@@ -1928,7 +1951,7 @@
     y = doc.lastAutoTable.finalY + 8;
 
     // Line items table
-    const body = order.lines.map(l => [l.n, l.name, `${l.qty} ${l.unit}`, `KSh ${l.price}`, `KSh ${l.lineTotal}`]);
+    const body = order.lines.map(l => [l.n, l.name, `${fmtQty(l.qty, l)} ${l.unit}`, `KSh ${l.price}`, `KSh ${l.lineTotal}`]);
     doc.autoTable({
       startY: y,
       head: [['#','Item','Qty','Unit Price','Line Total']],
@@ -1999,7 +2022,7 @@
     msg += `${padR('#',3)}${padR('Item',20)}${padL('Qty',8)}${padL('Total',10)}\n`;
     msg += `${'-'.repeat(41)}\n`;
     order.lines.forEach(l=>{
-      msg += `${padR(l.n,3)}${padR(l.name,20)}${padL(l.qty+' '+l.unit,8)}${padL(l.lineTotal,10)}\n`;
+      msg += `${padR(l.n,3)}${padR(l.name,20)}${padL(fmtQty(l.qty, l)+' '+l.unit,8)}${padL(l.lineTotal,10)}\n`;
     });
     msg += `${'-'.repeat(41)}\n`;
     msg += `${padR('',23)}${padL('Items',8)}${padL(order.itemsSubtotal,10)}\n`;
