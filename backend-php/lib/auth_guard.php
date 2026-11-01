@@ -14,14 +14,14 @@ function require_auth(): array {
 /** Same as require_auth(), but additionally requires role === 'admin'. */
 function require_admin(): array {
     $payload = require_auth();
-    if (($payload['role'] ?? null) !== 'admin') json_error('Admin access required', 403);
+    if (($payload['role'] ?? null) !== 'admin') { sec_event_once('forbidden', 'med', 'Role ' . ($payload['role'] ?? '?') . ' tried an admin-only endpoint', 600); json_error('Admin access required', 403); }
     return $payload;
 }
 
 /** Staff or admin: the order queue, status updates and the branch directory. */
 function require_staff(): array {
     $payload = require_auth();
-    if (!in_array($payload['role'] ?? null, ['staff', 'admin'], true)) json_error('Staff access required', 403);
+    if (!in_array($payload['role'] ?? null, ['staff', 'admin'], true)) { sec_event_once('forbidden', 'med', 'Role ' . ($payload['role'] ?? '?') . ' tried a staff-only endpoint', 600); json_error('Staff access required', 403); }
     return $payload;
 }
 
@@ -45,3 +45,11 @@ function require_partner(): array {
     if (($payload['role'] ?? null) !== 'partner' || empty($payload['partnerId'])) json_error('Partner access required', 403);
     return $payload;
 }
+
+/** Azizo inspection officials (INSPECTOR_PASSWORD) and the admin may fill in inspection forms. */
+function require_inspector(): array {
+    $payload = require_auth();
+    if (!in_array($payload['role'] ?? null, ['inspector', 'admin'], true)) json_error('Inspector access required', 403);
+    return $payload;
+}
+

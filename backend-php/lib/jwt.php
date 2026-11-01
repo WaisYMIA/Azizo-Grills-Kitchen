@@ -33,10 +33,10 @@ function jwt_sign(array $payload, int $expiresInSeconds): string {
 /** Returns the decoded payload array, or null if the token is invalid/expired. */
 function jwt_verify(string $token): ?array {
     $parts = explode('.', $token);
-    if (count($parts) !== 3) return null;
+    if (count($parts) !== 3) { sec_event_once('token-forged', 'low', 'Malformed login token', 600); return null; }
     [$headerB64, $payloadB64, $sigB64] = $parts;
     $expectedSig = hash_hmac('sha256', "$headerB64.$payloadB64", JWT_SECRET, true);
-    if (!hash_equals($expectedSig, base64url_decode($sigB64))) return null;
+    if (!hash_equals($expectedSig, base64url_decode($sigB64))) { sec_event_once('token-forged', 'med', 'A login token with a wrong signature was presented', 600); return null; }
     $payload = json_decode(base64url_decode($payloadB64), true);
     if (!is_array($payload)) return null;
     if (isset($payload['exp']) && time() > $payload['exp']) return null;

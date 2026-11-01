@@ -31,6 +31,9 @@ function get_db(): PDO {
     // v4.1: partner token version (for databases created by v4.0) and indexes that keep many partners/orders fast.
     $has = $pdo->prepare('SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?');
     $has->execute(['mk_partners', 'token_ver']); if (!(int)$has->fetchColumn()) $pdo->exec('ALTER TABLE mk_partners ADD COLUMN token_ver INT NOT NULL DEFAULT 0');
+    // v4.3: every order carries a tamper-proof signature (see lib/security.php order_sign)
+    $has->execute(['kk_orders', 'sig']); if (!(int)$has->fetchColumn()) $pdo->exec('ALTER TABLE kk_orders ADD COLUMN sig CHAR(64) NULL');
+    $has->execute(['orders', 'sig']); if (!(int)$has->fetchColumn()) $pdo->exec('ALTER TABLE orders ADD COLUMN sig CHAR(64) NULL');
     foreach ([['orders', 'idx_orders_partner', 'partner_id, status'], ['orders', 'idx_orders_created', 'created_at'], ['orders', 'idx_orders_phone', 'customer_phone'], ['mk_partner_items', 'idx_mkpi_product', 'product_id'], ['mk_order_fees', 'idx_mkof_invoice', 'invoice_id'], ['mk_invoices', 'idx_mkinv_status', 'status, due_date']] as [$t, $ix, $cols]) {
         $q = $pdo->prepare('SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?'); $q->execute([$t, $ix]);
         if (!(int)$q->fetchColumn()) { try { $pdo->exec("ALTER TABLE `$t` ADD INDEX `$ix` ($cols)"); } catch (Exception $e) {} }
