@@ -1,0 +1,353 @@
+{
+ "version": "AZ-QHI-1.0",
+ "formNo": "AZ/QHI/001",
+ "title": "Partner Butchery Quality and Hygiene Inspection",
+ "basis": "Azizo internal standard, informed by the Codex Alimentarius General Principles of Food Hygiene, HACCP principles, ISO 22000 and Kenyan food and public-health requirements. It is not a government certificate.",
+ "answers": {
+  "pass": "Meets standard (100%)",
+  "partial": "Partly meets (50%)",
+  "fail": "Does not meet (0%)",
+  "na": "Not applicable"
+ },
+ "rules": [
+  "Each item is Pass (100%), Partial (50%), Fail (0%) or Not applicable.",
+  "Items carry a weight of 1 to 3; categories carry a weight out of 100.",
+  "A failed CRITICAL item caps the total at 59 (grade E) whatever the other scores.",
+  "Every Fail needs a written finding. Critical items cannot be Not applicable."
+ ],
+ "bands": [
+  {
+   "min": 90,
+   "grade": "A",
+   "stars": 5,
+   "label": "Excellent",
+   "action": "Approved. Routine re-inspection.",
+   "reinspectDays": 180
+  },
+  {
+   "min": 80,
+   "grade": "B",
+   "stars": 4,
+   "label": "Very good",
+   "action": "Approved. Minor points to fix by the next visit.",
+   "reinspectDays": 120
+  },
+  {
+   "min": 70,
+   "grade": "C",
+   "stars": 3,
+   "label": "Satisfactory",
+   "action": "Approved. Corrective actions due within 30 days.",
+   "reinspectDays": 90
+  },
+  {
+   "min": 60,
+   "grade": "D",
+   "stars": 2,
+   "label": "Needs improvement",
+   "action": "Conditional. Fix within 14 days and re-inspect; consider pausing new orders.",
+   "reinspectDays": 30
+  },
+  {
+   "min": 0,
+   "grade": "E",
+   "stars": 1,
+   "label": "Unsatisfactory",
+   "action": "Suspend the partner until a passing re-inspection.",
+   "reinspectDays": 7
+  }
+ ],
+ "categories": [
+  {
+   "id": "A",
+   "name": "Licensing and legal",
+   "weight": 10,
+   "items": [
+    {
+     "id": "A1",
+     "text": "Valid county business permit is displayed",
+     "w": 2
+    },
+    {
+     "id": "A2",
+     "text": "Valid public health / food premises certificate is displayed",
+     "w": 3,
+     "critical": true
+    },
+    {
+     "id": "A3",
+     "text": "Medical (food handler) certificates are valid for all staff who handle meat",
+     "w": 3
+    },
+    {
+     "id": "A4",
+     "text": "Licence and owner details match what was declared to Azizo",
+     "w": 2
+    }
+   ]
+  },
+  {
+   "id": "B",
+   "name": "Meat sourcing and traceability",
+   "weight": 15,
+   "items": [
+    {
+     "id": "B1",
+     "text": "Meat is bought only from licensed slaughterhouses / suppliers with inspection stamps or documents",
+     "w": 3,
+     "critical": true
+    },
+    {
+     "id": "B2",
+     "text": "Purchase records are kept (supplier, date, quantity)",
+     "w": 2
+    },
+    {
+     "id": "B3",
+     "text": "Meat is received cold, in a clean covered vehicle or container",
+     "w": 2
+    },
+    {
+     "id": "B4",
+     "text": "Fresh appearance: normal colour and smell, no slime or discolouration",
+     "w": 3,
+     "critical": true
+    },
+    {
+     "id": "B5",
+     "text": "Stock is dated and rotated first-in-first-out; nothing past its use-by",
+     "w": 2
+    }
+   ]
+  },
+  {
+   "id": "C",
+   "name": "Cold chain and storage",
+   "weight": 20,
+   "items": [
+    {
+     "id": "C1",
+     "text": "Chiller holds meat at 0 to 4 \u00b0C (thermometer reading checked)",
+     "w": 3,
+     "critical": true
+    },
+    {
+     "id": "C2",
+     "text": "Freezer holds frozen meat at -18 \u00b0C or colder",
+     "w": 3
+    },
+    {
+     "id": "C3",
+     "text": "A temperature log is kept daily",
+     "w": 2
+    },
+    {
+     "id": "C4",
+     "text": "Raw meat is separated from cooked / ready-to-eat food (raw stored below)",
+     "w": 3,
+     "critical": true
+    },
+    {
+     "id": "C5",
+     "text": "Meat is stored off the floor, covered, in clean food-grade containers",
+     "w": 2
+    },
+    {
+     "id": "C6",
+     "text": "No meat is left at room temperature longer than needed",
+     "w": 2
+    },
+    {
+     "id": "C7",
+     "text": "A working thermometer is available",
+     "w": 1
+    }
+   ]
+  },
+  {
+   "id": "D",
+   "name": "Personal hygiene",
+   "weight": 10,
+   "items": [
+    {
+     "id": "D1",
+     "text": "Clean uniforms or aprons are worn and hair is covered",
+     "w": 2
+    },
+    {
+     "id": "D2",
+     "text": "Hands are washed properly; gloves are changed between tasks",
+     "w": 3
+    },
+    {
+     "id": "D3",
+     "text": "No sick staff handle meat, and staff know to report illness",
+     "w": 3,
+     "critical": true
+    },
+    {
+     "id": "D4",
+     "text": "No smoking, eating or spitting in the work area",
+     "w": 2
+    },
+    {
+     "id": "D5",
+     "text": "Cuts and wounds are covered with waterproof dressings",
+     "w": 1
+    }
+   ]
+  },
+  {
+   "id": "E",
+   "name": "Premises and facilities",
+   "weight": 12,
+   "items": [
+    {
+     "id": "E1",
+     "text": "Floors, walls and ceiling are clean, smooth and in good repair",
+     "w": 2
+    },
+    {
+     "id": "E2",
+     "text": "A handwashing station with running water, soap and towels is next to the cutting area",
+     "w": 3,
+     "critical": true
+    },
+    {
+     "id": "E3",
+     "text": "Lighting and ventilation are adequate",
+     "w": 1
+    },
+    {
+     "id": "E4",
+     "text": "Drainage works and there is no standing water",
+     "w": 2
+    },
+    {
+     "id": "E5",
+     "text": "The customer area and display chillers are clean",
+     "w": 2
+    },
+    {
+     "id": "E6",
+     "text": "Toilets are clean and separate from the meat area",
+     "w": 2
+    }
+   ]
+  },
+  {
+   "id": "F",
+   "name": "Equipment and utensils",
+   "weight": 10,
+   "items": [
+    {
+     "id": "F1",
+     "text": "Knives, saws, grinders and hooks are cleaned and sanitised after use",
+     "w": 3
+    },
+    {
+     "id": "F2",
+     "text": "Cutting boards and blocks are in good condition and cleaned between raw and ready foods",
+     "w": 2
+    },
+    {
+     "id": "F3",
+     "text": "A cleaning and sanitising schedule is posted and followed",
+     "w": 2
+    },
+    {
+     "id": "F4",
+     "text": "Scales are clean and accurate",
+     "w": 1
+    },
+    {
+     "id": "F5",
+     "text": "Packaging is clean, food-grade and stored covered",
+     "w": 2
+    }
+   ]
+  },
+  {
+   "id": "G",
+   "name": "Pest control and waste",
+   "weight": 8,
+   "items": [
+    {
+     "id": "G1",
+     "text": "No sign of rodents, flies, cockroaches or birds",
+     "w": 3,
+     "critical": true
+    },
+    {
+     "id": "G2",
+     "text": "Pest-control service or measures are in place, with records",
+     "w": 2
+    },
+    {
+     "id": "G3",
+     "text": "Waste, bones and offal are in covered bins and removed daily",
+     "w": 2
+    },
+    {
+     "id": "G4",
+     "text": "Waste is kept well away from meat and packaging",
+     "w": 1
+    }
+   ]
+  },
+  {
+   "id": "H",
+   "name": "Water and sanitation",
+   "weight": 5,
+   "items": [
+    {
+     "id": "H1",
+     "text": "Clean, safe running water is available",
+     "w": 3
+    },
+    {
+     "id": "H2",
+     "text": "Water tanks are covered and cleaned regularly",
+     "w": 2
+    },
+    {
+     "id": "H3",
+     "text": "A separate wash-up area exists",
+     "w": 1
+    }
+   ]
+  },
+  {
+   "id": "I",
+   "name": "Food-safety management and records",
+   "weight": 10,
+   "items": [
+    {
+     "id": "I1",
+     "text": "The owner / manager can explain basic food-safety (HACCP) practice",
+     "w": 2
+    },
+    {
+     "id": "I2",
+     "text": "Staff are trained and training is recorded",
+     "w": 2
+    },
+    {
+     "id": "I3",
+     "text": "Complaints and corrective actions are recorded",
+     "w": 1
+    },
+    {
+     "id": "I4",
+     "text": "Findings from the last inspection have been fixed",
+     "w": 2
+    },
+    {
+     "id": "I5",
+     "text": "Prices and weights are honest; no false labelling or false halal claims",
+     "w": 2
+    }
+   ]
+  }
+ ]
+}

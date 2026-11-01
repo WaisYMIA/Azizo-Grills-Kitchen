@@ -84,3 +84,16 @@ define('TRUSTED_PROXY', getenv('TRUSTED_PROXY') ?: '');
 define('MAX_DISCOUNT_PCT', (int)(getenv('MAX_DISCOUNT_PCT') !== false && getenv('MAX_DISCOUNT_PCT') !== '' ? getenv('MAX_DISCOUNT_PCT') : 25));
 // Emergency switch: 1 lets a real server run with weak/default secrets (not recommended). Leave 0.
 define('SEC_ALLOW_WEAK', (int)(getenv('SEC_ALLOW_WEAK') ?: 0));
+
+// v4.3 Security Center settings
+// Email that receives critical security alerts (forged payments, tampered orders, blocked attackers). Empty = no emails.
+define('SEC_ALERT_EMAIL', getenv('SEC_ALERT_EMAIL') ?: '');
+// Addresses that are never auto-blocked (your office/home IPs). Comma separated.
+define('SEC_ALLOW_IPS', getenv('SEC_ALLOW_IPS') ?: '');
+// 1 = automatically block an address for a while when it keeps attacking. 0 = only log.
+define('SEC_AUTO_BLOCK', (int)(getenv('SEC_AUTO_BLOCK') !== false && getenv('SEC_AUTO_BLOCK') !== '' ? getenv('SEC_AUTO_BLOCK') : 1));
+// Extra secret mixed into order signatures. Set once and never change (changing it makes old orders look "unsigned/tampered"). Empty = uses JWT_SECRET.
+define('ORDER_SIG_KEY', getenv('ORDER_SIG_KEY') ?: '');
+// v4.4: password for Azizo inspection officials (inspection-form.html). Empty = only the admin password opens the form.
+define('INSPECTOR_PASSWORD', getenv('INSPECTOR_PASSWORD') ?: '');
+
