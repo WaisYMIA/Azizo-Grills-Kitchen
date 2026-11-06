@@ -12,10 +12,22 @@ return [
     'JWT_SECRET' => 'CHANGE-ME-64-random-hex-characters',
     'ADMIN_PASSWORD' => 'CHANGE-ME-10-or-more-characters',
     'STAFF_PASSWORD' => 'CHANGE-ME-8-or-more-characters',
+    // Switch the shared admin/staff passwords OFF once every person has a personal account (Operations > Team). Leave out until then.
+    // 'TEAM_ONLY' => '1',
+    // Claude AI assistant (website chat, reply drafts, insights). Leave out until you subscribe; the site works without it.
+    // 'ANTHROPIC_API_KEY' => 'sk-ant-...',
+    // 'AI_MONTHLY_TOKENS' => '1500000',   // spending guard: the AI stops when this many tokens are used in a month
 
     // --- your website (no trailing slash). CORS only allows these origins. Comma-separate several. ---
     'ALLOWED_ORIGIN' => 'https://www.yourdomain.co.ke',
     'SITE_URL' => 'https://www.yourdomain.co.ke',
+
+    // --- v5.5 email password key (optional; any long random text, set once) ---
+    // 'MAIL_KEY' => '',
+
+    // --- v5.4 order messages (optional; without them messages are manual WhatsApp links) ---
+    // 'WA_TOKEN' => '', 'WA_PHONE_ID' => '',                       // WhatsApp Cloud API
+    // 'AT_USERNAME' => '', 'AT_API_KEY' => '', 'AT_SENDER' => '',  // Africa's Talking SMS
 
     // --- Security Center (recommended) ---
     'SEC_ALERT_EMAIL' => 'you@yourdomain.co.ke',      // critical alerts are emailed here

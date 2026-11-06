@@ -23,6 +23,7 @@ if (!$customer || !password_verify($password, $customer['password_hash'])) {
 
 throttle_clear('cust', $phone);
 $token = jwt_sign(['id' => $customer['id'], 'phone' => $customer['phone'], 'role' => 'customer'], 60 * 60 * 24 * 30);
+try { require_once __DIR__ . '/../../lib/activity.php'; activity_add('auth', 'login', ['actor' => 'customer #' . (int)$customer['id'], 'role' => 'customer', 'detail' => 'shop account sign-in']); } catch (Throwable $e) {}
 json_response([
     'token' => $token,
     'customer' => ['id' => $customer['id'], 'name' => $customer['name'], 'phone' => $customer['phone']],

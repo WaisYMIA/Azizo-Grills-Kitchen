@@ -2,7 +2,9 @@
 require_once __DIR__ . '/../../lib/response.php';
 require_once __DIR__ . '/../../lib/jwt.php';
 cors_and_preflight();
+require_once __DIR__ . '/../../lib/ops_helpers.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') json_error('POST required', 405);
+if (team_shared_off()) json_error('Shared passwords are switched off. Sign in with your own username.', 403);
 sec_require_strong_admin_password();
 
 $body = read_json_body();

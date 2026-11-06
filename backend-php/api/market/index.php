@@ -199,6 +199,7 @@ if ($a === 'partner' && $b1 === 'items') {
         $pid = urldecode($b2); $pr = $one('SELECT price FROM products WHERE id = ?', [$pid]); if (!$pr) json_error('Product not found', 404);
         $cur = $one('SELECT * FROM mk_partner_items WHERE partner_id = ? AND product_id = ?', [$p['id'], $pid]);
         $price = !array_key_exists('price', $body) ? ($cur ? $cur['price'] : null) : (($body['price'] === null || $body['price'] === '') ? null : max(1, min(1000000, (int)round((float)$body['price']))));
+        if ($price !== null) { require_once __DIR__ . '/../../lib/growth_helpers.php'; $pc = growth_price_check((int)$pr['price'], (int)$price); if (!$pc['ok'] && $pc['mode'] === 'enforce') json_error('Price must be between KSh ' . $pc['min'] . ' and KSh ' . $pc['max'] . ' (Azizo recommended price KSh ' . $pr['price'] . ', allowed +/-' . $pc['pct'] . '%). Ask Azizo if you need a different price.'); }
         $stock = !array_key_exists('inStock', $body) ? ($cur ? (int)$cur['in_stock'] : 1) : (!empty($body['inStock']) ? 1 : 0);
         if ($cur) $run('UPDATE mk_partner_items SET price = ?, in_stock = ?, updated_at = ? WHERE partner_id = ? AND product_id = ?', [$price, $stock, $now(), $p['id'], $pid]);
         else $run('INSERT INTO mk_partner_items (partner_id, product_id, price, in_stock) VALUES (?, ?, ?, ?)', [$p['id'], $pid, $price, $stock]);
@@ -209,14 +210,24 @@ if ($a === 'partner' && $b1 === 'items') {
 if ($M === 'GET' && $a === 'partner' && $b1 === 'orders') {
     $p = $myPartner(); $out = [];
     foreach ($all('SELECT * FROM orders WHERE partner_id = ? ORDER BY id DESC LIMIT ' . max(1, min(200, (int)($_GET['limit'] ?? 100))) . ' OFFSET ' . max(0, (int)($_GET['offset'] ?? 0)), [$p['id']]) as $o)
-        $out[] = ['id' => (int)$o['id'], 'status' => $o['status'], 'createdAt' => $o['created_at'], 'customer' => $o['customer_name'], 'phone' => $o['customer_phone'], 'fulfilment' => $o['fulfilment'], 'address' => $o['delivery_address'], 'area' => $o['area'], 'notes' => $o['notes'], 'subtotal' => (int)$o['items_subtotal'], 'deliveryFee' => (int)$o['delivery_fee'], 'total' => (int)$o['total'], 'payment' => $o['payment_method'],
+        $out[] = ['id' => (int)$o['id'], 'status' => $o['status'], 'createdAt' => $o['created_at'], 'customer' => $o['customer_name'], 'phone' => $o['customer_phone'], 'fulfilment' => $o['fulfilment'], 'address' => $o['delivery_address'], 'area' => $o['area'], 'notes' => $o['notes'], 'needsCode' => $o['fulfilment'] === 'delivery' && $o['status'] === 'out_for_delivery', 'subtotal' => (int)$o['items_subtotal'], 'deliveryFee' => (int)$o['delivery_fee'], 'total' => (int)$o['total'], 'payment' => $o['payment_method'],
             'items' => array_map(fn($i) => ['name' => $i['name'], 'qty' => (float)$i['qty'], 'unit' => $i['unit'], 'unit_price' => (int)$i['unit_price'], 'line_total' => (int)$i['line_total']], $all('SELECT name, qty, unit, unit_price, line_total FROM order_items WHERE order_id = ?', [$o['id']]))];
     json_response(['orders' => $out]);
 }
 if ($M === 'PATCH' && $a === 'partner' && $b1 === 'orders' && ctype_digit($b2) && $b3 === 'status') {
     $p = $myPartner(); $o = $one('SELECT * FROM orders WHERE id = ? AND partner_id = ?', [(int)$b2, $p['id']]); if (!$o) json_error('Order not found', 404);
     $st = (string)($body['status'] ?? ''); if (!in_array($st, $FLOW, true)) json_error('Unknown status'); if (in_array($o['status'], ['completed', 'cancelled'], true)) json_error('This order is already closed');
-    $run('UPDATE orders SET status = ? WHERE id = ?', [$st, $o['id']]); $run('INSERT INTO order_status_log (order_id, status) VALUES (?, ?)', [$o['id'], $st]); json_response(['ok' => true]);
+    // v5.1 delivery handover code: made when the order goes out; the customer reads it to the rider; it is needed to close a delivery.
+    if ($st === 'out_for_delivery' && $o['fulfilment'] === 'delivery' && empty($o['delivery_code'])) $run('UPDATE orders SET delivery_code = ? WHERE id = ?', [(string)random_int(1000, 9999), $o['id']]);
+    if ($st === 'completed' && $o['fulfilment'] === 'delivery') {
+        if (!empty($body['noCode'])) { $why = $clean($body['reason'] ?? '', 200); if (mb_strlen($why) < 5) json_error('Type why the code could not be used (for example: customer phone off)'); audit_log('delivery-no-code', '#' . $o['id'] . ': ' . $why, 'partner#' . $p['id']); }
+        else {
+            if (trim((string)($body['code'] ?? '')) === '') json_error('Enter the 4-digit delivery code from the customer.', 400, ['needsCode' => true]);
+            throttle_check('dcode', (string)$o['id'], 5, 900);
+            if (empty($o['delivery_code']) || trim((string)($body['code'] ?? '')) !== (string)$o['delivery_code']) { throttle_fail('dcode', (string)$o['id']); json_error('That delivery code is not right. Ask the customer for the 4-digit code on their order tracking page.', 400, ['needsCode' => true]); }
+        }
+    }
+    $run('UPDATE orders SET status = ? WHERE id = ?', [$st, $o['id']]); $run('INSERT INTO order_status_log (order_id, status) VALUES (?, ?)', [$o['id'], $st]); require_once __DIR__ . '/../../lib/growth_helpers.php'; growth_notify($st, (int)$o['id']); require_once __DIR__ . '/../../lib/activity.php'; activity_add('orders', 'order-status', ['target' => '#' . (int)$o['id'], 'detail' => 'partner set ' . $st]); json_response(['ok' => true]);
 }
 if ($M === 'GET' && $a === 'partner' && $b1 === 'invoices') { $p = $myPartner(); json_response(['invoices' => array_map($invoiceOut, $all('SELECT * FROM mk_invoices WHERE partner_id = ? ORDER BY id DESC', [$p['id']]))]); }
 
@@ -324,7 +335,7 @@ if ($a === 'admin') {
             // v5.0 go-live gate: no pilot/live until licence, inspection, items and onboarding are in order (admin may override with a written reason)
             if ($has('status') && $b['status'] !== $p['status'] && in_array($b['status'], ['pilot', 'live'], true)) {
                 $g = ops_gate_for($pdo, (int)$p['id']);
-                if (!$g['ok']) { $why = $clean($b['overrideReason'] ?? '', 300); if (mb_strlen($why) < 10) json_error('Go-live checklist is not complete', 409, ['gate' => $g, 'needsOverride' => true]);
+                if (!$g['ok']) { if (($__tr = team_role_now()) !== null && $__tr !== 'owner') json_error('Only an Owner can override the go-live checklist', 403, ['gate' => $g]); $why = $clean($b['overrideReason'] ?? '', 300); if (mb_strlen($why) < 10) json_error('Go-live checklist is not complete', 409, ['gate' => $g, 'needsOverride' => true]);
                     audit_log('golive-override', $p['name'] . ' -> ' . $b['status'] . ': ' . $why); $b['adminNote'] = $clean(($p['admin_note'] ?? '') . ' Go-live override ' . $today() . ': ' . $why, 500); $has = fn($k) => array_key_exists($k, $b); }
             }
             $run('UPDATE mk_partners SET status = ?, tier = ?, paused = ?, licence_verified = ?, delivery_mode = ?, admin_note = ?, password_hash = ?, token_ver = token_ver + ? WHERE id = ?', [$has('status') ? $b['status'] : $p['status'], $has('tier') ? $b['tier'] : $p['tier'], $has('paused') ? (!empty($b['paused']) ? 1 : 0) : $p['paused'],

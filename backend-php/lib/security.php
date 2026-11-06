@@ -95,6 +95,7 @@ function throttle_check(string $scope, string $id, int $max = 8, int $windowSec 
     }
 }
 function throttle_fail(string $scope, string $id, int $windowSec = 900): void {
+    try { require_once __DIR__ . '/activity.php'; activity_add('auth', 'login-failed', ['actor' => $scope, 'outcome' => 'fail', 'detail' => $scope . ' sign-in refused']); } catch (Throwable $e) {}
     $pdo = sec_db(); $now = time(); usleep(250000);   // small delay makes guessing slower
     foreach ([[$scope . ':a', strtolower($id)], [$scope . ':i', client_ip()]] as [$b, $key]) {
         $k = substr($b . ':' . sha1($key), 0, 80); $q = $pdo->prepare('SELECT hits, win_start FROM sec_rate WHERE k = ?'); $q->execute([$k]); $r = $q->fetch();
@@ -109,9 +110,10 @@ function throttle_clear(string $scope, string $id): void { sec_db()->prepare('DE
 // ---------- audit log ----------
 function audit_log(string $action, string $detail = '', string $actor = ''): void {
     try {
-        if ($actor === '') { $p = jwt_payload_quiet(); $actor = $p ? (($p['role'] ?? '?') . (isset($p['partnerId']) ? '#' . $p['partnerId'] : '')) : 'anonymous'; }
+        if ($actor === '') { $p = jwt_payload_quiet(); $actor = $p ? (!empty($p['name']) ? ($p['name'] . ' (' . ($p['tr'] ?? '?') . ')') : (($p['role'] ?? '?') . (isset($p['partnerId']) ? '#' . $p['partnerId'] : ''))) : 'anonymous'; }
         sec_db()->prepare('INSERT INTO sec_audit (ts, actor, ip, action, detail) VALUES (?, ?, ?, ?, ?)')->execute([gmdate('Y-m-d H:i:s'), substr($actor, 0, 40), substr(client_ip(), 0, 45), substr($action, 0, 40), substr($detail, 0, 400)]);
     } catch (Throwable $e) { error_log('[azizo] audit failed: ' . $e->getMessage()); }
+    try { require_once __DIR__ . '/activity.php'; activity_add(act_category($action), $action, ['actor' => $actor === '' ? null : $actor, 'detail' => $detail]); } catch (Throwable $e) {}
 }
 function jwt_payload_quiet(): ?array { try { require_once __DIR__ . '/jwt.php'; $t = bearer_token(); return $t ? jwt_verify($t) : null; } catch (Throwable $e) { return null; } }
 
@@ -221,6 +223,7 @@ function sec_event(string $type, string $sev = 'low', string $detail = '', strin
         $pdo->prepare('INSERT INTO sec_events (ts, sev, type, ip, ua, path, actor, detail) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
             ->execute([gmdate('Y-m-d H:i:s'), $sev, substr($type, 0, 32), substr($ip, 0, 45), substr(preg_replace('/[\x00-\x1f]/', ' ', (string)($_SERVER['HTTP_USER_AGENT'] ?? '')), 0, 160), substr($path, 0, 160), substr($actor, 0, 40), substr(preg_replace('/[\x00-\x1f]/', ' ', $detail), 0, 400)]);
         if (mt_rand(1, 300) === 1) $pdo->prepare('DELETE FROM sec_events WHERE ts < ?')->execute([gmdate('Y-m-d H:i:s', time() - 180 * 86400)]);
+        if ($sev === 'high' || $sev === 'crit') { try { require_once __DIR__ . '/mailer.php'; mail_security_alert($type, $ip, $detail); } catch (Throwable $e) {} }
         if ($sev === 'crit') sec_alert('CRITICAL: ' . $type, "Type: $type\nDetail: $detail\nFrom: $ip\nPath: $path\nTime (UTC): " . gmdate('Y-m-d H:i:s'));
         if (defined('SEC_AUTO_BLOCK') && SEC_AUTO_BLOCK && !sec_ip_exempt($ip)) sec_maybe_block($ip);
     } catch (Throwable $e) { error_log('[azizo] sec_event failed: ' . $e->getMessage()); }

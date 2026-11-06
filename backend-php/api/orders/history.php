@@ -11,4 +11,7 @@ if (($payload['role'] ?? null) !== 'customer') json_error('Customer login requir
 $pdo = get_db();
 $stmt = $pdo->prepare('SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC');
 $stmt->execute([$payload['id']]);
-json_response(['orders' => $stmt->fetchAll()]);
+$orders = $stmt->fetchAll();
+$it = $pdo->prepare('SELECT product_id AS id, name, qty FROM order_items WHERE order_id = ? AND product_id IS NOT NULL');
+foreach ($orders as &$o) { $it->execute([$o['id']]); $o['items'] = $it->fetchAll(); } unset($o);
+json_response(['orders' => $orders]);

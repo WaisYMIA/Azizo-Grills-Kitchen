@@ -409,7 +409,7 @@ if ($route === 'POST admin-login') {
     throttle_fail('kka', 'kadmin'); json_error('Incorrect Kitchens Admin password', 401);
 }
 if (!$P || $P[0] !== 'admin') json_error('Not found', 404);
-$authA = require_kitchens_admin(); $SUB = ($authA['role'] ?? '') === 'admin' ? 'full' : ($authA['sub'] ?? 'full');
+$authA = require_kitchens_admin(); $SUB = ($authA['role'] ?? '') === 'admin' ? (($authA['tr'] ?? '') === 'finance' ? 'accounts' : 'full') : ($authA['sub'] ?? 'full');
 $PERM = ['dispatch' => ['#^GET (overview|orders|riders|supply|alerts|outbox|dashboard|dishes|settings)#', '#^GET kitchens(/\d+)?$#', '#^(POST|PATCH|PUT) (orders|riders|supply|outbox)#'],
     'accounts' => ['#^GET (overview|orders|payouts|economics|dashboard|supply|export|settings|dishes|alerts)#', '#^GET kitchens(/\d+)?$#', '#^POST payouts#']];
 $sub2 = implode('/', array_slice($P, 1)); $permKey = $method . ' ' . preg_replace('#/(\d+)#', '/$1', $sub2);

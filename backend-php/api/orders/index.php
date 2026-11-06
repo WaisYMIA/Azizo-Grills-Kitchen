@@ -118,6 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         error_log('[azizo] order save failed: ' . $e->getMessage()); json_error('We could not save the order. Please try again or WhatsApp us.', 500);
     }
 
+    require_once __DIR__ . '/../../lib/growth_helpers.php'; growth_notify('received', (int)$orderId);
     json_response(['ok' => true, 'orderId' => $orderId], 201);
 }
 

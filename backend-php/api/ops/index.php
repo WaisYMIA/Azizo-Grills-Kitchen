@@ -127,6 +127,7 @@ if ($a === 'sops') {
 }
 
 // ---------------- partner dashboard + statements ----------------
+if ($a === 'partner' && $b1 === 'confirm-stock' && $M === 'POST') { $u = require_partner(); $run('UPDATE mk_partner_items SET updated_at = ? WHERE partner_id = ?', [$now(), (int)$u['partnerId']]); json_response(['ok' => true]); }
 if ($a === 'partner' && $M === 'GET') {
     $u = require_partner(); $pid = (int)$u['partnerId'];
     if ($b1 === 'dashboard') {
@@ -140,6 +141,7 @@ if ($a === 'partner' && $M === 'GET') {
             'top' => $int($all("SELECT oi.name AS name, SUM(oi.qty) AS q, SUM(oi.line_total) AS s FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE o.partner_id = ? AND o.status != 'cancelled' AND SUBSTR(o.created_at,1,10) >= ? GROUP BY oi.name ORDER BY s DESC LIMIT 5", [$pid, $d30]), ['q', 's']),
             'rating' => ['count' => (int)$rate['n'], 'avg' => $rate['a'] ? round((float)$rate['a'], 1) : null], 'completionPct30' => $done + $canc ? (int)round($done * 100 / ($done + $canc)) : null,
             'itemsListed' => $val('SELECT COUNT(*) FROM mk_partner_items WHERE partner_id = ?', [$pid]), 'itemsSoldOut' => $val('SELECT COUNT(*) FROM mk_partner_items WHERE partner_id = ? AND in_stock = 0', [$pid]),
+            'staleItems' => $val('SELECT COUNT(*) FROM mk_partner_items WHERE partner_id = ? AND in_stock = 1 AND updated_at < ?', [$pid, gmdate('Y-m-d H:i:s', time() - 3 * 86400)]),
             'answeredTickets' => $val("SELECT COUNT(*) FROM ops_tickets WHERE scope = 'partner' AND owner_id = ? AND status = 'answered'", [$pid]), 'status' => $p['status'] ?? '', 'nextInspection' => $p['last_inspection'] ?? '']);
     }
     if ($b1 === 'statement') {
@@ -176,6 +178,30 @@ if ($a === 'admin' && $b1 === 'accounts') {
         $ac = $one('SELECT * FROM ops_accounts WHERE id = ?', [(int)$b2]); if (!$ac) json_error('Not found', 404);
         if (array_key_exists('password', $body) && strlen((string)$body['password']) < 8) json_error('Password must be 8+ characters');
         $run('UPDATE ops_accounts SET active = ?, password_hash = ? WHERE id = ?', [array_key_exists('active', $body) ? (!empty($body['active']) ? 1 : 0) : $ac['active'], !empty($body['password']) ? password_hash((string)$body['password'], PASSWORD_BCRYPT) : $ac['password_hash'], $ac['id']]); audit_log('account-update', $ac['username']); json_response(['ok' => true]);
+    }
+}
+
+// ---------------- v5.2 team accounts (Owner only; the shared admin password counts as Owner) ----------------
+if ($a === 'admin' && $b1 === 'team') {
+    require_admin();
+    $roles = ['owner', 'manager', 'finance', 'counter']; $actor = jwt_payload_quiet(); $strong = fn($pw) => strlen((string)$pw) >= 10 && preg_match('/[A-Za-z]/', (string)$pw) && preg_match('/\d/', (string)$pw);
+    $owners = fn() => $val("SELECT COUNT(*) FROM team_accounts WHERE role = 'owner' AND active = 1");
+    if ($M === 'GET' && $b2 === '') json_response(['team' => $int($all('SELECT id, username, name, role, active, created_at, last_login, created_by FROM team_accounts ORDER BY id'), ['id', 'active']), 'roles' => $roles, 'sharedPasswordsOff' => getenv('TEAM_ONLY') === '1' && $owners() > 0]);
+    if ($M === 'POST' && $b2 === '') {
+        $u = strtolower($clean($body['username'] ?? '', 30)); $n = $clean($body['name'] ?? '', 60); $role = (string)($body['role'] ?? '');
+        if (!preg_match('/^[a-z0-9._-]{3,30}$/', $u) || mb_strlen($n) < 3 || !in_array($role, $roles, true)) json_error('Username (3+ letters/numbers), full name and a role are needed');
+        if (!$strong($body['password'] ?? '')) json_error('Password needs 10+ characters with a letter and a number');
+        if ($one('SELECT 1 FROM team_accounts WHERE username = ?', [$u])) json_error('That username is taken');
+        $run('INSERT INTO team_accounts (username, name, role, password_hash, created_at, created_by) VALUES (?,?,?,?,?,?)', [$u, $n, $role, password_hash((string)$body['password'], PASSWORD_BCRYPT), $now(), $actor['name'] ?? 'shared admin']); audit_log('team-create', $u . ' as ' . $role); json_response(['ok' => true]);
+    }
+    if ($M === 'PATCH' && ctype_digit($b2)) {
+        $ac = $one('SELECT * FROM team_accounts WHERE id = ?', [(int)$b2]); if (!$ac) json_error('Not found', 404);
+        $role = array_key_exists('role', $body) ? (string)$body['role'] : $ac['role']; $act = array_key_exists('active', $body) ? (!empty($body['active']) ? 1 : 0) : (int)$ac['active'];
+        if (!in_array($role, $roles, true)) json_error('Unknown role');
+        if (!empty($body['password']) && !$strong($body['password'])) json_error('Password needs 10+ characters with a letter and a number');
+        if ($ac['role'] === 'owner' && (int)$ac['active'] && ($role !== 'owner' || !$act) && $owners() <= 1) json_error('You cannot switch off or demote the last Owner');
+        $run('UPDATE team_accounts SET role = ?, active = ?, password_hash = ? WHERE id = ?', [$role, $act, !empty($body['password']) ? password_hash((string)$body['password'], PASSWORD_BCRYPT) : $ac['password_hash'], (int)$ac['id']]);
+        audit_log('team-update', $ac['username'] . ($role !== $ac['role'] ? ' role ' . $ac['role'] . '>' . $role : '') . ($act !== (int)$ac['active'] ? ($act ? ' on' : ' off') : '') . (!empty($body['password']) ? ' password reset' : '')); json_response(['ok' => true]);
     }
 }
 

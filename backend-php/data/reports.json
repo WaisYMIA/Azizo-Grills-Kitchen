@@ -1,0 +1,2042 @@
+[
+ {
+  "key": "sales_daily",
+  "group": "Sales",
+  "title": "Daily sales",
+  "desc": "Completed orders only, grouped by Nairobi calendar day. Revenue = items + delivery fees.",
+  "roles": [
+   "owner",
+   "manager",
+   "finance"
+  ],
+  "sql": "SELECT {{DAY:o.created_at}} AS day, COUNT(*) AS orders, SUM(o.items_subtotal) AS items, SUM(COALESCE(o.delivery_fee,0)) AS delivery, SUM(o.total) AS revenue, ROUND(SUM(o.total) * 1.0 / COUNT(*)) AS aov, SUM(CASE WHEN o.fulfilment = 'pickup' THEN 1 ELSE 0 END) AS pickup_orders, SUM(CASE WHEN o.fulfilment <> 'pickup' THEN 1 ELSE 0 END) AS delivery_orders FROM orders o WHERE o.created_at >= :from AND o.created_at < :to AND (:branch = '' OR o.branch = :branch) AND o.status = 'completed' GROUP BY {{DAY:o.created_at}} ORDER BY day",
+  "cols": [
+   {
+    "k": "day",
+    "l": "Date",
+    "t": "date"
+   },
+   {
+    "k": "orders",
+    "l": "Orders",
+    "t": "int"
+   },
+   {
+    "k": "items",
+    "l": "Items KSh",
+    "t": "money"
+   },
+   {
+    "k": "delivery",
+    "l": "Delivery fees KSh",
+    "t": "money"
+   },
+   {
+    "k": "revenue",
+    "l": "Revenue KSh",
+    "t": "money"
+   },
+   {
+    "k": "aov",
+    "l": "Average order KSh",
+    "t": "money"
+   },
+   {
+    "k": "pickup_orders",
+    "l": "Pickup orders",
+    "t": "int"
+   },
+   {
+    "k": "delivery_orders",
+    "l": "Delivery orders",
+    "t": "int"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Days",
+    "fn": "count"
+   },
+   {
+    "l": "Orders",
+    "fn": "sum",
+    "c": "orders",
+    "t": "int"
+   },
+   {
+    "l": "Revenue KSh",
+    "fn": "sum",
+    "c": "revenue",
+    "t": "money"
+   },
+   {
+    "l": "Best day KSh",
+    "fn": "max",
+    "c": "revenue",
+    "t": "money"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "sales_branch",
+  "group": "Sales",
+  "title": "Sales by branch",
+  "desc": "Completed orders by branch.",
+  "roles": [
+   "owner",
+   "manager",
+   "finance"
+  ],
+  "sql": "SELECT COALESCE(o.branch,'') AS branch, COUNT(*) AS orders, SUM(o.total) AS revenue, ROUND(SUM(o.total) * 1.0 / COUNT(*)) AS aov FROM orders o WHERE o.created_at >= :from AND o.created_at < :to AND o.status = 'completed' GROUP BY COALESCE(o.branch,'') ORDER BY revenue DESC",
+  "cols": [
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "orders",
+    "l": "Orders",
+    "t": "int"
+   },
+   {
+    "k": "revenue",
+    "l": "Revenue KSh",
+    "t": "money"
+   },
+   {
+    "k": "aov",
+    "l": "Average order KSh",
+    "t": "money"
+   },
+   {
+    "k": "share",
+    "l": "Share of revenue",
+    "t": "pct",
+    "calc": "share",
+    "of": "revenue"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Revenue KSh",
+    "fn": "sum",
+    "c": "revenue",
+    "t": "money"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "sales_product",
+  "group": "Sales",
+  "title": "Sales by product",
+  "desc": "Item-level performance from completed orders.",
+  "roles": [
+   "owner",
+   "manager",
+   "finance"
+  ],
+  "sql": "SELECT oi.name AS name, COALESCE(oi.unit,'') AS unit, SUM(oi.qty) AS qty, COUNT(DISTINCT o.id) AS orders, SUM(oi.line_total) AS revenue FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE o.created_at >= :from AND o.created_at < :to AND (:branch = '' OR o.branch = :branch) AND o.status = 'completed' GROUP BY oi.name, COALESCE(oi.unit,'') ORDER BY revenue DESC",
+  "cols": [
+   {
+    "k": "name",
+    "l": "Product",
+    "t": "text"
+   },
+   {
+    "k": "unit",
+    "l": "Unit",
+    "t": "text"
+   },
+   {
+    "k": "qty",
+    "l": "Quantity sold",
+    "t": "int"
+   },
+   {
+    "k": "orders",
+    "l": "Orders containing it",
+    "t": "int"
+   },
+   {
+    "k": "revenue",
+    "l": "Revenue KSh",
+    "t": "money"
+   },
+   {
+    "k": "share",
+    "l": "Share of revenue",
+    "t": "pct",
+    "calc": "share",
+    "of": "revenue"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Products sold",
+    "fn": "count"
+   },
+   {
+    "l": "Revenue KSh",
+    "fn": "sum",
+    "c": "revenue",
+    "t": "money"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "sales_payment",
+  "group": "Sales",
+  "title": "Sales by payment method",
+  "desc": "Completed orders by how the customer paid.",
+  "roles": [
+   "owner",
+   "manager",
+   "finance"
+  ],
+  "sql": "SELECT o.payment_method AS method, COUNT(*) AS orders, SUM(o.total) AS revenue FROM orders o WHERE o.created_at >= :from AND o.created_at < :to AND (:branch = '' OR o.branch = :branch) AND o.status = 'completed' GROUP BY o.payment_method ORDER BY revenue DESC",
+  "cols": [
+   {
+    "k": "method",
+    "l": "Payment method",
+    "t": "text"
+   },
+   {
+    "k": "orders",
+    "l": "Orders",
+    "t": "int"
+   },
+   {
+    "k": "revenue",
+    "l": "Revenue KSh",
+    "t": "money"
+   },
+   {
+    "k": "share",
+    "l": "Share of revenue",
+    "t": "pct",
+    "calc": "share",
+    "of": "revenue"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Revenue KSh",
+    "fn": "sum",
+    "c": "revenue",
+    "t": "money"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "sales_ledger",
+  "group": "Sales",
+  "title": "Sales ledger (completed orders)",
+  "desc": "One row per completed order: the accountant's ledger.",
+  "roles": [
+   "owner",
+   "manager",
+   "finance"
+  ],
+  "sql": "SELECT o.id, o.created_at, o.customer_name, o.customer_phone, COALESCE(o.branch,'') AS branch, COALESCE(p.name,'Azizo own') AS partner, o.fulfilment, o.payment_method, COALESCE(o.mpesa_receipt,'') AS mpesa_receipt, o.status, o.items_subtotal, COALESCE(o.delivery_fee,0) AS delivery_fee, o.total, COALESCE(o.promo_code,'') AS promo_code, (SELECT MIN(l.changed_at) FROM order_status_log l WHERE l.order_id = o.id) AS t0, (SELECT MAX(l.changed_at) FROM order_status_log l WHERE l.order_id = o.id AND l.status = 'completed') AS t1 FROM orders o LEFT JOIN mk_partners p ON p.id = o.partner_id WHERE o.created_at >= :from AND o.created_at < :to AND (:branch = '' OR o.branch = :branch) AND o.status = 'completed' ORDER BY o.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "Order #",
+    "t": "int"
+   },
+   {
+    "k": "created_at",
+    "l": "Date",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "created_at",
+    "l": "Time",
+    "t": "time",
+    "eat": true,
+    "k2": "time"
+   },
+   {
+    "k": "customer_name",
+    "l": "Customer",
+    "t": "text"
+   },
+   {
+    "k": "customer_phone",
+    "l": "Phone",
+    "t": "text"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "partner",
+    "l": "Partner",
+    "t": "text"
+   },
+   {
+    "k": "fulfilment",
+    "l": "Fulfilment",
+    "t": "text"
+   },
+   {
+    "k": "payment_method",
+    "l": "Payment",
+    "t": "text"
+   },
+   {
+    "k": "mpesa_receipt",
+    "l": "M-Pesa receipt",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "items_subtotal",
+    "l": "Items KSh",
+    "t": "money"
+   },
+   {
+    "k": "delivery_fee",
+    "l": "Delivery KSh",
+    "t": "money"
+   },
+   {
+    "k": "total",
+    "l": "Total KSh",
+    "t": "money"
+   },
+   {
+    "k": "promo_code",
+    "l": "Promo",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Orders",
+    "fn": "count"
+   },
+   {
+    "l": "Total KSh",
+    "fn": "sum",
+    "c": "total",
+    "t": "money"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "orders_all",
+  "group": "Orders",
+  "title": "All orders",
+  "desc": "Every order in the period with its current status and minutes from order to completion.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT o.id, o.created_at, o.customer_name, o.customer_phone, COALESCE(o.branch,'') AS branch, COALESCE(p.name,'Azizo own') AS partner, o.fulfilment, o.payment_method, COALESCE(o.mpesa_receipt,'') AS mpesa_receipt, o.status, o.items_subtotal, COALESCE(o.delivery_fee,0) AS delivery_fee, o.total, COALESCE(o.promo_code,'') AS promo_code, (SELECT MIN(l.changed_at) FROM order_status_log l WHERE l.order_id = o.id) AS t0, (SELECT MAX(l.changed_at) FROM order_status_log l WHERE l.order_id = o.id AND l.status = 'completed') AS t1 FROM orders o LEFT JOIN mk_partners p ON p.id = o.partner_id WHERE o.created_at >= :from AND o.created_at < :to AND (:branch = '' OR o.branch = :branch) ORDER BY o.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "Order #",
+    "t": "int"
+   },
+   {
+    "k": "created_at",
+    "l": "Date",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "created_at",
+    "l": "Time",
+    "t": "time",
+    "eat": true,
+    "k2": "time"
+   },
+   {
+    "k": "customer_name",
+    "l": "Customer",
+    "t": "text"
+   },
+   {
+    "k": "customer_phone",
+    "l": "Phone",
+    "t": "text"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "partner",
+    "l": "Partner",
+    "t": "text"
+   },
+   {
+    "k": "fulfilment",
+    "l": "Fulfilment",
+    "t": "text"
+   },
+   {
+    "k": "payment_method",
+    "l": "Payment",
+    "t": "text"
+   },
+   {
+    "k": "mpesa_receipt",
+    "l": "M-Pesa receipt",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "items_subtotal",
+    "l": "Items KSh",
+    "t": "money"
+   },
+   {
+    "k": "delivery_fee",
+    "l": "Delivery KSh",
+    "t": "money"
+   },
+   {
+    "k": "total",
+    "l": "Total KSh",
+    "t": "money"
+   },
+   {
+    "k": "promo_code",
+    "l": "Promo",
+    "t": "text"
+   },
+   {
+    "k": "cycle",
+    "l": "Minutes to complete",
+    "t": "int",
+    "calc": "mins",
+    "a": "created_at",
+    "b": "t1"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Orders",
+    "fn": "count"
+   },
+   {
+    "l": "Value KSh",
+    "fn": "sum",
+    "c": "total",
+    "t": "money"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "orders_closed",
+  "group": "Orders",
+  "title": "Closed orders (completed)",
+  "desc": "Orders that were delivered or collected, with fulfilment time.",
+  "roles": [
+   "owner",
+   "manager",
+   "finance"
+  ],
+  "sql": "SELECT o.id, o.created_at, o.customer_name, o.customer_phone, COALESCE(o.branch,'') AS branch, COALESCE(p.name,'Azizo own') AS partner, o.fulfilment, o.payment_method, COALESCE(o.mpesa_receipt,'') AS mpesa_receipt, o.status, o.items_subtotal, COALESCE(o.delivery_fee,0) AS delivery_fee, o.total, COALESCE(o.promo_code,'') AS promo_code, (SELECT MIN(l.changed_at) FROM order_status_log l WHERE l.order_id = o.id) AS t0, (SELECT MAX(l.changed_at) FROM order_status_log l WHERE l.order_id = o.id AND l.status = 'completed') AS t1 FROM orders o LEFT JOIN mk_partners p ON p.id = o.partner_id WHERE o.created_at >= :from AND o.created_at < :to AND (:branch = '' OR o.branch = :branch) AND o.status = 'completed' ORDER BY o.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "Order #",
+    "t": "int"
+   },
+   {
+    "k": "created_at",
+    "l": "Date",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "created_at",
+    "l": "Time",
+    "t": "time",
+    "eat": true,
+    "k2": "time"
+   },
+   {
+    "k": "customer_name",
+    "l": "Customer",
+    "t": "text"
+   },
+   {
+    "k": "customer_phone",
+    "l": "Phone",
+    "t": "text"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "partner",
+    "l": "Partner",
+    "t": "text"
+   },
+   {
+    "k": "fulfilment",
+    "l": "Fulfilment",
+    "t": "text"
+   },
+   {
+    "k": "payment_method",
+    "l": "Payment",
+    "t": "text"
+   },
+   {
+    "k": "mpesa_receipt",
+    "l": "M-Pesa receipt",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "items_subtotal",
+    "l": "Items KSh",
+    "t": "money"
+   },
+   {
+    "k": "delivery_fee",
+    "l": "Delivery KSh",
+    "t": "money"
+   },
+   {
+    "k": "total",
+    "l": "Total KSh",
+    "t": "money"
+   },
+   {
+    "k": "promo_code",
+    "l": "Promo",
+    "t": "text"
+   },
+   {
+    "k": "cycle",
+    "l": "Minutes to complete",
+    "t": "int",
+    "calc": "mins",
+    "a": "created_at",
+    "b": "t1"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Closed orders",
+    "fn": "count"
+   },
+   {
+    "l": "Value KSh",
+    "fn": "sum",
+    "c": "total",
+    "t": "money"
+   },
+   {
+    "l": "Average minutes to complete",
+    "fn": "avg",
+    "c": "cycle",
+    "t": "int"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "orders_open",
+  "group": "Orders",
+  "title": "Open orders (still in progress)",
+  "desc": "Not yet completed or cancelled, with age in minutes at the time of export.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT o.id, o.created_at, o.customer_name, o.customer_phone, COALESCE(o.branch,'') AS branch, COALESCE(p.name,'Azizo own') AS partner, o.fulfilment, o.payment_method, COALESCE(o.mpesa_receipt,'') AS mpesa_receipt, o.status, o.items_subtotal, COALESCE(o.delivery_fee,0) AS delivery_fee, o.total, COALESCE(o.promo_code,'') AS promo_code, (SELECT MIN(l.changed_at) FROM order_status_log l WHERE l.order_id = o.id) AS t0, (SELECT MAX(l.changed_at) FROM order_status_log l WHERE l.order_id = o.id AND l.status = 'completed') AS t1 FROM orders o LEFT JOIN mk_partners p ON p.id = o.partner_id WHERE o.created_at >= :from AND o.created_at < :to AND (:branch = '' OR o.branch = :branch) AND o.status IN ('received','preparing','ready','out_for_delivery') ORDER BY o.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "Order #",
+    "t": "int"
+   },
+   {
+    "k": "created_at",
+    "l": "Date",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "created_at",
+    "l": "Time",
+    "t": "time",
+    "eat": true,
+    "k2": "time"
+   },
+   {
+    "k": "customer_name",
+    "l": "Customer",
+    "t": "text"
+   },
+   {
+    "k": "customer_phone",
+    "l": "Phone",
+    "t": "text"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "partner",
+    "l": "Partner",
+    "t": "text"
+   },
+   {
+    "k": "fulfilment",
+    "l": "Fulfilment",
+    "t": "text"
+   },
+   {
+    "k": "payment_method",
+    "l": "Payment",
+    "t": "text"
+   },
+   {
+    "k": "mpesa_receipt",
+    "l": "M-Pesa receipt",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "items_subtotal",
+    "l": "Items KSh",
+    "t": "money"
+   },
+   {
+    "k": "delivery_fee",
+    "l": "Delivery KSh",
+    "t": "money"
+   },
+   {
+    "k": "total",
+    "l": "Total KSh",
+    "t": "money"
+   },
+   {
+    "k": "promo_code",
+    "l": "Promo",
+    "t": "text"
+   },
+   {
+    "k": "age",
+    "l": "Age (minutes)",
+    "t": "int",
+    "calc": "age",
+    "a": "created_at"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Open orders",
+    "fn": "count"
+   },
+   {
+    "l": "Value KSh",
+    "fn": "sum",
+    "c": "total",
+    "t": "money"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "orders_unsuccessful",
+  "group": "Orders",
+  "title": "Unsuccessful orders",
+  "desc": "Cancelled orders and orders whose M-Pesa payment failed (and were not completed). Value is the sale that was lost.",
+  "roles": [
+   "owner",
+   "manager",
+   "finance"
+  ],
+  "sql": "SELECT o.id, o.created_at, o.customer_name, o.customer_phone, COALESCE(o.branch,'') AS branch, COALESCE(p.name,'Azizo own') AS partner, o.fulfilment, o.payment_method, COALESCE(o.mpesa_receipt,'') AS mpesa_receipt, o.status, o.items_subtotal, COALESCE(o.delivery_fee,0) AS delivery_fee, o.total, COALESCE(o.promo_code,'') AS promo_code, (SELECT MIN(l.changed_at) FROM order_status_log l WHERE l.order_id = o.id) AS t0, (SELECT MAX(l.changed_at) FROM order_status_log l WHERE l.order_id = o.id AND l.status = 'completed') AS t1 FROM orders o LEFT JOIN mk_partners p ON p.id = o.partner_id WHERE (o.status = 'cancelled' OR (o.status <> 'completed' AND EXISTS (SELECT 1 FROM mpesa_transactions m WHERE m.order_id = o.id AND m.status = 'failed'))) AND o.created_at >= :from AND o.created_at < :to AND (:branch = '' OR o.branch = :branch) ORDER BY o.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "Order #",
+    "t": "int"
+   },
+   {
+    "k": "created_at",
+    "l": "Date",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "created_at",
+    "l": "Time",
+    "t": "time",
+    "eat": true,
+    "k2": "time"
+   },
+   {
+    "k": "customer_name",
+    "l": "Customer",
+    "t": "text"
+   },
+   {
+    "k": "customer_phone",
+    "l": "Phone",
+    "t": "text"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "partner",
+    "l": "Partner",
+    "t": "text"
+   },
+   {
+    "k": "fulfilment",
+    "l": "Fulfilment",
+    "t": "text"
+   },
+   {
+    "k": "payment_method",
+    "l": "Payment",
+    "t": "text"
+   },
+   {
+    "k": "mpesa_receipt",
+    "l": "M-Pesa receipt",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "total",
+    "l": "Value lost KSh",
+    "t": "money"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Unsuccessful orders",
+    "fn": "count"
+   },
+   {
+    "l": "Value lost KSh",
+    "fn": "sum",
+    "c": "total",
+    "t": "money"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "order_lines",
+  "group": "Orders",
+  "title": "Order line items",
+  "desc": "One row per item sold, for basket analysis.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT o.id, o.created_at, COALESCE(o.branch,'') AS branch, o.status, oi.product_id, oi.name, COALESCE(oi.unit,'') AS unit, oi.qty, oi.unit_price, oi.line_total FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE o.created_at >= :from AND o.created_at < :to AND (:branch = '' OR o.branch = :branch) ORDER BY o.id, oi.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "Order #",
+    "t": "int"
+   },
+   {
+    "k": "created_at",
+    "l": "Date",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "product_id",
+    "l": "Product code",
+    "t": "text"
+   },
+   {
+    "k": "name",
+    "l": "Item",
+    "t": "text"
+   },
+   {
+    "k": "unit",
+    "l": "Unit",
+    "t": "text"
+   },
+   {
+    "k": "qty",
+    "l": "Qty",
+    "t": "int"
+   },
+   {
+    "k": "unit_price",
+    "l": "Unit price KSh",
+    "t": "money"
+   },
+   {
+    "k": "line_total",
+    "l": "Line total KSh",
+    "t": "money"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Lines",
+    "fn": "count"
+   },
+   {
+    "l": "Value KSh",
+    "fn": "sum",
+    "c": "line_total",
+    "t": "money"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "customer_accounts",
+  "group": "Customers",
+  "title": "User accounts (registered customers)",
+  "desc": "Registered shop accounts with their order history. Passwords are never exported.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT c.id, c.name, c.phone, c.created_at, (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id) AS orders, (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id AND o.status = 'completed') AS completed, (SELECT COALESCE(SUM(o.total),0) FROM orders o WHERE o.customer_id = c.id AND o.status = 'completed') AS spend, (SELECT MAX(o.created_at) FROM orders o WHERE o.customer_id = c.id) AS last_order FROM customers c WHERE c.created_at >= :from AND c.created_at < :to ORDER BY c.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "Account #",
+    "t": "int"
+   },
+   {
+    "k": "name",
+    "l": "Name",
+    "t": "text"
+   },
+   {
+    "k": "phone",
+    "l": "Phone",
+    "t": "text"
+   },
+   {
+    "k": "created_at",
+    "l": "Registered",
+    "t": "datetime",
+    "eat": true
+   },
+   {
+    "k": "orders",
+    "l": "Orders",
+    "t": "int"
+   },
+   {
+    "k": "completed",
+    "l": "Completed",
+    "t": "int"
+   },
+   {
+    "k": "spend",
+    "l": "Lifetime spend KSh",
+    "t": "money"
+   },
+   {
+    "k": "last_order",
+    "l": "Last order",
+    "t": "date",
+    "eat": true
+   }
+  ],
+  "totals": [
+   {
+    "l": "Accounts registered in period",
+    "fn": "count"
+   },
+   {
+    "l": "Lifetime spend KSh",
+    "fn": "sum",
+    "c": "spend",
+    "t": "money"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "customer_buyers",
+  "group": "Customers",
+  "title": "Buyers (everyone who ordered)",
+  "desc": "Unique phone numbers that ordered in the period, with or without an account. Useful for repeat-rate and lifetime value.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT SUBSTR(o.customer_phone, -9) AS phone9, MAX(o.customer_name) AS name, COUNT(*) AS orders, SUM(CASE WHEN o.status = 'completed' THEN 1 ELSE 0 END) AS completed, SUM(CASE WHEN o.status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled, SUM(CASE WHEN o.status = 'completed' THEN o.total ELSE 0 END) AS spend, MIN(o.created_at) AS first_order, MAX(o.created_at) AS last_order, MAX(CASE WHEN o.customer_id IS NOT NULL THEN 'Yes' ELSE 'No' END) AS has_account FROM orders o WHERE o.created_at >= :from AND o.created_at < :to GROUP BY SUBSTR(o.customer_phone, -9) ORDER BY spend DESC",
+  "cols": [
+   {
+    "k": "phone9",
+    "l": "Phone (last 9 digits)",
+    "t": "text"
+   },
+   {
+    "k": "name",
+    "l": "Name",
+    "t": "text"
+   },
+   {
+    "k": "orders",
+    "l": "Orders",
+    "t": "int"
+   },
+   {
+    "k": "completed",
+    "l": "Completed",
+    "t": "int"
+   },
+   {
+    "k": "cancelled",
+    "l": "Cancelled",
+    "t": "int"
+   },
+   {
+    "k": "spend",
+    "l": "Spend KSh",
+    "t": "money"
+   },
+   {
+    "k": "first_order",
+    "l": "First order",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "last_order",
+    "l": "Last order",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "has_account",
+    "l": "Has account",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Unique buyers",
+    "fn": "count"
+   },
+   {
+    "l": "Spend KSh",
+    "fn": "sum",
+    "c": "spend",
+    "t": "money"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "team_accounts",
+  "group": "Customers",
+  "title": "Team and staff accounts",
+  "desc": "Admin, manager, finance and counter logins (no passwords).",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT username, name, role, active, last_login, created_at, COALESCE(created_by,'') AS created_by FROM team_accounts ORDER BY id",
+  "cols": [
+   {
+    "k": "username",
+    "l": "Username",
+    "t": "text"
+   },
+   {
+    "k": "name",
+    "l": "Name",
+    "t": "text"
+   },
+   {
+    "k": "role",
+    "l": "Role",
+    "t": "text"
+   },
+   {
+    "k": "active",
+    "l": "Active (1=yes)",
+    "t": "int"
+   },
+   {
+    "k": "last_login",
+    "l": "Last login",
+    "t": "datetime",
+    "eat": true
+   },
+   {
+    "k": "created_at",
+    "l": "Created",
+    "t": "datetime"
+   },
+   {
+    "k": "created_by",
+    "l": "Created by",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Accounts",
+    "fn": "count"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "visitors_daily",
+  "group": "Visitors",
+  "title": "Visitors per day",
+  "desc": "Unique visitors (anonymous, per-day) and page views. Excludes staff pages and bots.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT v.day, COUNT(DISTINCT v.vid) AS visitors, COUNT(*) AS views, SUM(CASE WHEN v.device = 'mobile' THEN 1 ELSE 0 END) AS mobile_views, SUM(CASE WHEN v.device <> 'mobile' THEN 1 ELSE 0 END) AS other_views FROM site_visits v WHERE v.day >= :fromd AND v.day <= :tod GROUP BY v.day ORDER BY v.day",
+  "cols": [
+   {
+    "k": "day",
+    "l": "Date",
+    "t": "date"
+   },
+   {
+    "k": "visitors",
+    "l": "Unique visitors",
+    "t": "int"
+   },
+   {
+    "k": "views",
+    "l": "Page views",
+    "t": "int"
+   },
+   {
+    "k": "vpv",
+    "l": "Pages per visitor",
+    "t": "num",
+    "calc": "ratio",
+    "a": "views",
+    "b": "visitors"
+   },
+   {
+    "k": "mobile_views",
+    "l": "Mobile views",
+    "t": "int"
+   },
+   {
+    "k": "other_views",
+    "l": "Desktop/tablet views",
+    "t": "int"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Page views",
+    "fn": "sum",
+    "c": "views",
+    "t": "int"
+   },
+   {
+    "l": "Busiest day (visitors)",
+    "fn": "max",
+    "c": "visitors",
+    "t": "int"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "visitors_pages",
+  "group": "Visitors",
+  "title": "Pages viewed",
+  "desc": "Most viewed pages.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT v.path, COUNT(*) AS views, COUNT(DISTINCT v.vid) AS visitors FROM site_visits v WHERE v.day >= :fromd AND v.day <= :tod GROUP BY v.path ORDER BY views DESC",
+  "cols": [
+   {
+    "k": "path",
+    "l": "Page",
+    "t": "text"
+   },
+   {
+    "k": "views",
+    "l": "Views",
+    "t": "int"
+   },
+   {
+    "k": "visitors",
+    "l": "Unique visitors",
+    "t": "int"
+   },
+   {
+    "k": "share",
+    "l": "Share of views",
+    "t": "pct",
+    "calc": "share",
+    "of": "views"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Pages",
+    "fn": "count"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "visitors_sources",
+  "group": "Visitors",
+  "title": "Traffic sources",
+  "desc": "Where visitors came from (referrer or utm_source).",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT v.source, COUNT(*) AS views, COUNT(DISTINCT v.vid) AS visitors FROM site_visits v WHERE v.day >= :fromd AND v.day <= :tod GROUP BY v.source ORDER BY views DESC",
+  "cols": [
+   {
+    "k": "source",
+    "l": "Source",
+    "t": "text"
+   },
+   {
+    "k": "views",
+    "l": "Views",
+    "t": "int"
+   },
+   {
+    "k": "visitors",
+    "l": "Unique visitors",
+    "t": "int"
+   },
+   {
+    "k": "share",
+    "l": "Share of views",
+    "t": "pct",
+    "calc": "share",
+    "of": "views"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Sources",
+    "fn": "count"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "visitors_devices",
+  "group": "Visitors",
+  "title": "Devices",
+  "desc": "Phone, tablet or computer.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT v.device, COUNT(*) AS views, COUNT(DISTINCT v.vid) AS visitors FROM site_visits v WHERE v.day >= :fromd AND v.day <= :tod GROUP BY v.device ORDER BY views DESC",
+  "cols": [
+   {
+    "k": "device",
+    "l": "Device",
+    "t": "text"
+   },
+   {
+    "k": "views",
+    "l": "Views",
+    "t": "int"
+   },
+   {
+    "k": "visitors",
+    "l": "Unique visitors",
+    "t": "int"
+   },
+   {
+    "k": "share",
+    "l": "Share of views",
+    "t": "pct",
+    "calc": "share",
+    "of": "views"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Device types",
+    "fn": "count"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "funnel_daily",
+  "group": "Visitors",
+  "title": "Conversion funnel by day",
+  "desc": "Visit, cart, checkout, order counts from the shop, with step conversion.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT e.day, SUM(CASE WHEN e.name = 'visit' THEN 1 ELSE 0 END) AS visits, SUM(CASE WHEN e.name = 'cart_add' THEN 1 ELSE 0 END) AS carts, SUM(CASE WHEN e.name = 'checkout_open' THEN 1 ELSE 0 END) AS checkouts, SUM(CASE WHEN e.name = 'order_placed' THEN 1 ELSE 0 END) AS orders FROM ops_events e WHERE e.day >= :fromd AND e.day <= :tod GROUP BY e.day ORDER BY e.day",
+  "cols": [
+   {
+    "k": "day",
+    "l": "Date",
+    "t": "date"
+   },
+   {
+    "k": "visits",
+    "l": "Visits",
+    "t": "int"
+   },
+   {
+    "k": "carts",
+    "l": "Added to cart",
+    "t": "int"
+   },
+   {
+    "k": "checkouts",
+    "l": "Opened checkout",
+    "t": "int"
+   },
+   {
+    "k": "orders",
+    "l": "Orders placed",
+    "t": "int"
+   },
+   {
+    "k": "p1",
+    "l": "Visit to cart",
+    "t": "pct",
+    "calc": "pct",
+    "a": "carts",
+    "b": "visits"
+   },
+   {
+    "k": "p2",
+    "l": "Cart to checkout",
+    "t": "pct",
+    "calc": "pct",
+    "a": "checkouts",
+    "b": "carts"
+   },
+   {
+    "k": "p3",
+    "l": "Checkout to order",
+    "t": "pct",
+    "calc": "pct",
+    "a": "orders",
+    "b": "checkouts"
+   },
+   {
+    "k": "p4",
+    "l": "Visit to order",
+    "t": "pct",
+    "calc": "pct",
+    "a": "orders",
+    "b": "visits"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Visits",
+    "fn": "sum",
+    "c": "visits",
+    "t": "int"
+   },
+   {
+    "l": "Orders placed",
+    "fn": "sum",
+    "c": "orders",
+    "t": "int"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "payments_mpesa",
+  "group": "Money",
+  "title": "M-Pesa transactions",
+  "desc": "Every STK push attempt with outcome and receipt.",
+  "roles": [
+   "owner",
+   "finance"
+  ],
+  "sql": "SELECT m.created_at, m.order_id, m.phone, m.amount, m.status, COALESCE(m.mpesa_receipt,'') AS receipt FROM mpesa_transactions m WHERE m.created_at >= :from AND m.created_at < :to ORDER BY m.id",
+  "cols": [
+   {
+    "k": "created_at",
+    "l": "Date",
+    "t": "datetime",
+    "eat": true
+   },
+   {
+    "k": "order_id",
+    "l": "Order #",
+    "t": "int"
+   },
+   {
+    "k": "phone",
+    "l": "Phone",
+    "t": "text"
+   },
+   {
+    "k": "amount",
+    "l": "Amount KSh",
+    "t": "money"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "receipt",
+    "l": "Receipt",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Attempts",
+    "fn": "count"
+   },
+   {
+    "l": "Amount KSh",
+    "fn": "sum",
+    "c": "amount",
+    "t": "money"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "refunds",
+  "group": "Money",
+  "title": "Refunds",
+  "desc": "Refund requests with decision, amount and M-Pesa reference.",
+  "roles": [
+   "owner",
+   "finance"
+  ],
+  "sql": "SELECT r.id, r.created_at, r.order_id, r.name, r.reason, r.status, r.amount_req, r.amount_ok, COALESCE(r.handled_by,'') AS handled_by, COALESCE(r.mpesa_ref,'') AS mpesa_ref, r.decided_at, r.paid_at FROM ops_refunds r WHERE r.created_at >= :from AND r.created_at < :to ORDER BY r.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "Refund #",
+    "t": "int"
+   },
+   {
+    "k": "created_at",
+    "l": "Requested",
+    "t": "datetime",
+    "eat": true
+   },
+   {
+    "k": "order_id",
+    "l": "Order #",
+    "t": "int"
+   },
+   {
+    "k": "name",
+    "l": "Customer",
+    "t": "text"
+   },
+   {
+    "k": "reason",
+    "l": "Reason",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "amount_req",
+    "l": "Asked KSh",
+    "t": "money"
+   },
+   {
+    "k": "amount_ok",
+    "l": "Approved KSh",
+    "t": "money"
+   },
+   {
+    "k": "handled_by",
+    "l": "Decided by",
+    "t": "text"
+   },
+   {
+    "k": "mpesa_ref",
+    "l": "M-Pesa ref",
+    "t": "text"
+   },
+   {
+    "k": "decided_at",
+    "l": "Decided",
+    "t": "datetime",
+    "eat": true
+   },
+   {
+    "k": "paid_at",
+    "l": "Paid",
+    "t": "datetime",
+    "eat": true
+   }
+  ],
+  "totals": [
+   {
+    "l": "Requests",
+    "fn": "count"
+   },
+   {
+    "l": "Approved KSh",
+    "fn": "sum",
+    "c": "amount_ok",
+    "t": "money"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "cashups",
+  "group": "Money",
+  "title": "Cash-ups",
+  "desc": "Counted versus expected cash per branch per day.",
+  "roles": [
+   "owner",
+   "finance"
+  ],
+  "sql": "SELECT c.day, c.branch, c.expected, c.counted, c.variance, COALESCE(c.by_name,'') AS by_name, COALESCE(c.note,'') AS note FROM ops_cashups c WHERE c.day >= :fromd AND c.day <= :tod ORDER BY c.day, c.branch",
+  "cols": [
+   {
+    "k": "day",
+    "l": "Date",
+    "t": "date"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "expected",
+    "l": "Expected KSh",
+    "t": "money"
+   },
+   {
+    "k": "counted",
+    "l": "Counted KSh",
+    "t": "money"
+   },
+   {
+    "k": "variance",
+    "l": "Variance KSh",
+    "t": "money"
+   },
+   {
+    "k": "by_name",
+    "l": "Submitted by",
+    "t": "text"
+   },
+   {
+    "k": "note",
+    "l": "Note",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Cash-ups",
+    "fn": "count"
+   },
+   {
+    "l": "Net variance KSh",
+    "fn": "sum",
+    "c": "variance",
+    "t": "money"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "expenses",
+  "group": "Money",
+  "title": "Expenses",
+  "desc": "Recorded expenses by date.",
+  "roles": [
+   "owner",
+   "finance"
+  ],
+  "sql": "SELECT e.expense_date, e.category, COALESCE(e.description,'') AS description, e.amount, COALESCE(e.branch,'') AS branch, COALESCE(e.paid_via,'') AS paid_via FROM expenses e WHERE e.expense_date >= :fromd AND e.expense_date <= :tod AND (:branch = '' OR e.branch = :branch) ORDER BY e.expense_date, e.id",
+  "cols": [
+   {
+    "k": "expense_date",
+    "l": "Date",
+    "t": "date"
+   },
+   {
+    "k": "category",
+    "l": "Category",
+    "t": "text"
+   },
+   {
+    "k": "description",
+    "l": "Description",
+    "t": "text"
+   },
+   {
+    "k": "amount",
+    "l": "Amount KSh",
+    "t": "money"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "paid_via",
+    "l": "Paid via",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Entries",
+    "fn": "count"
+   },
+   {
+    "l": "Total KSh",
+    "fn": "sum",
+    "c": "amount",
+    "t": "money"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "reviews",
+  "group": "Growth",
+  "title": "Customer reviews",
+  "desc": "Ratings and comments.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT r.created_at, r.order_id, COALESCE(r.name,'') AS name, r.rating, COALESCE(r.branch,'') AS branch, r.status, COALESCE(r.comment,'') AS comment FROM reviews r WHERE r.created_at >= :from AND r.created_at < :to ORDER BY r.id",
+  "cols": [
+   {
+    "k": "created_at",
+    "l": "Date",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "order_id",
+    "l": "Order #",
+    "t": "int"
+   },
+   {
+    "k": "name",
+    "l": "Name",
+    "t": "text"
+   },
+   {
+    "k": "rating",
+    "l": "Rating (1-5)",
+    "t": "int"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "comment",
+    "l": "Comment",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Reviews",
+    "fn": "count"
+   },
+   {
+    "l": "Average rating",
+    "fn": "avg",
+    "c": "rating",
+    "t": "num"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "referrals",
+  "group": "Growth",
+  "title": "Referrals",
+  "desc": "Referral codes used and rewards.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT r.created_at, r.code, r.referrer_phone9, r.referred_phone9, COALESCE(r.referred_name,'') AS referred_name, r.status, r.paid_at FROM ops_referrals r WHERE r.created_at >= :from AND r.created_at < :to ORDER BY r.id",
+  "cols": [
+   {
+    "k": "created_at",
+    "l": "Date",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "code",
+    "l": "Code",
+    "t": "text"
+   },
+   {
+    "k": "referrer_phone9",
+    "l": "Referrer (last 9)",
+    "t": "text"
+   },
+   {
+    "k": "referred_phone9",
+    "l": "Friend (last 9)",
+    "t": "text"
+   },
+   {
+    "k": "referred_name",
+    "l": "Friend name",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "paid_at",
+    "l": "Rewarded",
+    "t": "date",
+    "eat": true
+   }
+  ],
+  "totals": [
+   {
+    "l": "Referrals",
+    "fn": "count"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "standing_orders",
+  "group": "Growth",
+  "title": "Standing orders",
+  "desc": "Repeat baskets customers have set up.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT s.id, s.created_at, COALESCE(s.name,'') AS name, s.phone9, s.freq, s.next_date, s.status, s.fulfilment, COALESCE(s.branch,'') AS branch FROM ops_subs s WHERE s.created_at >= :from AND s.created_at < :to ORDER BY s.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "#",
+    "t": "int"
+   },
+   {
+    "k": "created_at",
+    "l": "Created",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "name",
+    "l": "Customer",
+    "t": "text"
+   },
+   {
+    "k": "phone9",
+    "l": "Phone (last 9)",
+    "t": "text"
+   },
+   {
+    "k": "freq",
+    "l": "Frequency",
+    "t": "text"
+   },
+   {
+    "k": "next_date",
+    "l": "Next date",
+    "t": "date"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "fulfilment",
+    "l": "Fulfilment",
+    "t": "text"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Standing orders",
+    "fn": "count"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "partners",
+  "group": "Marketplace",
+  "title": "Marketplace partner performance",
+  "desc": "Each partner's completed orders and sales in the period.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT p.id, p.name, p.status, p.tier, COALESCE(p.hygiene_score,0) AS hygiene_score, COUNT(o.id) AS orders, COALESCE(SUM(o.total),0) AS revenue FROM mk_partners p LEFT JOIN orders o ON o.partner_id = p.id AND o.status = 'completed' AND o.created_at >= :from AND o.created_at < :to GROUP BY p.id, p.name, p.status, p.tier, p.hygiene_score ORDER BY revenue DESC",
+  "cols": [
+   {
+    "k": "id",
+    "l": "Partner #",
+    "t": "int"
+   },
+   {
+    "k": "name",
+    "l": "Partner",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "tier",
+    "l": "Tier",
+    "t": "text"
+   },
+   {
+    "k": "hygiene_score",
+    "l": "Hygiene score",
+    "t": "int"
+   },
+   {
+    "k": "orders",
+    "l": "Completed orders",
+    "t": "int"
+   },
+   {
+    "k": "revenue",
+    "l": "Revenue KSh",
+    "t": "money"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Partners",
+    "fn": "count"
+   },
+   {
+    "l": "Revenue KSh",
+    "fn": "sum",
+    "c": "revenue",
+    "t": "money"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "activity_log",
+  "group": "Audit",
+  "title": "Activity and audit log",
+  "desc": "Tamper-evident record of sign-ins, changes and exports. Each row carries a hash that chains to the previous row.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT a.id, a.ts, a.category, a.action, a.actor, COALESCE(a.role,'') AS role, a.ip, COALESCE(a.target,'') AS target, COALESCE(a.detail,'') AS detail, a.outcome, a.hash FROM activity_log a WHERE a.ts >= :from AND a.ts < :to ORDER BY a.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "#",
+    "t": "int"
+   },
+   {
+    "k": "ts",
+    "l": "When",
+    "t": "datetime",
+    "eat": true
+   },
+   {
+    "k": "category",
+    "l": "Category",
+    "t": "text"
+   },
+   {
+    "k": "action",
+    "l": "Action",
+    "t": "text"
+   },
+   {
+    "k": "actor",
+    "l": "Who",
+    "t": "text"
+   },
+   {
+    "k": "role",
+    "l": "Role",
+    "t": "text"
+   },
+   {
+    "k": "ip",
+    "l": "IP address",
+    "t": "text"
+   },
+   {
+    "k": "target",
+    "l": "Target",
+    "t": "text"
+   },
+   {
+    "k": "detail",
+    "l": "Detail",
+    "t": "text"
+   },
+   {
+    "k": "outcome",
+    "l": "Outcome",
+    "t": "text"
+   },
+   {
+    "k": "hash",
+    "l": "Integrity hash",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Entries",
+    "fn": "count"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "security_events",
+  "group": "Audit",
+  "title": "Security events",
+  "desc": "Failed logins, lock-outs, attack probes and blocks.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT s.id, s.ts, s.sev, s.type, s.ip, COALESCE(s.actor,'') AS actor, COALESCE(s.path,'') AS path, COALESCE(s.detail,'') AS detail FROM sec_events s WHERE s.ts >= :from AND s.ts < :to ORDER BY s.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "#",
+    "t": "int"
+   },
+   {
+    "k": "ts",
+    "l": "When",
+    "t": "datetime",
+    "eat": true
+   },
+   {
+    "k": "sev",
+    "l": "Severity",
+    "t": "text"
+   },
+   {
+    "k": "type",
+    "l": "Type",
+    "t": "text"
+   },
+   {
+    "k": "ip",
+    "l": "IP address",
+    "t": "text"
+   },
+   {
+    "k": "actor",
+    "l": "Actor",
+    "t": "text"
+   },
+   {
+    "k": "path",
+    "l": "Path",
+    "t": "text"
+   },
+   {
+    "k": "detail",
+    "l": "Detail",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Events",
+    "fn": "count"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "email_log",
+  "group": "Audit",
+  "title": "Email log",
+  "desc": "Messages the system sent (or failed to send) through the cPanel mailbox.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT e.id, e.ts, e.to_addr, e.subject, e.status, COALESCE(e.error,'') AS error, COALESCE(e.by_name,'') AS by_name FROM email_log e WHERE e.ts >= :from AND e.ts < :to ORDER BY e.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "#",
+    "t": "int"
+   },
+   {
+    "k": "ts",
+    "l": "When",
+    "t": "datetime",
+    "eat": true
+   },
+   {
+    "k": "to_addr",
+    "l": "To",
+    "t": "text"
+   },
+   {
+    "k": "subject",
+    "l": "Subject",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "error",
+    "l": "Error",
+    "t": "text"
+   },
+   {
+    "k": "by_name",
+    "l": "Triggered by",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Messages",
+    "fn": "count"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ }
+]

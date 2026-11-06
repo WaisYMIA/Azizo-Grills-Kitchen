@@ -27,3 +27,10 @@ function ops_points(PDO $pdo, string $phone9): array {
     $s = $pdo->prepare('SELECT COALESCE(SUM(points),0) FROM ops_loyalty_adj WHERE phone9 = ?'); $s->execute([$phone9]);
     return ['earned' => intdiv($a + $b, 100), 'adj' => (int)$s->fetchColumn()];
 }
+
+/** v5.2: with TEAM_ONLY=1 and at least one active Owner, the shared admin/staff passwords stop working. */
+function team_shared_off(): bool {
+    if (getenv('TEAM_ONLY') !== '1') return false;
+    require_once __DIR__ . '/../db.php';
+    try { return (int)get_db()->query("SELECT COUNT(*) FROM team_accounts WHERE role = 'owner' AND active = 1")->fetchColumn() > 0; } catch (Throwable $e) { return false; }
+}

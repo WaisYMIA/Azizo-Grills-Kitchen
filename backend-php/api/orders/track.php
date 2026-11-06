@@ -21,11 +21,14 @@ $notFound = fn() => json_error("We couldn't find an order with that number. Chec
 if ($id <= 0) $notFound();
 
 $pdo = get_db();
-$q = $pdo->prepare('SELECT id, status, fulfilment, branch, pickup_time, created_at FROM orders WHERE id = ?');
+$q = $pdo->prepare('SELECT id, status, fulfilment, branch, pickup_time, created_at, delivery_code, customer_phone FROM orders WHERE id = ?');
 $q->execute([$id]);
 $o = $q->fetch();
 if (!$o) $notFound();
 // Status-only reply: no name, phone, address, items or prices.
 json_response(['order' => ['id' => (int)$o['id'], 'status' => $o['status'], 'fulfilment' => $o['fulfilment'],
     'branch' => $o['branch'], 'pickup_time' => $o['pickup_time'], 'created_at' => $o['created_at'],
-    'reviewed' => (bool)$pdo->query('SELECT 1 FROM reviews WHERE order_id = ' . (int)$o['id'])->fetchColumn()]]);
+    'reviewed' => (bool)$pdo->query('SELECT 1 FROM reviews WHERE order_id = ' . (int)$o['id'])->fetchColumn(),
+    'codeAvailable' => !empty($o['delivery_code']) && $o['status'] === 'out_for_delivery',
+    // the 4-digit handover code is shown only to someone who also knows the order's phone number
+    'deliveryCode' => (!empty($o['delivery_code']) && $o['status'] === 'out_for_delivery' && strlen($ph = substr(preg_replace('/\D/', '', (string)($_GET['phone'] ?? '')), -9)) >= 9 && $ph === substr(preg_replace('/\D/', '', (string)$o['customer_phone']), -9)) ? $o['delivery_code'] : null]]);

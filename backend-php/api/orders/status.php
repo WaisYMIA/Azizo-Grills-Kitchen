@@ -18,4 +18,5 @@ $result->execute([$status, $id]);
 if ($result->rowCount() === 0) json_error('Order not found', 404);
 
 $pdo->prepare('INSERT INTO order_status_log (order_id, status) VALUES (?, ?)')->execute([$id, $status]);
+require_once __DIR__ . '/../../lib/growth_helpers.php'; growth_notify($status, (int)$id); require_once __DIR__ . '/../../lib/activity.php'; activity_add('orders', 'order-status', ['target' => '#' . (int)$id, 'detail' => 'now ' . $status]);
 json_response(['ok' => true]);

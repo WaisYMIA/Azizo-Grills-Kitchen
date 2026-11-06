@@ -3,7 +3,9 @@
 require_once __DIR__ . '/../../lib/response.php';
 require_once __DIR__ . '/../../lib/jwt.php';
 cors_and_preflight();
+require_once __DIR__ . '/../../lib/ops_helpers.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') json_error('POST required', 405);
+if (team_shared_off()) json_error('Shared passwords are switched off. Sign in with your own username.', 403);
 if (STAFF_PASSWORD === '') json_error('Staff login is not set up yet — ask the admin to set STAFF_PASSWORD on the server', 503);
 
 if (!sec_is_local() && strlen(STAFF_PASSWORD) < 8 && !SEC_ALLOW_WEAK) json_error('Staff login is locked until STAFF_PASSWORD is at least 8 characters. See docs/SECURITY.md.', 503);
