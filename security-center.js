@@ -13,10 +13,10 @@
 
   function gate(msg){
     app.innerHTML = '<div class="gate panel"><h2>🔒 Security Center</h2><p style="color:var(--mute)">Admin only. Use the main admin password.</p>' + (K.base() ? '' : '<label class="f" for="gUrl">Server address</label><input id="gUrl" placeholder="https://api.yourdomain.co.ke">') +
-      '<label class="f" for="gPw" style="margin-top:10px">Admin password</label><input id="gPw" type="password" autocomplete="current-password"><div id="gErr">' + (msg ? '<div class="msg err">' + esc(msg) + '</div>' : '') + '</div><button class="btn gold" id="gGo" style="margin-top:12px">Sign in</button></div>';
+      '<label class="f" for="gUser" style="margin-top:10px">Your username (team members; leave empty to use the shared password)</label><input id="gUser" autocomplete="username" autocapitalize="off"><label class="f" for="gPw" style="margin-top:10px">Password</label><input id="gPw" type="password" autocomplete="current-password"><div id="gErr">' + (msg ? '<div class="msg err">' + esc(msg) + '</div>' : '') + '</div><button class="btn gold" id="gGo" style="margin-top:12px">Sign in</button></div>';
     var go = async function(){ if($('gUrl')) K.set('azizoAdminBackendUrl', $('gUrl').value.trim().replace(/\/+$/, '')); $('gErr').innerHTML = '';
-      try{ var pw = $('gPw').value, r; try{ r = await M.root('/api/auth/admin-login', { method: 'POST', body: J({ password: pw }) }); }catch(e1){ if(!/6-digit|authenticator/i.test(e1.message)) throw e1; var cd = (window.prompt('Enter the 6-digit code from your authenticator app') || '').trim(); r = await M.root('/api/auth/admin-login', { method: 'POST', body: J({ password: pw, code: cd }) }); }
-        sessionStorage.setItem(TK, r.token); draw(); }catch(e){ $('gErr').innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; } };
+      try{ var pw = $('gPw').value, r; try{ r = await M.root(($('gUser') && $('gUser').value.trim() ? '/api/auth/team-login' : '/api/auth/admin-login'), { method: 'POST', body: J({ username: $('gUser') ? $('gUser').value.trim() : '', password: pw }) }); }catch(e1){ if(!/6-digit|authenticator/i.test(e1.message)) throw e1; var cd = (window.prompt('Enter the 6-digit code from your authenticator app') || '').trim(); r = await M.root(($('gUser') && $('gUser').value.trim() ? '/api/auth/team-login' : '/api/auth/admin-login'), { method: 'POST', body: J({ username: $('gUser') ? $('gUser').value.trim() : '', password: pw, code: cd }) }); }
+        sessionStorage.setItem(TK, r.token); sessionStorage.setItem('mkTeamRole', r.role || 'owner'); draw(); }catch(e){ $('gErr').innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; } };
     $('gGo').onclick = go; $('gPw').onkeydown = function(e){ if(e.key === 'Enter') go(); };
   }
   function draw(){

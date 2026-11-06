@@ -985,6 +985,29 @@
     refreshProductGrids();
   }
 
+  // ---------- CUT-TO-ORDER (v5.1): pick how the butcher should prepare each kg item; it is added to the order notes ----------
+  const CUTS = {
+    red: ['As it comes', 'Cubed (stew / kebab)', 'Minced', 'Sliced thin', 'Bone-in', 'Boneless', 'Ribs / chops', 'Cut for nyama choma'],
+    chicken: ['As it comes', 'Whole', 'Cut in 4', 'Cut in 8', 'Breast fillets', 'Wings only', 'Thighs / drumsticks'],
+    fish: ['As it comes', 'Whole', 'Gutted and scaled', 'Fillets', 'Steaks']
+  };
+  let cutChoice = {};
+  try{ cutChoice = JSON.parse(sessionStorage.getItem('azCuts') || '{}') || {}; }catch(e){ cutChoice = {}; }
+  function cutKind(item){ const c = String(item.cat || '').toLowerCase(); return /chicken|poultry|turkey|duck/.test(c) ? 'chicken' : /fish|tilapia|omena/.test(c) ? 'fish' : /beef|goat|mutton|lamb|pork|meat|nyama|sausage|offal/.test(c) ? 'red' : ''; }
+  function cutSelectHTML(id, item){
+    if(item.unit !== 'kg' || (cart[id] && cart[id].source === 'ready')) return '';
+    const k = cutKind(item); if(!k) return '';
+    const cur = cutChoice[id] || CUTS[k][0];
+    return `<label class="cut-row" style="display:block;font-size:.78rem;margin-top:6px">How should we cut it?<select class="branch-select" style="margin-top:3px;padding:6px 8px" onchange="setCut('${id}', this.value)" aria-label="Cut for ${item.name}">${CUTS[k].map(o => `<option${o === cur ? ' selected' : ''}>${o}</option>`).join('')}</select></label>`;
+  }
+  function setCut(id, v){ cutChoice[id] = v; try{ sessionStorage.setItem('azCuts', JSON.stringify(cutChoice)); }catch(e){} }
+  window.setCut = setCut;
+  function cutNotes(){
+    const parts = [];
+    Object.keys(cart).forEach(id => { const it = cart[id].item, k = cutKind(it), v = cutChoice[id]; if(k && v && v !== CUTS[k][0] && it.unit === 'kg') parts.push(it.name + ': ' + v); });
+    return parts.length ? 'Cuts - ' + parts.join('; ') + '.' : '';
+  }
+
   function updateCartUI(){
     saveCartToStorage();
     refreshStockNote();
@@ -1017,6 +1040,7 @@
               <button onclick="changeQty('${id}',${Math.round((stepUp(qty, item) - qty) * 100) / 100})" aria-label="More ${item.name}">+</button>
             </div>
             ${item.unit === 'kg' ? qtyChipsHTML(id, cart[id].source || 'fresh', qty) : ''}
+            ${cutSelectHTML(id, item)}
           </div>
           <div class="ci-price">KSh ${lineTotal(item, qty)}</div>
         </div>`;
@@ -1874,7 +1898,7 @@
     }
 
     deliveryInfo.time = (document.getElementById('prefTime') || {}).value || 'No preference';
-    const notes = ((document.getElementById('orderNotes') || {}).value || '').trim();
+    const notes = [cutNotes(), ((document.getElementById('orderNotes') || {}).value || '').trim()].filter(Boolean).join(' ');
 
     const promo = appliedPromo ? {code: appliedPromo.code, pct: appliedPromo.discountPct, amount: Math.round(itemsSubtotal * appliedPromo.discountPct / 100)} : null;
     if(promo) total -= promo.amount;
@@ -2130,7 +2154,7 @@
           fulfilment: order.deliveryInfo.method === 'Pickup' ? 'pickup' : 'delivery',
           branch: order.deliveryInfo.branch || order.deliveryInfo.originBranch || null,
           pickup_time: order.deliveryInfo.time || null,
-          notes: order.notes || null,
+          notes: order.notes ? String(order.notes).slice(0, 300) : null,
           area: order.deliveryInfo.area || null,
           recurring: recurringOrderInfo ? recurringOrderInfo.frequency : null,
           delivery_address: order.deliveryInfo.address ? (order.deliveryInfo.area ? order.deliveryInfo.address + ' (' + order.deliveryInfo.area + ')' : order.deliveryInfo.address) : (order.deliveryInfo.area || null),
@@ -2247,6 +2271,11 @@
       html += '<ol class="track-steps">' + steps.map((s, i) =>
         `<li class="${i < idx ? 'done' : i === idx ? 'now' : ''}">${esc(TRACK_LABELS[s])}</li>`).join('') + '</ol>';
     }
+    if(o.deliveryCode){
+      html += `<div class="track-code" style="margin:10px 0;padding:12px;border:2px dashed #d4a63f;border-radius:10px;text-align:center"><div style="font-size:.85rem">Your delivery code</div><div style="font-size:2rem;font-weight:700;letter-spacing:.3em">${esc(o.deliveryCode)}</div><div style="font-size:.78rem;opacity:.8">Tell this code to the rider only when you have received your order.</div></div>`;
+    }else if(o.codeAvailable){
+      html += `<div class="track-code" style="margin:10px 0"><label style="font-size:.85rem" for="trackPhone">Your order is on its way. Enter the phone number you ordered with to see your delivery code.</label><input id="trackPhone" type="tel" inputmode="numeric" placeholder="07XX XXX XXX" style="width:100%;margin:6px 0"><button class="btn" type="button" onclick="doTrackOrder()">Show my code</button></div>`;
+    }
     html += `<div class="order-history-meta">${o.fulfilment === 'pickup' ? 'Pickup' : 'Delivery'}${o.branch ? ' · ' + esc(o.branch) : ''}${o.pickup_time ? ' · ' + esc(o.pickup_time) : ''}</div>`;
     if(o.status === 'completed'){
       html += o.reviewed ? '<p class="account-note">Thanks for reviewing this order ⭐</p>' : reviewFormHTML(o);
@@ -2259,9 +2288,10 @@
     if(!idEl || !out) return;
     const id = String(idEl.value).replace(/\D/g, '');
     if(!id){ out.innerHTML = '<p class="track-err">Enter your order number.</p>'; return; }
+    const tp = document.getElementById('trackPhone'), ph = tp ? String(tp.value).replace(/\D/g, '') : '';
     out.innerHTML = '<p class="order-history-empty">Looking up…</p>';
     try{
-      const data = await apiFetch(`/orders/track?id=${encodeURIComponent(id)}`);
+      const data = await apiFetch(`/orders/track?id=${encodeURIComponent(id)}${ph ? '&phone=' + encodeURIComponent(ph) : ''}`);
       out.innerHTML = renderTrackResult(data);
       rememberTrackedOrder(Number(id), '');
     }catch(e){

@@ -3,6 +3,8 @@
   'use strict';
   var K = window.KK, esc = K.esc, O = window.OPS = {};
   O.api = function(path, opts, token){ return K.apiAt('/api/ops', path, opts, token); };
+  O.gApi = function(path, opts, token){ return K.apiAt('/api/growth', path, opts, token); };
+  O.aiApi = function(path, opts, token){ return K.apiAt('/api/ai', path, opts, token); };
   // very small, safe markdown renderer for the SOP library (headings, lists, bold, quotes, paragraphs)
   O.md = function(src){
     var inl = function(t){ return esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`(.+?)`/g, '<code>$1</code>'); };

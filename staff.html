@@ -121,6 +121,7 @@
   <label for="urlIn">Backend URL <span style="font-weight:400">(leave blank if same website)</span></label>
   <input type="text" id="urlIn" placeholder="https://your-backend.example.com" autocapitalize="off" autocomplete="off">
   <label for="passIn">Staff password</label>
+  <input id="userIn" placeholder="Your username (empty = shared staff password)" autocomplete="username" autocapitalize="off">
   <input type="password" id="passIn" placeholder="Staff password" onkeydown="if(event.key==='Enter')login()">
   <button onclick="login()">Sign in</button>
   <div class="err" id="gateErr" role="alert"></div>
@@ -242,7 +243,8 @@
     if(!pass){ $('gateErr').textContent = 'Enter the staff password.'; return; }
     localStorage.setItem(URL_KEY, url);
     try{
-      const res = await fetch(url + '/api/auth/staff-login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password: pass})});
+      const un = ($('userIn').value || '').trim();
+      const res = await fetch(url + (un ? '/api/auth/team-login' : '/api/auth/staff-login'), {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password: pass, username: un})});
       const data = await res.json().catch(() => ({}));
       if(!res.ok) throw new Error(data.error || ('Sign-in failed (' + res.status + ')'));
       sessionStorage.setItem(TOKEN_KEY, data.token);

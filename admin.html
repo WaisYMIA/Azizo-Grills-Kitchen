@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="robots" content="noindex, nofollow">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Azizo Menu Admin</title>
@@ -203,6 +204,7 @@
   <label for="backendUrlInput">Backend URL</label>
   <input type="text" id="backendUrlInput" placeholder="https://your-backend.example.com (leave blank if same domain)">
   <label for="passInput">Admin Password</label>
+  <input id="userInput" placeholder="Your username (team members; empty = shared password)" autocomplete="username" autocapitalize="off">
   <input type="password" id="passInput" placeholder="Admin password" onkeydown="if(event.key==='Enter')doAdminLogin()">
   <button onclick="doAdminLogin()">Log In</button>
   <div class="error-msg" id="gateError"></div>
@@ -434,16 +436,17 @@
     if(!password){ errEl.textContent = 'Enter the admin password.'; return; }
     localStorage.setItem('azizoAdminBackendUrl', backendUrl);
     try{
-      const res = await fetch(`${backendUrl.replace(/\/+$/, '')}/api/auth/admin-login`, {
+      const uname = (document.getElementById('userInput').value || '').trim();
+      const res = await fetch(`${backendUrl.replace(/\/+$/, '')}/api/auth/${uname ? 'team-login' : 'admin-login'}`, {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({password}),
+        body: JSON.stringify({password, username: uname}),
       });
       let data = await res.json().catch(() => ({}));
       if(res.status === 401 && data.needCode){
         // 2-step sign-in is switched on: ask for the 6-digit authenticator code, then retry.
         const code = (window.prompt('Enter the 6-digit code from your authenticator app') || '').trim();
         if(!code) throw new Error('A 6-digit code is required');
-        const r2 = await fetch(`${backendUrl.replace(/\/+$/, '')}/api/auth/admin-login`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({password, code}) });
+        const r2 = await fetch(`${backendUrl.replace(/\/+$/, '')}/api/auth/${uname ? 'team-login' : 'admin-login'}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({password, code, username: uname}) });
         data = await r2.json().catch(() => ({}));
         if(!r2.ok) throw new Error(data.error || `Login failed (${r2.status})`);
       } else if(!res.ok) throw new Error(data.error || `Login failed (${res.status})`);

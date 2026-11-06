@@ -35,8 +35,14 @@
       var nx = NEXT[o.status], closed = o.status === 'completed' || o.status === 'cancelled';
       return '<div class="panel ord" style="margin-bottom:10px"><h4>#' + o.id + ' · ' + esc(o.customer || '') + ' <span class="pill ' + (closed ? '' : 'new') + '">' + esc(o.status.replace(/_/g, ' ')) + '</span></h4><div class="kmeta" style="color:var(--mute)">' + esc(o.phone) + ' · ' + esc(o.fulfilment) + (o.address ? ' · ' + esc(o.address) : '') + '</div><ul style="margin:8px 0;padding-left:18px">' +
         o.items.map(function(i){ return '<li>' + M.fmtQty(i.qty, i.unit) + (i.unit === 'kg' ? ' kg' : ' ×') + ' ' + esc(i.name) + ' <span style="color:var(--mute)">' + money(i.line_total) + '</span></li>'; }).join('') + '</ul><b>Total ' + money(o.total) + '</b> <span class="kmeta" style="color:var(--mute)">(items ' + money(o.subtotal) + ' + delivery ' + money(o.deliveryFee) + ') · ' + esc(o.payment) + '</span>' +
-        (o.notes ? '<p class="kmeta" style="color:var(--mute)">' + esc(o.notes) + '</p>' : '') + (closed ? '' : '<div style="margin-top:8px">' + (nx ? '<button class="btn sm gold" data-s="' + o.id + '|' + nx[0] + '">' + nx[1] + '</button> ' : '') + '<button class="btn sm ghost" data-s="' + o.id + '|cancelled">Cancel</button></div>') + '</div>'; }).join('') : '<div class="empty">No orders yet.</div>';
-    pane.querySelectorAll('[data-s]').forEach(function(b){ b.onclick = async function(){ var a = b.dataset.s.split('|'); if(a[1] === 'cancelled' && !confirm('Cancel this order?')) return; try{ await api('/partner/orders/' + a[0] + '/status', { method: 'PATCH', body: M.json({ status: a[1] }) }); ordersTab(); }catch(e){ K.toast(e.message); } }; });
+        (o.notes ? '<p class="kmeta" style="color:var(--mute)">' + esc(o.notes) + '</p>' : '') + (closed ? '' : '<div style="margin-top:8px">' + (nx ? '<button class="btn sm gold" data-s="' + o.id + '|' + nx[0] + '"' + (o.needsCode && nx[0] === 'completed' ? ' data-code="1"' : '') + '>' + nx[1] + '</button> ' : '') + '<button class="btn sm ghost" data-s="' + o.id + '|cancelled">Cancel</button></div>') + '</div>'; }).join('') : '<div class="empty">No orders yet.</div>';
+    pane.querySelectorAll('[data-s]').forEach(function(b){ b.onclick = async function(){ var a = b.dataset.s.split('|'); if(a[1] === 'cancelled' && !confirm('Cancel this order?')) return; var body = { status: a[1] };
+      if(a[1] === 'completed' && b.dataset.code === '1'){   // v5.1 delivery handover code
+        var c = window.prompt('Ask the customer for the 4-digit delivery code (on their order tracking page) and type it here.\nLeave empty only if they cannot give it.');
+        if(c === null) return; c = c.trim();
+        if(c){ body.code = c; } else { if(!window.confirm('Complete this delivery WITHOUT a code? Azizo will see this in its audit log.')) return; var why = window.prompt('Why could the code not be used? (e.g. customer phone off)'); if(!why || why.trim().length < 5) return K.toast('A reason is needed'); body.noCode = true; body.reason = why.trim(); }
+      }
+      try{ await api('/partner/orders/' + a[0] + '/status', { method: 'PATCH', body: M.json(body) }); ordersTab(); }catch(e){ K.toast(e.message); } }; });
   }
   async function itemsTab(){
     var pane = $('pane'), listed = {}; me.items.forEach(function(i){ listed[i.id] = 1; });
@@ -74,9 +80,12 @@
     try{ var d = await OPS.api('/partner/dashboard', {}, tok()); }catch(e){ pane.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; return; }
     var c = function(n, l, bad){ return '<div class="stat"><b' + (bad ? ' style="color:#ff8a9c"' : '') + '>' + (n == null ? '-' : n) + '</b>' + l + '</div>'; };
     pane.innerHTML = '<div class="cards">' + c(money(d.today.s), 'Sales today (' + d.today.n + ')') + c(money(d.week.s), 'Last 7 days (' + d.week.n + ')') + c(money(d.month.s), 'Last 30 days (' + d.month.n + ')') + c(d.openOrders, 'Orders to handle now', d.openOrders > 0) + c(d.rating.avg == null ? '-' : d.rating.avg + ' ★', 'Customer rating (' + d.rating.count + ')') + c(d.completionPct30 == null ? '-' : d.completionPct30 + '%', 'Orders completed (30 days)') + c(d.itemsSoldOut + ' of ' + d.itemsListed, 'Items marked sold out') + '</div>' +
+      (d.staleItems ? '<div class="msg info" role="status"><b>' + d.staleItems + ' of your items have not been checked for 3+ days.</b> Customers may order what you no longer have. <button class="btn sm gold" id="cfStock">Everything is in stock as listed</button> <button class="btn sm" id="cfItems">Review my items</button></div>' : '') +
       (d.answeredTickets ? '<div class="msg info">Azizo replied to ' + d.answeredTickets + ' of your support tickets. <a href="#" id="goSup">Open Support</a></div>' : '') +
       '<div class="panel" style="margin-top:12px"><h3 style="margin-top:0">Last 7 days</h3>' + (d.daily.length ? OPS.bars(d.daily, function(x){ return x.d.slice(5); }, function(x){ return x.s; }, function(v){ return money(v); }) : '<p style="color:var(--mute)">No orders yet this week.</p>') + '</div>' +
       '<div class="panel" style="margin-top:12px"><h3 style="margin-top:0">Your best sellers (30 days)</h3>' + (d.top.length ? OPS.bars(d.top, function(x){ return x.name; }, function(x){ return x.s; }, function(v){ return money(v); }) : '<p style="color:var(--mute)">No sales yet.</p>') + '</div>';
+    var cs = $('cfStock'); if(cs) cs.onclick = async function(){ try{ await OPS.api('/partner/confirm-stock', { method: 'POST' }, tok()); K.toast('Thanks, stock confirmed'); dashTab(); }catch(e){ K.toast(e.message); } };
+    var ci = $('cfItems'); if(ci) ci.onclick = function(){ tab = 'items'; draw(); };
     var g = $('goSup'); if(g) g.onclick = function(e){ e.preventDefault(); tab = 'sup'; draw(); };
   }
   async function stmtTab(){
@@ -96,6 +105,12 @@
     pane.innerHTML = '<div class="panel"><h3 style="margin-top:0">Go-live progress: ' + done + ' of ' + g.checks.length + ' steps</h3><p class="kmeta" style="color:var(--mute)">Azizo switches you on once every step below is done. Steps marked automatic update by themselves. For the others, speak to your Azizo onboarding officer.</p>' + g.checks.map(function(c){ return '<div class="chk"><span class="' + (c.ok ? 'ok' : 'no') + '" aria-hidden="true">' + (c.ok ? '✔' : '○') + '</span><label>' + esc(c.label) + '</label></div>'; }).join('') + '</div>';
   }
   function supTab(){ OPS.ticketPanel($('pane'), tok()); }
-  function sopTab(){ OPS.sopPanel($('pane'), tok(), 'Butchery').catch(function(e){ $('pane').innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }); }
+  // v5.3: ask the SOP handbook in plain words (appears only when the server has AI on)
+  async function aiSop(){
+    try{ var st = await K.apiAt('/api/ai', '/status', {}, ''); if(!st.enabled) return; }catch(e){ return; }
+    $('aiSop').innerHTML = '<div class="panel" style="margin-bottom:12px"><h3 style="margin:0">Ask the handbook</h3><p class="kmeta" style="color:var(--mute)">Type a question, for example: how cold must the chiller be? The answer comes only from the SOP documents. AI can be wrong, so check the document.</p><input id="aiQ" maxlength="300" placeholder="Your question"><div id="aiA"></div><button class="btn gold" id="aiGo" style="margin-top:8px">Ask</button></div>';
+    $('aiGo').onclick = async function(){ var a = $('aiA'); a.innerHTML = '<p>Thinking...</p>'; try{ var r = await OPS.aiApi('/partner/sop-help', { method: 'POST', body: JSON.stringify({ question: $('aiQ').value }) }, tok()); a.innerHTML = '<div class="msg" style="white-space:pre-wrap">' + esc(r.answer) + '</div>' + (r.sources && r.sources.length ? '<small>From: ' + r.sources.map(esc).join(', ') + '</small>' : ''); }catch(e){ a.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; } };
+  }
+  function sopTab(){ $('pane').innerHTML = '<div id="aiSop"></div><div id="sopH"></div>'; aiSop(); OPS.sopPanel($('sopH'), tok(), 'Butchery').catch(function(e){ $('pane').innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }); }
   if(tok()) start(); else gate();
 })();
