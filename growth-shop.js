@@ -62,4 +62,33 @@
     return h + '<details class="gr-refund" style="margin-top:10px"><summary style="cursor:pointer">Something wrong with this order?</summary><div style="padding-top:8px"><input class="account-field" id="grRfPhone" type="tel" inputmode="numeric" placeholder="Phone number you ordered with"><select class="account-field" id="grRfWhy"><option value="late">It was late</option><option value="wrong_item">Wrong item</option><option value="missing_item">Item missing</option><option value="quality">Quality problem</option><option value="overcharged">Charged too much</option><option value="other">Something else</option></select><textarea class="account-field" id="grRfDet" rows="2" maxlength="500" placeholder="Tell us what happened"></textarea><button type="button" class="account-submit" onclick="grRefund(' + Number(o.id) + ')">Ask for a refund or replacement</button><div class="account-note" id="grRfMsg"></div><p class="account-note" style="font-size:.78rem">Tell us within 24 hours. We reply within one working day.</p></div></details>';
   };
   window.grRefund = async function(id){ var m = $('grRfMsg'); try{ var r = await api('/refund-request', { method: 'POST', body: JSON.stringify({ orderId: id, phone: $('grRfPhone').value, reason: $('grRfWhy').value, details: $('grRfDet').value }) }); m.textContent = r.message + ' Reference ' + r.ref + '.'; }catch(e){ m.textContent = e.message; } };
+
+  // ---- pay with points at checkout (v5.6) ----
+  window.AZ_REDEEM = 0;
+  var rdBox = null, rdInfo = null;
+  async function rdLoad(){
+    if(!on()) return null;
+    var a = null; try{ a = JSON.parse(localStorage.getItem('azizoCustomerAuth') || 'null'); }catch(e){}
+    if(!a || !a.token) return null;
+    try{ var c = await getCfg(); if(!c.redeem || !c.redeem.on) return null; return await api('/points'); }catch(e){ return null; }
+  }
+  window.grRedeemRefresh = function(base){
+    if(!rdBox) return;
+    var inf = rdInfo; if(!inf || !inf.on){ window.AZ_REDEEM = 0; return; }
+    var max = Math.floor(Math.min(inf.points, base * inf.maxPct / 100) / 100) * 100;
+    if(base < inf.minOrder || max < 100){ window.AZ_REDEEM = 0; rdBox.style.display = 'none'; return; }
+    rdBox.style.display = '';
+    var ck = rdBox.querySelector('input'); rdBox.querySelector('[data-rd-t]').textContent = 'Use my points: save KSh ' + max + ' (you have ' + inf.points + ')';
+    window.AZ_REDEEM = ck.checked ? max : 0;
+  };
+  async function rdInit(){
+    var st = $('promoStatus'); if(!st || $('grRedeem')) return;
+    rdInfo = await rdLoad(); if(!rdInfo || !rdInfo.on) return;
+    rdBox = document.createElement('label'); rdBox.id = 'grRedeem'; rdBox.style.cssText = 'display:none;gap:8px;align-items:center;margin:10px 0;font-size:.9rem';
+    rdBox.innerHTML = '<input type="checkbox"> <span data-rd-t></span>';
+    var anchor = st.closest('.promo-box') || st; anchor.parentNode.insertBefore(rdBox, anchor.nextSibling);
+    rdBox.querySelector('input').onchange = function(){ try{ updateCartUI(); }catch(e){} };
+    try{ updateCartUI(); }catch(e){}
+  }
+  var oc = window.openCart; if(typeof oc === 'function') window.openCart = function(){ var r = oc.apply(this, arguments); setTimeout(function(){ rdInit().catch(function(){}); }, 0); return r; };
 })();

@@ -1050,7 +1050,9 @@
     const itemsTotal = getItemsSubtotal();
     const fee = (selectedDeliveryMethod === 'delivery' && deliveryFeeInfo) ? deliveryFeeInfo.fee : 0;
     const promoOff = appliedPromo ? Math.round(itemsTotal * appliedPromo.discountPct / 100) : 0;
-    document.getElementById('cartTotal').textContent = `KSh ${itemsTotal + fee - promoOff}`;
+    try{ if(window.grRedeemRefresh) window.grRedeemRefresh(itemsTotal - promoOff); }catch(e){}
+    const rdm = Math.min(Number(window.AZ_REDEEM) || 0, Math.max(0, itemsTotal - promoOff - 1));
+    document.getElementById('cartTotal').textContent = `KSh ${itemsTotal + fee - promoOff - rdm}`;
     document.getElementById('waSend').disabled = ids.length===0;
 
     renderGrocerySuggestions();
@@ -1902,8 +1904,10 @@
 
     const promo = appliedPromo ? {code: appliedPromo.code, pct: appliedPromo.discountPct, amount: Math.round(itemsSubtotal * appliedPromo.discountPct / 100)} : null;
     if(promo) total -= promo.amount;
+    const redeemPoints = Math.min(Number(window.AZ_REDEEM) || 0, Math.max(0, total - 1)) >= 100 ? (Number(window.AZ_REDEEM) || 0) : 0;
+    if(redeemPoints) total -= redeemPoints;
 
-    return {lines, itemsSubtotal, total, clientName, clientPhone, deliveryInfo, notes, payment: selectedPayMethod, promo};
+    return {lines, itemsSubtotal, total, clientName, clientPhone, deliveryInfo, notes, payment: selectedPayMethod, promo, redeemPoints};
   }
 
   function validateOrder(order){
@@ -2163,6 +2167,7 @@
           delivery_fee: order.deliveryInfo.fee || 0,
           payment_method: order.payment,
           promo_code: order.promo ? order.promo.code : null,
+          redeem_points: order.redeemPoints || 0,
           items_subtotal: order.itemsSubtotal,
           total: order.total,
           items: order.lines.map(l => ({id: l.id || null, name: l.name, qty: l.qty, unit: l.unit, price: l.price})),

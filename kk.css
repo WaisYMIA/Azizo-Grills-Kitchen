@@ -110,3 +110,43 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .again{margin:0 0 14px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .mk-steps{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));margin:16px 0}.mk-steps .step{min-width:0}
+
+/* ---- Azizo Kitchens mascot (v6.5): decorative, never blocks content ---- */
+.hero-mascot{display:none;margin:0;position:relative;pointer-events:none;user-select:none}
+.hero-mascot img{display:block;height:310px;width:auto;margin-left:auto;filter:drop-shadow(0 14px 18px rgba(0,0,0,.55));transform-origin:50% 100%;animation:mascotWave 5.5s ease-in-out infinite}
+.mascot-say{position:relative;background:var(--cream);color:#1a1205;border-radius:14px;padding:9px 30px 9px 13px;font:600 .88rem/1.35 'Inter',sans-serif;max-width:260px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.mascot-say::after{content:'';position:absolute;width:14px;height:14px;background:var(--cream);transform:rotate(45deg)}
+.mascot-say button{position:absolute;top:2px;right:2px;border:0;background:transparent;color:#6b5a3a;font-size:1.05rem;line-height:1;width:28px;height:28px;cursor:pointer;border-radius:50%}
+.mascot-say button:hover{background:rgba(0,0,0,.08)}
+.mascot-say b{color:#8a1020}
+.mascot-chip{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.mascot-chip img{width:56px;height:56px;border-radius:50%;border:2px solid var(--gold);background:radial-gradient(circle at 50% 40%,#3a2d1d,#15110d);object-fit:cover;flex:none}
+.mascot-chip .mascot-say{padding:8px 30px 8px 12px;font-size:.82rem}
+.mascot-chip .mascot-say::after{left:-6px;top:20px}
+.has-mascot .hero .wrap{position:relative}
+.hero-copy{min-width:0}
+.mascot-off .hero-mascot,.mascot-off .mascot-chip{display:none!important}
+@media(min-width:900px){
+  .has-mascot .hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;column-gap:20px}
+  .has-mascot .hero .wrap>*{grid-column:1/-1}
+  .has-mascot .hero .wrap>.hero-copy{grid-column:1;grid-row:1}
+  .has-mascot .hero .wrap>.hero-mascot{display:block;grid-column:2;grid-row:1;align-self:end;margin-bottom:-74px;z-index:0}
+  .no-tuck .hero .wrap>.hero-mascot{margin-bottom:0;align-self:center}
+  .has-mascot .hero .locbar,.has-mascot .hero .chips,.has-mascot .hero .slotnote{position:relative;z-index:1}
+  .hero-copy{display:flex;flex-direction:column}
+  .hero-copy .mascot-chip{order:9;margin:16px 0 0;align-self:flex-end}
+  .hero-copy .mascot-chip img{display:none}
+  .hero-copy .mascot-chip .mascot-say::after{left:auto;right:-6px;top:50%;margin-top:-7px}
+  .hero-copy .mascot-chip .mascot-say{max-width:340px;font-size:.9rem}
+}
+@media(max-width:899px){.hero-mascot{display:none!important}}
+/* friendly empty and waiting states */
+.has-mascot .empty::before{content:'';display:block;width:76px;height:76px;margin:0 auto 10px;border-radius:50%;border:2px solid var(--gold);background:url(mascot-head.webp) center/cover,radial-gradient(circle at 50% 40%,#3a2d1d,#15110d)}
+.has-mascot .empty.loading::before{animation:mascotBob 1.1s ease-in-out infinite}
+.mdone{display:flex;align-items:center;gap:12px;margin-bottom:6px}.mdone h3{margin:0}
+.mascot-av{width:64px;height:64px;border-radius:50%;border:2px solid var(--gold);background:radial-gradient(circle at 50% 40%,#3a2d1d,#15110d);object-fit:cover;flex:none}
+.kk-foot-brand{display:flex;align-items:center;gap:10px}.kk-foot-brand img{width:44px;height:44px;border-radius:50%;border:2px solid var(--gold);background:#15110d;object-fit:cover}
+@keyframes mascotWave{0%,86%,100%{transform:rotate(0)}90%{transform:rotate(-1.6deg)}94%{transform:rotate(1.4deg)}}
+@keyframes mascotBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+/* partner "how it works" cards: stack on phones (the order tracker uses .steps too) */
+@media(max-width:700px){.steps:has(>.step){flex-direction:column;gap:12px}.steps>.step{flex:none}}

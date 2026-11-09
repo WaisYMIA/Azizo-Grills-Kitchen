@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+<title>Royalty statement | Azizo Butchery and Grill</title>
+<style>body{font:15px/1.5 Arial,sans-serif;background:#0B0A09;color:#f4efe6;margin:0}main{max-width:720px;margin:0 auto;padding:20px 16px}h1{font-size:1.4rem;margin:.2em 0}.card{background:#17140f;border:1px solid #3a3226;border-radius:10px;padding:14px;margin:12px 0}table{border-collapse:collapse;width:100%}td,th{padding:6px 8px;border-bottom:1px solid #2c2619;text-align:left}td:last-child,th:last-child{text-align:right}.big{font-size:1.5rem;color:#e2b04a;font-weight:700}.m{color:#a89f8f;font-size:.85rem}button{background:#e2b04a;border:0;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer}@media print{body{background:#fff;color:#000}.card{border-color:#999;background:#fff}button{display:none}.big{color:#000}}</style></head>
+<body><main><div class="m">Azizo Butchery and Grill</div><h1 id="t">Royalty statement</h1><div id="b" class="card">Loading…</div></main>
+<script>
+(function(){
+  var q = new URLSearchParams(location.search), b = document.getElementById('b');
+  var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var kes = function(n){ return 'KSh ' + Number(n || 0).toLocaleString('en-KE'); };
+  fetch('/api/branchops/public/statement/' + encodeURIComponent(q.get('id') || '0') + '?k=' + encodeURIComponent(q.get('k') || ''), { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : Promise.reject(); }).then(function(d){
+    var s = d.statement; document.getElementById('t').textContent = 'Royalty statement ' + s.ref;
+    b.innerHTML = '<div class="m">' + esc(s.franchisee) + ' &middot; ' + esc(s.branchName) + ' &middot; month ' + esc(s.period) + '</div><p class="big">' + kes(s.total) + ' <span class="m">' + (s.status === 'paid' ? 'PAID' : 'due') + '</span></p><table><tr><th>Net completed sales</th><td>' + kes(s.gross) + '</td></tr><tr><td>Approved refunds already deducted</td><td>' + kes(s.refunds) + '</td></tr><tr><td>Royalty (' + esc(s.royalty_pct) + '%)</td><td>' + kes(s.royalty) + '</td></tr><tr><td>Marketing levy (' + esc(s.marketing_pct) + '%)</td><td>' + kes(s.marketing) + '</td></tr></table>' +
+      '<h2 style="font-size:1.05rem">Daily sales</h2><table><tr><th>Date</th><th>Orders</th><th>Sales</th></tr>' + s.days.map(function(x){ return '<tr><td>' + esc(x.day) + '</td><td>' + x.orders + '</td><td>' + kes(x.gross) + '</td></tr>'; }).join('') + '</table><p class="m">Payable under your franchise agreement. Questions: WhatsApp +254724888057.</p><button onclick="window.print()">Print or save as PDF</button>';
+  }).catch(function(){ b.textContent = 'This statement link is not valid. Ask Azizo for a new link.'; });
+})();
+</script></body></html>

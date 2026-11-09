@@ -51,7 +51,7 @@
   async function search(){
     drawChips(); DATA = null; $('again').innerHTML = '';
     if(!state.area && state.lat == null){ $('kitchens').innerHTML = '<div class="empty">Choose your area (or tap “Use my location”) to see kitchens that deliver to you.</div>'; $('trads').innerHTML = ''; $('tagchips').innerHTML = ''; say(''); return; }
-    $('kitchens').innerHTML = '<div class="empty">Finding kitchens near you…</div>';
+    $('kitchens').innerHTML = '<div class="empty loading">Finding kitchens near you…</div>';
     try{
       var q = '/search?date=' + state.date + (state.area ? '&area=' + encodeURIComponent(state.area) : '&lat=' + state.lat + '&lng=' + state.lng);
       DATA = await K.api(q);
@@ -224,7 +224,7 @@
     }catch(e){ err.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; $('cGo').disabled = false; drawTotals(); }
   }
   function done(r, phone){
-    var h = '<h3>' + t('Order received') + ' 🎉</h3><div class="msg ok">Order <b>#' + r.id + '</b> with <b>' + esc(r.kitchen) + '</b>. Total <b>' + money(r.total) + '</b> (delivery ' + money(r.fee) + (r.discount ? ', you saved ' + money(r.discount) : '') + '), delivered ' + esc(r.window) + '.</div>';
+    var h = '<div class="mdone"><img class="mascot-av" src="mascot-head.webp" alt="" width="64" height="64"><h3>' + t('Order received') + ' 🎉</h3></div><div class="msg ok">Order <b>#' + r.id + '</b> with <b>' + esc(r.kitchen) + '</b>. Total <b>' + money(r.total) + '</b> (delivery ' + money(r.fee) + (r.discount ? ', you saved ' + money(r.discount) : '') + '), delivered ' + esc(r.window) + '.</div>';
     if(r.deliveryCode) h += '<div class="kmeta"><b>' + t('Your delivery code') + '</b></div><div class="codebox" aria-label="Delivery code">' + esc(r.deliveryCode) + '</div><p class="kmeta">' + t('Give this code to the rider when your food arrives.') + '</p>';
     if(r.payment === 'mpesa_now'){ h += '<div id="payBox" class="msg info" aria-live="polite">' + (r.stk && r.stk.started ? '📲 Check your phone and enter your M-Pesa PIN. The kitchen sees your order once payment is received.' : 'We could not send the M-Pesa prompt' + (r.stk && r.stk.error ? ' (' + esc(r.stk.error) + ')' : '') + '.') + '</div><div class="mini" style="margin-bottom:10px"><button class="btn sm" id="payAgain" type="button">Send prompt again</button><button class="btn sm" id="payRider" type="button">Pay the rider instead</button></div>'; }
     else h += '<p class="kmeta">The kitchen will confirm shortly. Keep your phone nearby.</p>';

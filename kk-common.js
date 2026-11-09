@@ -89,7 +89,7 @@
   };
   K.footer = function(){
     var el = K.$('kkFooter'); if(!el) return;
-    el.innerHTML = '<footer class="kk-foot"><div class="wrap"><b style="color:var(--gold2);font-family:Oswald;letter-spacing:.06em">AZIZO KITCHENS</b><p>Homemade Kenyan lunch and dinner from trusted home kitchens near you, marketed and quality-checked by Azizo Butchery &amp; Grill. Each kitchen is an independent partner business.</p>' +
+    el.innerHTML = '<footer class="kk-foot"><div class="wrap"><div class="kk-foot-brand"><img src="mascot-head.webp" alt="" width="44" height="44" loading="lazy"><b style="color:var(--gold2);font-family:Oswald;letter-spacing:.06em">AZIZO KITCHENS</b></div><p>Homemade Kenyan lunch and dinner from trusted home kitchens near you, marketed and quality-checked by Azizo Butchery &amp; Grill. Each kitchen is an independent partner business.</p>' +
       '<p class="kmeta">Delivering in: <a href="kitchens-syokimau.html">Syokimau</a> · <a href="kitchens-umoja.html">Umoja</a> · <a href="kitchens-buruburu.html">Buruburu</a> · <a href="kitchens-utawala.html">Utawala</a></p><p><a href="kitchens.html">Order</a> · <a href="kitchen-partners.html">Cook with us</a> · <a href="kitchen-portal.html">Kitchen login</a> · <a href="index.html">Azizo Butchery &amp; Grill</a> · <a href="https://wa.me/254724888057" target="_blank" rel="noopener">WhatsApp 0724 888 057</a></p></div></footer>';
   };
 
@@ -125,4 +125,15 @@
       if(!open.contains(document.activeElement)){ a.focus(); e.preventDefault(); } else if(e.shiftKey && document.activeElement === a){ z.focus(); e.preventDefault(); } else if(!e.shiftKey && document.activeElement === z){ a.focus(); e.preventDefault(); } }
   });
   K.lazyImg = function(src, alt){ return '<img src="' + K.esc(src) + '" alt="' + K.esc(alt || '') + '" loading="lazy" decoding="async">'; };
+})();
+// Mascot greeting (v6.5): a friendly line that changes with the time of day, and can be hidden for good.
+(function(){
+  function run(){
+    var off = false; try{ off = localStorage.getItem('azMascotOff') === '1'; }catch(e){}
+    if(off) document.documentElement.classList.add('mascot-off');
+    var h = new Date().getHours(), hi = h < 11 ? 'Habari za asubuhi!' : h < 16 ? 'Karibu, ni wakati wa lunch!' : 'Karibu, dinner iko tayari!';
+    document.querySelectorAll('[data-say]').forEach(function(b){ var t = b.querySelector('[data-say-text]'); if(t) t.innerHTML = '<b>' + hi + '</b> ' + b.getAttribute('data-say').replace(/[<>&]/g, ''); });
+    document.querySelectorAll('[data-mascot-hide]').forEach(function(x){ x.onclick = function(){ document.documentElement.classList.add('mascot-off'); try{ localStorage.setItem('azMascotOff', '1'); }catch(e){} }; });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
 })();
