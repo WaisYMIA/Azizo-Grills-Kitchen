@@ -88,6 +88,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($payload && ($payload['role'] ?? null) === 'customer') $customerId = $payload['id'];
     }
 
+    // v5.6: pay with points. Customer must be logged in; partner orders are excluded; the server re-checks everything.
+    $redeem = 0; $redeemPhone = '';
+    if ((int)floor((float)($body['redeem_points'] ?? 0)) > 0) {
+        if (!empty($partner)) json_error('Points cannot be used on partner orders');
+        require_once __DIR__ . '/../../lib/growth_helpers.php';
+        $rc = growth_redeem_check($customerId, $body['redeem_points'], (int)($body['items_subtotal'] ?? $body['total']));
+        if (isset($rc['error'])) json_error($rc['error']);
+        $redeem = $rc['discount']; $redeemPhone = $rc['phone9']; $body['total'] = max(1, (int)$body['total'] - $redeem); $body['notes'] = trim(((string)($body['notes'] ?? '')) . ' [Rewards -KSh ' . $redeem . ']');
+    }
+
     $pdo->beginTransaction();
     try {
         $pdo->prepare('INSERT INTO orders (customer_id, customer_name, customer_phone, fulfilment, branch, pickup_time, notes, area, recurring,
@@ -111,6 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $itemStmt->execute([$orderId, $item['id'] ?? null, $item['name'], $item['qty'], $item['unit'] ?? '', $item['price'], (int)round($item['price'] * $item['qty']), $cost]);
         }
         $pdo->prepare("INSERT INTO order_status_log (order_id, status) VALUES (?, 'received')")->execute([$orderId]);
+        if ($redeem) growth_record_redemption($redeemPhone, $redeem, $orderId);
         order_sign($pdo, $orderId);   // v4.3 tamper signature
         $pdo->commit();
     } catch (Exception $e) {

@@ -156,6 +156,7 @@ router.put('/partner/items/:id', requirePartner, (req, res) => {
   const pr = db.prepare('SELECT price FROM products WHERE id = ?').get(pid); if (!pr) return res.status(404).json({ error: 'Product not found' });
   const cur = db.prepare('SELECT * FROM mk_partner_items WHERE partner_id = ? AND product_id = ?').get(p.id, pid);
   const price = b.price === undefined ? (cur ? cur.price : null) : (b.price === null || b.price === '' ? null : Math.max(1, Math.min(1000000, Math.round(Number(b.price) || 0)) || 1));
+  if (price != null) { const pc = require('../growth').checkPartnerPrice(pr.price, price); if (!pc.ok && pc.mode === 'enforce') return res.status(400).json({ error: 'Price must be between KSh ' + pc.min + ' and KSh ' + pc.max + ' (Azizo recommended price KSh ' + pr.price + ', allowed +/-' + pc.pct + '%). Ask Azizo if you need a different price.' }); }
   const stock = b.inStock === undefined ? (cur ? cur.in_stock : 1) : (b.inStock ? 1 : 0);
   db.prepare("INSERT INTO mk_partner_items (partner_id, product_id, price, in_stock, updated_at) VALUES (?, ?, ?, ?, datetime('now')) ON CONFLICT(partner_id, product_id) DO UPDATE SET price = excluded.price, in_stock = excluded.in_stock, updated_at = datetime('now')").run(p.id, pid, price, stock);
   res.json({ ok: true });
@@ -164,14 +165,25 @@ router.delete('/partner/items/:id', requirePartner, (req, res) => { db.prepare('
 router.get('/partner/orders', requirePartner, noStore, (req, res) => {
   const rows = db.prepare('SELECT * FROM orders WHERE partner_id = ? ORDER BY id DESC LIMIT 200').all(req.user.partnerId);
   const it = db.prepare('SELECT name, qty, unit, unit_price, line_total FROM order_items WHERE order_id = ?');
-  res.json({ orders: rows.map(o => ({ id: o.id, status: o.status, createdAt: o.created_at, customer: o.customer_name, phone: o.customer_phone, fulfilment: o.fulfilment, address: o.delivery_address, area: o.area, notes: o.notes, subtotal: o.items_subtotal, deliveryFee: o.delivery_fee, total: o.total, payment: o.payment_method, items: it.all(o.id) })) });
+  res.json({ orders: rows.map(o => ({ id: o.id, status: o.status, createdAt: o.created_at, customer: o.customer_name, phone: o.customer_phone, fulfilment: o.fulfilment, address: o.delivery_address, area: o.area, notes: o.notes, needsCode: o.fulfilment === 'delivery' && o.status === 'out_for_delivery', subtotal: o.items_subtotal, deliveryFee: o.delivery_fee, total: o.total, payment: o.payment_method, items: it.all(o.id) })) });
 });
 const FLOW = ['received', 'preparing', 'ready', 'out_for_delivery', 'completed', 'cancelled'];
 router.patch('/partner/orders/:id/status', requirePartner, (req, res) => {
   const o = db.prepare('SELECT * FROM orders WHERE id = ? AND partner_id = ?').get(req.params.id, req.user.partnerId); if (!o) return res.status(404).json({ error: 'Order not found' });
   const st = String((req.body || {}).status || ''); if (!FLOW.includes(st)) return res.status(400).json({ error: 'Unknown status' });
   if (o.status === 'completed' || o.status === 'cancelled') return res.status(400).json({ error: 'This order is already closed' });
-  db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(st, o.id); db.prepare('INSERT INTO order_status_log (order_id, status) VALUES (?, ?)').run(o.id, st); res.json({ ok: true });
+  // v5.1 delivery handover code: made when the order goes out; the customer reads it to the rider; it is needed to close a delivery.
+  if (st === 'out_for_delivery' && o.fulfilment === 'delivery' && !o.delivery_code) db.prepare('UPDATE orders SET delivery_code = ? WHERE id = ?').run(String(crypto.randomInt(1000, 10000)), o.id);
+  if (st === 'completed' && o.fulfilment === 'delivery') {
+    const b = req.body || {}, k = 'dc' + o.id, now = Date.now(), recent = (hits.get(k) || []).filter(t => now - t < 900000);
+    if (b.noCode) { const why = clean(b.reason, 200); if (why.length < 5) return res.status(400).json({ error: 'Type why the code could not be used (for example: customer phone off)' }); try { require('../secmon').audit(req, 'delivery-no-code', '#' + o.id + ': ' + why, 'partner#' + req.user.partnerId); } catch (e) {} }
+    else {
+      if (recent.length >= 5) return res.status(429).json({ error: 'Too many wrong codes. Try again in 15 minutes.' });
+      if (!String(b.code || '').trim()) return res.status(400).json({ error: 'Enter the 4-digit delivery code from the customer.', needsCode: true });
+      if (!o.delivery_code || String(b.code || '').trim() !== o.delivery_code) { recent.push(now); hits.set(k, recent); return res.status(400).json({ error: 'That delivery code is not right. Ask the customer for the 4-digit code on their order tracking page.', needsCode: true }); }
+    }
+  }
+  db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(st, o.id); db.prepare('INSERT INTO order_status_log (order_id, status) VALUES (?, ?)').run(o.id, st); try { require('../growth').notify(st, o.id); } catch (e) {} try { require('../activity').log(req, 'orders', 'order-status', { target: '#' + o.id, detail: 'partner set ' + st }); } catch (e) {} res.json({ ok: true });
 });
 router.get('/partner/invoices', requirePartner, noStore, (req, res) => res.json({ invoices: db.prepare('SELECT * FROM mk_invoices WHERE partner_id = ? ORDER BY id DESC').all(req.user.partnerId).map(invoiceOut) }));
 
@@ -244,7 +256,7 @@ router.patch('/admin/partners/:id(\\d+)', requireAdmin, (req, res) => {
   // v5.0 go-live gate: a partner cannot go to pilot/live until licence, inspection, items and onboarding are all in order (admin may override with a written reason)
   if (b.status !== undefined && b.status !== p.status && (b.status === 'pilot' || b.status === 'live')) {
     const g = require('../ops').gateFor(p.id);
-    if (!g.ok) { const why = clean(b.overrideReason, 300); if (why.length < 10) return res.status(409).json({ error: 'Go-live checklist is not complete', gate: g, needsOverride: true });
+    if (!g.ok) { if (req.user && req.user.tr && req.user.tr !== 'owner') return res.status(403).json({ error: 'Only an Owner can override the go-live checklist', gate: g }); const why = clean(b.overrideReason, 300); if (why.length < 10) return res.status(409).json({ error: 'Go-live checklist is not complete', gate: g, needsOverride: true });
       try { require('../secmon').audit(req, 'golive-override', p.name + ' -> ' + b.status + ': ' + why); } catch (e) {} b.adminNote = clean((p.admin_note || '') + ' Go-live override ' + today() + ': ' + why, 500); }
   }
   db.prepare("UPDATE mk_partners SET status = ?, tier = ?, paused = ?, licence_verified = ?, delivery_mode = ?, admin_note = ?, password_hash = ? WHERE id = ?").run(

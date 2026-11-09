@@ -25,7 +25,31 @@ $addDays = fn($ymd, $n) => gmdate('Y-m-d', strtotime($ymd . ' 00:00:00 UTC') + $
 $nextOn = function ($weekday, $from) use ($addDays) { $d = $addDays($from, 1); for ($i = 0; $i < 8; $i++) { if ((int)gmdate('w', strtotime($d . ' 00:00:00 UTC')) === $weekday) return $d; $d = $addDays($d, 1); } return $d; };
 $subOut = fn($x) => ['id' => (int)$x['id'], 'items' => json_decode($x['items_json'], true), 'fulfilment' => $x['fulfilment'], 'branch' => $x['branch'], 'partnerId' => $x['partner_id'] ? (int)$x['partner_id'] : null, 'freq' => $x['freq'], 'weekday' => (int)$x['weekday'], 'nextDate' => $x['next_date'], 'status' => $x['status'], 'due' => $x['status'] === 'active' && $x['next_date'] <= growth_eat_day()];
 
-if ($a === 'config' && $M === 'GET') { $s = growth_settings(); json_response(['subscriptions' => ['on' => $s['sub_on'] === '1', 'min' => (int)$s['sub_min_order'], 'freqs' => explode(',', $s['sub_freqs']), 'max' => (int)$s['sub_max_per_customer']], 'referral' => ['on' => $s['referral_on'] === '1', 'friendPts' => (int)$s['referral_friend_pts'], 'referrerPts' => (int)$s['referral_referrer_pts'], 'minOrder' => (int)$s['referral_min_order']], 'refundHours' => (int)$s['refund_window_hours']]); }
+if ($a === 'config' && $M === 'GET') { $s = growth_settings(); json_response(['subscriptions' => ['on' => $s['sub_on'] === '1', 'min' => (int)$s['sub_min_order'], 'freqs' => explode(',', $s['sub_freqs']), 'max' => (int)$s['sub_max_per_customer']], 'referral' => ['on' => $s['referral_on'] === '1', 'friendPts' => (int)$s['referral_friend_pts'], 'referrerPts' => (int)$s['referral_referrer_pts'], 'minOrder' => (int)$s['referral_min_order']], 'refundHours' => (int)$s['refund_window_hours'], 'redeem' => ['on' => $s['redeem_on'] === '1', 'maxPct' => (int)$s['redeem_max_pct'], 'minOrder' => (int)$s['redeem_min_order']], 'franchise' => ['on' => $s['franchise_on'] === '1', 'investMin' => (int)$s['franchise_invest_min'], 'investMax' => (int)$s['franchise_invest_max'], 'fee' => (int)$s['franchise_fee'], 'royaltyPct' => (int)$s['franchise_royalty_pct'], 'termYears' => (int)$s['franchise_term_years'], 'territory' => $s['franchise_territory']]]); }
+
+require_once __DIR__ . '/../../lib/mailer.php';
+
+// ---------- v5.6: points balance + franchise enquiries ----------
+if ($a === 'points' && $M === 'GET') {
+    $u = $customer(); $s = growth_settings(); $bl = growth_balance((int)$u['id']); if (!$bl) json_error('Account not found', 404);
+    json_response(['on' => $s['redeem_on'] === '1', 'points' => $bl['balance'], 'worthKes' => intdiv($bl['balance'], 100) * 100, 'maxPct' => (int)$s['redeem_max_pct'], 'minOrder' => (int)$s['redeem_min_order']]);
+}
+if ($a === 'franchise-apply' && $M === 'POST') {
+    rate_limit('franchise-ip', 5, 3600);
+    $s = growth_settings(); if (!empty($body['website'])) json_response(['ok' => true, 'ref' => 'FR-00000']);
+    if ($s['franchise_on'] !== '1') json_error('Franchise enquiries are not open right now');
+    $name = $clean($body['name'] ?? '', 80); $phone = mb_substr(preg_replace('/[^\d+]/', '', (string)($body['phone'] ?? '')), 0, 16); $email = $clean($body['email'] ?? '', 120); $town = $clean($body['town'] ?? '', 80);
+    if (mb_strlen($name) < 2) json_error('Please enter your name'); if (strlen(growth_last9($phone)) < 9) json_error('Please enter a phone number we can reach on WhatsApp');
+    if ($email !== '' && !preg_match('/^[^\s@<>",;:]+@[^\s@<>",;:]+\.[^\s@<>",;:]{2,}$/', $email)) json_error('That email address does not look right'); if (mb_strlen($town) < 2) json_error('Tell us the town or area you have in mind');
+    $pick = fn($v, $l) => in_array($v, $l, true) ? $v : '';
+    $budget = $pick($body['budget'] ?? '', ['under_2m', '2m_4m', '4m_6m', 'over_6m']); $premises = $pick($body['premises'] ?? '', ['own', 'lease', 'none']); $timeline = $pick($body['timeline'] ?? '', ['0_3', '3_6', '6_12', 'later']);
+    if (!$budget || !$premises || !$timeline) json_error('Please answer the budget, premises and timing questions'); if (empty($body['consent'])) json_error('Please tick the box to let us contact you about this enquiry');
+    $ts = $now(); $run('INSERT INTO ops_franchise (name, phone, email, town, budget, premises, timeline, experience, message, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [$name, $phone, $email, $town, $budget, $premises, $timeline, $clean($body['experience'] ?? '', 500), $clean($body['message'] ?? '', 800), $ts, $ts]);
+    $id = (int)$pdo->lastInsertId(); $ref = 'FR-' . str_pad((string)$id, 5, '0', STR_PAD_LEFT);
+    try { $mc = mail_config(); $to = $mc['alert_to'] ?: $mc['from_email']; if (mail_is_email($to)) mail_send($to, 'New franchise enquiry ' . $ref, "New franchise enquiry\n\nName: $name\nPhone: $phone\nTown: $town\nBudget: $budget\n\nOpen Operations > Growth > Franchise to follow up.", 'system'); } catch (Throwable $e) {}
+    json_response(['ok' => true, 'ref' => $ref, 'message' => 'Thank you. We have your enquiry and will call or WhatsApp you within three working days.'], 201);
+}
+
 
 // ---------- customer ----------
 if ($a === 'referral' && $b1 === '' && $M === 'GET') {
@@ -94,7 +118,10 @@ if ($a === 'admin') {
         $def = growth_defaults(); $ch = [];
         foreach ($body as $k => $v) {
             if (!array_key_exists($k, $def)) continue; $v = trim((string)$v);
-            if (in_array($k, ['referral_on', 'sub_on', 'msg_on'], true)) $v = ($v === '1' || $v === 'true') ? '1' : '0';
+            if (in_array($k, ['referral_on', 'sub_on', 'msg_on', 'redeem_on', 'franchise_on'], true)) $v = ($v === '1' || $v === 'true') ? '1' : '0';
+            elseif ($k === 'franchise_royalty_pct') { if (!is_numeric($v) || $v < 0 || $v > 30) json_error('Royalty must be 0 to 30 percent'); $v = (string)(float)$v; }
+            elseif ($k === 'redeem_max_pct') { if (!is_numeric($v) || $v < 1 || $v > 100) json_error('Points limit must be 1 to 100 percent'); $v = (string)(int)round((float)$v); }
+            elseif (preg_match('/^franchise_(invest_min|invest_max|fee|term_years)$/', $k)) { if (!is_numeric($v) || $v < 0 || $v > 1000000000) json_error($k . ' must be a number'); $v = (string)(int)round((float)$v); }
             elseif (preg_match('/_pts$|_min_order$|_max_month$|refund_window_hours|sub_min_order|sub_max_per_customer|cash_tolerance$/', $k)) { if (!is_numeric($v) || $v < 0 || $v > 1000000) json_error($k . ' must be a number'); $v = (string)(int)round((float)$v); }
             elseif ($k === 'price_band_pct') { if (!is_numeric($v) || $v < 1 || $v > 100) json_error('Price band must be 1 to 100 percent'); $v = (string)(float)$v; }
             elseif ($k === 'price_mode') { if (!in_array($v, ['off', 'warn', 'enforce'], true)) json_error('Price mode must be off, warn or enforce'); }
@@ -106,6 +133,13 @@ if ($a === 'admin') {
             if ($one('SELECT 1 FROM ops_settings WHERE k = ?', [$k])) $run('UPDATE ops_settings SET v = ? WHERE k = ?', [$v, $k]); else $run('INSERT INTO ops_settings (k, v) VALUES (?,?)', [$k, $v]); $ch[] = $k;
         }
         audit_log('growth-settings', implode(',', $ch)); json_response(['ok' => true, 'settings' => growth_settings()]);
+    }
+    if ($b1 === 'franchise' && $M === 'GET') json_response(['applications' => $all('SELECT * FROM ops_franchise ORDER BY id DESC LIMIT 300'), 'statuses' => ['new', 'contacted', 'meeting', 'approved', 'declined']]);
+    if ($b1 === 'franchise' && ctype_digit($b2) && $M === 'PATCH') {
+        $r = $one('SELECT * FROM ops_franchise WHERE id = ?', [(int)$b2]); if (!$r) json_error('Not found', 404);
+        $st = in_array($body['status'] ?? '', ['new', 'contacted', 'meeting', 'approved', 'declined'], true) ? $body['status'] : $r['status'];
+        $run('UPDATE ops_franchise SET status = ?, note = ?, handled_by = ?, updated_at = ? WHERE id = ?', [$st, array_key_exists('note', $body) ? $clean($body['note'], 500) : $r['note'], $who(), $now(), $r['id']]);
+        audit_log('franchise-' . $st, 'FR-' . $r['id']); json_response(['ok' => true]);
     }
     if ($b1 === 'price-check' && $M === 'GET') {
         $rows = $all('SELECT pi.partner_id, p.name AS partner, pi.product_id, pr.name AS item, pr.price AS base, pi.price FROM mk_partner_items pi JOIN products pr ON pr.id = pi.product_id JOIN mk_partners p ON p.id = pi.partner_id WHERE pi.price IS NOT NULL'); $out = [];

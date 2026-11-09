@@ -1,4 +1,4 @@
-const Database = require('better-sqlite3');
+const Database = require('./sqlite-shim');
 const path = require('path');
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'azizo.db');
 const db = new Database(DB_PATH);
@@ -419,6 +419,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS mk_audits (id INTEGER PRIMARY KEY AUTOINCREMENT, partner_id INTEGER NOT NULL, score INTEGER NOT NULL, notes TEXT DEFAULT '', audit_date TEXT, created_at TEXT DEFAULT (datetime('now')));
 `);
 if (!db.prepare("SELECT 1 FROM pragma_table_info('orders') WHERE name = 'partner_id'").get()) db.exec('ALTER TABLE orders ADD COLUMN partner_id INTEGER');
+if (!db.prepare("SELECT 1 FROM pragma_table_info('orders') WHERE name = 'delivery_code'").get()) db.exec('ALTER TABLE orders ADD COLUMN delivery_code TEXT');
 try { db.prepare("UPDATE products SET desc = REPLACE(desc, '½kg', '500g') WHERE desc LIKE '%½kg%'").run(); } catch (e) {}
 db.metaGet = metaGet; db.metaSet = metaSet;
 module.exports = db;

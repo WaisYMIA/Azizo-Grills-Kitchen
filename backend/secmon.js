@@ -23,6 +23,7 @@ function event(req, type, sev, detail, actor) {
       if (rows.reduce((s, r) => s + (W[r.type] || 0) * r.n, 0) >= 10) block(ip, 0, 'Automatic: repeated attack events', true);
     }
   } catch (e) { console.error('[azizo] sec event failed', e.message); }
+  if (sev === 'high') { try { require('./mailer').securityAlert(type, ipOf(req), detail); } catch (e) {} }
 }
 function block(ip, seconds, reason, auto) {
   const now = Math.floor(Date.now() / 1000), r = db.prepare('SELECT * FROM sec_blocks WHERE ip = ?').get(ip);
@@ -31,7 +32,7 @@ function block(ip, seconds, reason, auto) {
   db.prepare('INSERT INTO sec_blocks (ip, until_ts, reason, auto_block, strikes, created_ts) VALUES (?,?,?,?,?,?) ON CONFLICT(ip) DO UPDATE SET until_ts = excluded.until_ts, reason = excluded.reason, auto_block = excluded.auto_block, strikes = ?').run(ip, now + seconds, String(reason).slice(0, 200), auto ? 1 : 0, strikes, now, strikes);
   db.prepare('INSERT INTO sec_events (ts, sev, type, ip, detail, actor) VALUES (?,?,?,?,?,?)').run(nowTs(), 'high', auto ? 'auto-block' : 'manual-block', ip, reason, auto ? 'system' : 'admin');
 }
-function audit(req, action, detail, actor) { try { db.prepare('INSERT INTO sec_audit (ts, actor, ip, action, detail) VALUES (?,?,?,?,?)').run(nowTs(), actor || 'admin', ipOf(req), action, String(detail || '').slice(0, 400)); } catch (e) {} }
+function audit(req, action, detail, actor) { try { const A = require('./activity'); A.log(req, A.categoryOf(action), action, { actor: actor || undefined, detail }); } catch (e) {} try { db.prepare('INSERT INTO sec_audit (ts, actor, ip, action, detail) VALUES (?,?,?,?,?)').run(nowTs(), actor || (req.user && (req.user.name ? req.user.name + ' (' + req.user.tr + ')' : null)) || 'admin', ipOf(req), action, String(detail || '').slice(0, 400)); } catch (e) {} }
 const RULES = [
   [/(union\s+(all\s+)?select\b|['"]\s*(or|and)\s+['"]?\d+['"]?\s*=\s*['"]?\d+|\b(sleep|benchmark)\s*\(\s*\d|;\s*(drop|truncate|alter)\s+table|\bxp_cmdshell\b|\bload_file\s*\(|into\s+(out|dump)file|information_schema\.)/i, 'SQL injection'],
   [/(<\s*script\b|<\s*iframe\b|javascript\s*:|\bon(error|load|mouseover|focus)\s*=\s*["']?\w)/i, 'Script injection'],
@@ -131,4 +132,5 @@ router.post('/', (req, res) => {
   if (a === 'revoke-all') return res.status(501).json({ error: 'Sign-out-everyone is available on the cPanel (PHP) backend. Here, change JWT_SECRET in .env and restart.' });
   res.status(400).json({ error: 'Unknown action' });
 });
+try { require('./activity'); } catch (e) {}
 module.exports = { guard, event, router, sign, kkSign, audit, verifyRecent };

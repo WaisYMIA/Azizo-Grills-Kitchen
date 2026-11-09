@@ -145,10 +145,12 @@ router.get('/partner/dashboard', requirePartner, noStore, (req, res) => {
   const rate = db.prepare("SELECT COUNT(*) n, AVG(r.rating) a FROM reviews r JOIN orders o ON o.id = r.order_id WHERE o.partner_id = ? AND r.status != 'rejected'").get(pid);
   const done = db.prepare("SELECT COUNT(*) n FROM orders WHERE partner_id = ? AND status = 'completed' AND substr(created_at,1,10) >= ?").get(pid, d30).n, canc = db.prepare("SELECT COUNT(*) n FROM orders WHERE partner_id = ? AND status = 'cancelled' AND substr(created_at,1,10) >= ?").get(pid, d30).n;
   const out = db.prepare('SELECT COUNT(*) n FROM mk_partner_items WHERE partner_id = ? AND in_stock = 0').get(pid).n, listed = db.prepare('SELECT COUNT(*) n FROM mk_partner_items WHERE partner_id = ?').get(pid).n;
+  const stale = db.prepare("SELECT COUNT(*) n FROM mk_partner_items WHERE partner_id = ? AND in_stock = 1 AND COALESCE(updated_at,'') < datetime('now','-3 day')").get(pid).n;
   const tk = db.prepare("SELECT COUNT(*) n FROM ops_tickets WHERE scope = 'partner' AND owner_id = ? AND status = 'answered'").get(pid).n;
   const p = db.prepare('SELECT status, last_inspection FROM mk_partners WHERE id = ?').get(pid) || {};
-  res.json({ today: sum(t0), week: sum(d7), month: sum(d30), openOrders: open, daily, top, rating: { count: rate.n, avg: rate.a ? Math.round(rate.a * 10) / 10 : null }, completionPct30: done + canc ? Math.round(done * 100 / (done + canc)) : null, itemsListed: listed, itemsSoldOut: out, answeredTickets: tk, status: p.status, nextInspection: p.last_inspection || '' });
+  res.json({ today: sum(t0), week: sum(d7), month: sum(d30), openOrders: open, daily, top, rating: { count: rate.n, avg: rate.a ? Math.round(rate.a * 10) / 10 : null }, completionPct30: done + canc ? Math.round(done * 100 / (done + canc)) : null, itemsListed: listed, itemsSoldOut: out, staleItems: stale, answeredTickets: tk, status: p.status, nextInspection: p.last_inspection || '' });
 });
+router.post('/partner/confirm-stock', requirePartner, (req, res) => { db.prepare("UPDATE mk_partner_items SET updated_at = datetime('now') WHERE partner_id = ?").run(req.user.partnerId); res.json({ ok: true }); });
 router.get('/partner/statement', requirePartner, noStore, (req, res) => {
   const pid = req.user.partnerId, from = /^\d{4}-\d{2}-\d{2}$/.test(req.query.from || '') ? req.query.from : ymd(new Date(Date.now() - 29 * 86400000)), to = /^\d{4}-\d{2}-\d{2}$/.test(req.query.to || '') ? req.query.to : ymd(new Date());
   const rows = db.prepare("SELECT o.id, substr(o.created_at,1,10) d, o.status, o.items_subtotal, o.delivery_fee, o.total, COALESCE(f.fee,0) fee FROM orders o LEFT JOIN mk_order_fees f ON f.order_id = o.id WHERE o.partner_id = ? AND substr(o.created_at,1,10) BETWEEN ? AND ? ORDER BY o.id").all(pid, from, to);
@@ -191,6 +193,27 @@ router.patch('/admin/accounts/:id(\\d+)', requireAdmin, (req, res) => {
   if (b.password !== undefined && String(b.password).length < 8) return res.status(400).json({ error: 'Password must be 8+ characters' });
   db.prepare('UPDATE ops_accounts SET active = ?, password_hash = ? WHERE id = ?').run(b.active === undefined ? a.active : (b.active ? 1 : 0), b.password ? bcrypt.hashSync(String(b.password), 10) : a.password_hash, a.id); audit(req, 'account-update', a.username); res.json({ ok: true });
 });
+// ---------------- v5.2 team accounts (Owner only; the shared admin password counts as Owner) ----------------
+const TEAM_ROLES = ['owner', 'manager', 'finance', 'counter'];
+const strong = pw => String(pw || '').length >= 10 && /[A-Za-z]/.test(pw) && /\d/.test(pw);
+const activeOwners = () => db.prepare("SELECT COUNT(*) n FROM team_accounts WHERE role = 'owner' AND active = 1").get().n;
+router.get('/admin/team', requireAdmin, noStore, (req, res) => res.json({ team: db.prepare('SELECT id, username, name, role, active, created_at, last_login, created_by FROM team_accounts ORDER BY id').all(), roles: TEAM_ROLES, sharedPasswordsOff: process.env.TEAM_ONLY === '1' && activeOwners() > 0 }));
+router.post('/admin/team', requireAdmin, (req, res) => {
+  const b = req.body || {}, u = clean(b.username, 30).toLowerCase(), n = clean(b.name, 60), role = String(b.role || '');
+  if (!/^[a-z0-9._-]{3,30}$/.test(u) || n.length < 3 || !TEAM_ROLES.includes(role)) return res.status(400).json({ error: 'Username (3+ letters/numbers), full name and a role are needed' });
+  if (!strong(b.password)) return res.status(400).json({ error: 'Password needs 10+ characters with a letter and a number' });
+  if (db.prepare('SELECT 1 FROM team_accounts WHERE username = ?').get(u)) return res.status(400).json({ error: 'That username is taken' });
+  db.prepare('INSERT INTO team_accounts (username, name, role, password_hash, created_at, created_by) VALUES (?,?,?,?,?,?)').run(u, n, role, bcrypt.hashSync(String(b.password), 10), nowTs(), (req.user && req.user.name) || 'shared admin'); audit(req, 'team-create', u + ' as ' + role); res.json({ ok: true });
+});
+router.patch('/admin/team/:id(\\d+)', requireAdmin, (req, res) => {
+  const a = db.prepare('SELECT * FROM team_accounts WHERE id = ?').get(req.params.id); if (!a) return res.status(404).json({ error: 'Not found' }); const b = req.body || {};
+  const role = b.role === undefined ? a.role : String(b.role), act = b.active === undefined ? a.active : (b.active ? 1 : 0);
+  if (!TEAM_ROLES.includes(role)) return res.status(400).json({ error: 'Unknown role' });
+  if (b.password !== undefined && !strong(b.password)) return res.status(400).json({ error: 'Password needs 10+ characters with a letter and a number' });
+  if (a.role === 'owner' && a.active && (role !== 'owner' || !act) && activeOwners() <= 1) return res.status(400).json({ error: 'You cannot switch off or demote the last Owner' });
+  db.prepare('UPDATE team_accounts SET role = ?, active = ?, password_hash = ? WHERE id = ?').run(role, act, b.password ? bcrypt.hashSync(String(b.password), 10) : a.password_hash, a.id);
+  audit(req, 'team-update', a.username + (role !== a.role ? ' role ' + a.role + '>' + role : '') + (act !== a.active ? (act ? ' on' : ' off') : '') + (b.password ? ' password reset' : '')); res.json({ ok: true });
+});
 // used by routes/market.js inspector login
 function accountLogin(username, password) {
   const a = db.prepare('SELECT * FROM ops_accounts WHERE username = ? AND active = 1').get(String(username || '').trim().toLowerCase());
@@ -217,4 +240,4 @@ router.get('/admin/analytics', requireAdmin, noStore, (req, res) => {
     daily, hoursEAT: hrs, top, byBranch, fulfilment: ful, kitchens: kk, funnel: { visits: ev.visit || 0, cartAdds: ev.cart_add || 0, checkouts: ev.checkout_open || 0, placed: ev.order_placed || 0, visitToCartPct: conv(ev.visit, ev.cart_add), cartToCheckoutPct: conv(ev.cart_add, ev.checkout_open), checkoutToOrderPct: conv(ev.checkout_open, ev.order_placed) }, rating: { count: rv.n, avg: rv.a ? Math.round(rv.a * 10) / 10 : null }, openTickets: db.prepare("SELECT COUNT(*) n FROM ops_tickets WHERE status = 'open'").get().n, openRequests: db.prepare("SELECT COUNT(*) n FROM ops_requests WHERE status = 'open'").get().n });
 });
 
-module.exports = { router, gateFor, accountLogin };
+module.exports = { router, gateFor, accountLogin, pointsFor };

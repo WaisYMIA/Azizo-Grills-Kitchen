@@ -1,5 +1,113 @@
 # Changelog
 
+## v6.5.1 — 2026-11-09
+Mascot cut-out refined. The edges are now cut with proper alpha matting instead of a hard mask: the spoon is smooth, the fingers and wing feathers are soft and natural, the crest keeps its individual strands, and the leftover wall and plant specks are gone. Edge colour is cleaned so there is no dark or beige fringe on light or dark backgrounds. Images re-exported sharper (`mascot-full.webp` 720 px wide, `mascot-head.webp` 360 px). No code changes.
+
+## v6.5.0 — 2026-11-09
+The Azizo Kitchens mascot (the crowned-crane chef) joins the Kitchens pages, placed so it never gets in the way.
+- **Cut-out:** the mascot was extracted from the supplied artwork with a transparent background (`mascot-full.webp`, 112 KB) plus a face badge (`mascot-head.webp`, 37 KB).
+- **Kitchens and Cook-with-Azizo pages:** on desktop the mascot stands at the right of the hero, partly tucked behind the area/search panel, with a speech bubble that greets by time of day ("Habari za asubuhi!", "Karibu, ni wakati wa lunch!", "Karibu, dinner iko tayari!"). On phones only a small face badge and the same bubble appear above the heading, so nothing is pushed off screen.
+- **Never blocks anything:** the figure cannot be clicked, is hidden from screen readers, never overlaps a heading, paragraph or button (tested), and has a small × to hide it; the choice is remembered on that device. Motion stops for people who ask their device for reduced motion.
+- **Friendly states:** the mascot's face appears on empty results, bobs while kitchens are loading, sits beside "Order received", and appears in the footer.
+- Fixed: the partner page's "How it works" cards ran off the screen on phones; they now stack.
+- Offline: the two mascot images are cached for the app. Test: `test/mascotui.js`.
+
+## v6.4.0 — 2026-11-09
+Franchisee portal.
+- **Own login:** the Owner creates a login for each franchisee (Branches > Franchisees > Create login) and gives them the username, password and the address `/franchisee.html`. Passwords are stored hashed, need 10+ characters with a letter and a number, and the franchisee can change their own. Six wrong tries lock the sign-in for 15 minutes.
+- **What a franchisee sees:** their agreement and fee status, royalty % and term, their own branch scorecard for 7, 30 or 90 days (sales, checklist completion, critical failures, waste, food cost, yield, certified staff), and their royalty statements with print links. Nothing else: no other branches, no customers, no staff screens, no targets setting.
+- **Switch off:** the Owner can switch a login off (the person is signed out at once) or reset the password. A franchisee marked Exited loses access automatically.
+- A franchisee token is refused by every admin and staff endpoint (tested). Every sign-in, failed sign-in and change is in the audit log.
+- Node and PHP backends; new table `bo_portal`; new pages `franchisee.html` and `franchisee.js`. Tests extended.
+
+## v6.3.0 — 2026-11-09
+Royalty follow-up and the second-branch rollout path.
+- **Statement links:** each royalty statement can be sent as a private, read-only link (Branches > Royalties > Send link, opens WhatsApp). The link shows only that one statement and is signed, so it cannot be guessed or used to see other statements; a voided statement stops working.
+- **Overdue reminders:** statements unpaid more than N days after issue (default 14, set in Targets) appear in an Overdue box with a Remind on WhatsApp button. Every reminder is logged and counted.
+- **Rollout checklist:** `docs/ROLLOUT-CHECKLIST.md` is the repeatable path for opening any new branch, starting with the pilot gate.
+- Node and PHP backends; new table `bo_reminders`; new public page `statement.html`. Tests extended.
+
+## v6.2.0 — 2026-11-08
+Cutting yield and supplier control, added to Operations > Branches.
+- **Yield:** record what you started with (e.g. a whole beef side), the saleable cuts and the trim. The system works out yield %, unaccounted kilograms and a per-product summary, and refuses entries where cuts plus trim exceed the starting weight. Yield % also appears on the scorecard.
+- **Suppliers:** a supplier scorecard built from your purchases (deliveries, kg, cost per kg, spend, last delivery) and a rejection log (temperature, quality, documents, weight). A supplier is flagged when rejected meat is above 5% of delivered weight, or after three rejections. Spellings of the same supplier are merged.
+- Two new reports (cutting yield log, supplier rejections), 38 in total.
+- Finance can read yield and suppliers; Manager and Owner can record. Node and PHP backends, new tables `bo_yield` and `bo_rejects`. Tests extended in `test/branchops.js` and `test/branchesui.js`.
+
+## v6.1.0 — 2026-11-08
+The Franchise Prototype phase continues: branch scorecard, stock and cost control, franchisee pipeline with royalty statements, and the printable Operations Manual. All in the new Operations > Branches tab.
+- **Scorecard:** one row per branch for 7, 30 or 90 days: sales, orders, average order, cancelled %, refunds, checklist completion %, open critical failures, cash gaps, certified staff, waste % and food cost %. Each branch is green, amber or red with the reasons listed.
+- **Stock and costs:** record purchases (supplier, cut, kg, cost) and waste (kg and reason). The system works out waste %, food cost % and the margin per product against the shelf price, and calls out purchase names that do not match a product.
+- **Franchisee pipeline (Owner):** enquiry, approved, agreement, build-out, training, soft launch, live. A franchisee cannot pass the agreement stage without a recorded signed agreement, and cannot go Live until the linked branch has passed the Playbook go-live gate.
+- **Royalty statements (Owner; Finance can read and print):** generated per finished month from completed sales minus approved refunds, at the franchisee's royalty % (or the system default), plus an optional marketing levy. Printable statement with daily sales; mark paid or void.
+- **Operations Manual:** one printable document per branch built from the live Playbook: branch details, targets, the daily checklists, training lessons and all SOPs. No quiz answers are included.
+- **Targets (Owner):** margin, waste, checklist and marketing percentages that drive the scorecard colours and statements.
+- Three new reports (purchases log, waste log, royalty statements), 36 in total.
+- Roles: Owner everything; Manager scorecard, stock and costs, manual; Finance reads scorecard, stock and royalties; Counter none.
+- Node and PHP backends (`/api/branchops`), new tables `bo_settings`, `bo_purchases`, `bo_waste`, `bo_franchisees`, `bo_royalties`. Tests `test/branchops.js` and `test/branchesui.js`.
+
+## v6.0.0 — 2026-11-07
+The Franchise Prototype phase starts: the Playbook and the new-branch wizard.
+- **Playbook (Operations > Playbook):** daily checklists (opening 14 lines, mid-shift 9, closing 12, weekly 10) with temperature limits that flag failures automatically, written corrective actions, supervisor sign-off and a locked record. Managers see compliance per branch and resolve critical failures.
+- **Training and certification:** 8 courses built from the SOPs with lessons and a 5-question quiz each (pass mark 80%); a person is certified for a station after the quiz **and** a supervisor's practical sign-off, valid 12 months. Staff matrix per branch.
+- **New-branch wizard (Owner):** creates a hidden branch that inherits the menu, prices, rules and checklists, then runs a readiness test (details, menu, two certified staff per core course, practice opening and closing checklists, 10 owner confirmations). Go live only when every check passes; the branch then appears on the public site.
+- Three new reports (daily checklist log, training records, branch launches), 33 in total.
+- Node and PHP backends (`/api/playbook`), new tables `pb_runs`, `pb_training`, `pb_launches`.
+- **Documents for review:** franchise agreement draft (Word and Markdown) with an issues list for your advocate; master SOP review pack with HACCP table, records register and reviewer sign-off; Syokimau pilot plan.
+
+## v5.6.0 — 2026-11-06
+Pay with points, franchise enquiries, and an easier Windows install.
+- **Pay with points:** logged-in customers can tick "Use my points" at checkout (100-point steps, 1 point = KSh 1). Owner switches it on and sets the limit (default off, 20% of an order, KSh 1,000 minimum) in Operations > Growth > Settings. The server re-checks balance and limits, records the deduction, and returns the points if the order is cancelled. Not available on partner orders.
+- **Franchise page** (`franchise.html`): indicative investment, fee, royalty and term (Owner-editable placeholders, clearly marked indicative) and an enquiry form with consent, spam protection and a reference number. Owner reviews enquiries in Operations > Growth > Franchise and sets status and notes. New report: Franchise applications.
+- **Install fix:** `better-sqlite3` is now optional. If it cannot be built (new Node versions on Windows without Visual Studio) the backend uses Node's built-in SQLite (Node 22.13 or newer). `npm install` no longer aborts.
+- Node and PHP backends; new tests in `test/growth.js` and `test/v56ui.js`.
+
+## v5.5.0 — 2026-11-06
+Data, audit and email. All new screens are in Operations (Owner sees all; Manager and Finance see the reports their role allows).
+- **Reports centre:** 29 reports in six groups (Sales, Orders, Customers, Visitors, Money, Growth/Marketplace, Audit). Pick dates and branch, preview, then download a formatted Excel file (README, Summary and Data sheets, frozen header, filters, real number and date formats). Includes sales, orders, closed orders, unsuccessful orders (cancelled or M-Pesa failed), user accounts, buyers, team accounts, visitors, M-Pesa, refunds, cash-ups, expenses, reviews, partners and audit. One click downloads a full data pack.
+- **Audit log:** one tamper-evident record of sign-ins, failed sign-ins, order status changes, price/refund/settings/team changes, exports and security events, with filters and Excel export. "Verify integrity" detects any edited or deleted row.
+- **Visitors:** anonymous visitor analytics (daily unique visitors, page views, sources, devices, conversion funnel). No cookies, no IP stored, respects Do Not Track.
+- **Email (cPanel):** the Owner enters the cPanel mailbox (server, port, SSL/STARTTLS, login) in Operations > Email; password stored encrypted; test send and send log. Used for the daily digest and security alerts (at most one every 15 minutes).
+- Role limits: personal-data and audit reports and the email page are Owner only; Finance sees sales/money reports; counter staff see none. Every export is logged.
+- Node and PHP backends; new tests `test/insight.js` (Node and PHP) and `test/insightui.js`.
+
+## v5.4.0 — 2026-11-04
+Growth and money tools. Every number is a typical Nairobi market value that the Owner edits in Operations > Growth > Settings.
+- **Morning digest:** yesterday's orders, sales, cancellations, refunds and cash gaps in one message (Operations > Money), with a WhatsApp share link; PHP can email it daily (cron).
+- **Cash-up and M-Pesa check:** counters enter counted cash per branch; the system compares it with expected cash (tolerance KSh 50) and lists M-Pesa payments that are missing, wrong or unmatched.
+- **Refund workflow:** customers ask from the tracking page within 24 hours; Owner/Manager approve or reject (reason required); Finance marks paid with the M-Pesa reference. Reason and partner statistics.
+- **Standing orders:** weekly, fortnightly or monthly repeat baskets (min KSh 1500, up to 3 each). Nothing is charged automatically; the customer confirms every delivery and gets a reminder.
+- **Referrals:** each customer has a code; 100 points each once the friend's first order of KSh 1000+ is completed (20 rewards a month cap).
+- **One-tap "Order again"** in order history.
+- **Order messages:** received / preparing / ready / out for delivery / completed with editable wording. Manual WhatsApp links by default; automatic through WhatsApp Cloud API or Africa's Talking SMS once you add keys.
+- **Price control:** partners may price within +/-15% of Azizo's price (enforce, warn or off); out-of-band prices are listed and can be reset.
+- Node and PHP backends. New tests: `test/growth.js` (Node and PHP), `test/growthui.js`.
+
+## v5.3.0 — 2026-11-04
+Security, search and AI.
+- **Search and AI-search:** one H1 and complete social/canonical tags on every public page, private pages set to noindex, breadcrumbs, Organization and WebSite data, a 16-question FAQ with FAQPage data, dated sitemap, `robots.txt` that welcomes search and AI crawlers on public pages only, `llms.txt`, lazy images, `security.txt`. Guide: `docs/SEO.md`.
+- **Security:** authenticator-app sign-in on the Node backend (matches PHP), CORS limited to your website (`ALLOWED_ORIGIN`), security headers and content policy on API and site, HSTS over HTTPS, dependency fixes. Plain-words guide in `docs/SECURITY.md`.
+- **Claude AI module (off until `ANTHROPIC_API_KEY`):** "Ask Azizo" customer chat (English/Swahili, answers only from our facts and live menu), ticket reply drafts, business Q&A on totals, product description and SEO writer, review check, and a partner "ask the handbook" assistant. Phone/email masking, rate limits, monthly token cap, usage log, Owner on/off switch. Guide: `docs/AI.md`.
+- Node and PHP backends. New tests: `test/ai.js` (Node and PHP), `test/aiui.js`, `test/sec53.js`.
+
+## v5.2.0 — 2026-11-03
+Personal accounts for your own team.
+- **Four roles:** Owner (everything, including accounts, fees, security, go-live overrides), Manager (runs the day; cannot manage accounts, fees or security), Finance (invoices, statements, payouts, reports; read-only elsewhere) and Counter (orders, stock, reward requests).
+- **Team tab** in Operations (Owner only): add people, change a role, reset a password, switch a person off. A switched-off person is signed out immediately and a role change applies at once.
+- **Sign in with your own username** on Admin, Marketplace admin, Security Center, Operations and Staff. Leave the username empty to keep using the old shared passwords.
+- **Audit log shows the person** ("Mark Manager (manager)") instead of "admin".
+- **`TEAM_ONLY=1`** switches the shared admin and staff passwords off once at least one Owner account exists. The last Owner cannot be switched off or demoted.
+- Passwords for personal accounts need 10+ characters with a letter and a number; people can change their own. On the PHP backend the authenticator code (if switched on) is also asked of Owner, Manager and Finance.
+- Node and PHP backends both. New tests: `test/team.js`, `test/teamonly.js`, `test/teamui.js`.
+
+## v5.1.0 — 2026-11-02
+Fresh-market release: butchers get the cut instructions, riders and customers get a safe handover.
+- **Cut to order:** for kg meat in the cart, shoppers pick how it should be cut (as it comes, cubed, minced, sliced thin, and so on). The choice goes into the order notes so the butcher sees it. Order notes are capped at 300 characters on the server.
+- **Delivery handover code:** when a partner order goes out for delivery, a 4-digit code is created. The customer sees it on the tracking page only after entering the phone number used to order (the order number alone never shows it). The partner must enter the code to mark the order delivered; if the customer cannot give it, the partner can complete with a written reason, which is recorded in the audit trail. Five wrong codes lock that order for 15 minutes.
+- **Stock freshness nudge:** the partner dashboard lists items marked in stock but not updated for 3 days, with a one-tap "Confirm stock is current".
+- **Fix:** the tracking page now sends the phone number when you press "Show my code".
+- Works on both the Node and PHP backends. New tests: `test/v51.js` (API) and `test/v51ui.js` (browser).
+
 ## v5.0.0 — 2026-11-01
 Operations release, for Azizo Butchery, Ready to Eat and Azizo Kitchens.
 - **Admin Operations page** (`operations.html`, linked from Admin): analytics (sales, average order, repeat customers, cancellations, busiest hours, top items, branches, Kitchens, ratings, and a visit-to-order funnel), support tickets, customer privacy and reward requests, the go-live gate, named inspector accounts and the SOP handbook.

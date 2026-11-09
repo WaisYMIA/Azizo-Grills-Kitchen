@@ -61,6 +61,13 @@ router.post('/', (req, res) => {
       if (decoded.role === 'customer') customerId = decoded.id;
     } catch (e) {}
   }
+  let redeem = 0, redeemPhone = '';
+  if (Math.floor(Number(req.body.redeem_points) || 0) > 0) {
+    if (partner) return res.status(400).json({ error: 'Points cannot be used on partner butchery orders' });
+    const rc = require('../growth').redeemCheck(customerId, req.body.redeem_points, items_subtotal);
+    if (rc.error) return res.status(400).json({ error: rc.error });
+    redeem = rc.discount; redeemPhone = rc.phone9; total = Math.max(1, total - redeem); notes = ((notes || '') + ' [Rewards -KSh ' + redeem + ']').trim();
+  }
   const insertOrder = db.prepare(`
     INSERT INTO orders (customer_id, customer_name, customer_phone, fulfilment, branch, pickup_time, notes, area, recurring,
       delivery_address, delivery_lat, delivery_lng, delivery_fee, payment_method, promo_code, items_subtotal, total, partner_id)
@@ -82,9 +89,11 @@ router.post('/', (req, res) => {
       insertItem.run(orderId, item.id || null, item.name, item.qty, item.unit || '', item.price, Math.round(item.price * item.qty), c ? c.cost_price : 0);
     }
     logStatus.run(orderId);
+    if (redeem) require('../growth').recordRedemption(redeemPhone, redeem, orderId);
     return orderId;
   });
   const newId = createOrder(); try { require('../secmon').sign(newId); } catch (e) {}
+  try { require('../growth').notify('received', newId); } catch (e) {}
   res.status(201).json({ ok: true, orderId: newId });
 });
 // Orders change the moment staff touch them in admin.html, and the admin tool polls
@@ -189,7 +198,8 @@ router.get('/summary', requireStaff, noStore, (req, res) => {
 });
 router.get('/me/history', requireAuth, noStore, (req, res) => {
   if (req.user.role !== 'customer') return res.status(403).json({ error: 'Customer login required' });
-  res.json({ orders: db.prepare('SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC').all(req.user.id) });
+  const orders = db.prepare('SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC').all(req.user.id), it = db.prepare('SELECT product_id AS id, name, qty FROM order_items WHERE order_id = ? AND product_id IS NOT NULL');
+  res.json({ orders: orders.map(o => ({ ...o, items: it.all(o.id) })) });
 });
 // ---------- public order tracking ----------
 // A customer looks their order up by its number only. The reply carries status information
@@ -217,7 +227,10 @@ router.get('/track', trackLimiter, noStore, (req, res) => {
   // phone, address, items or prices — a stranger guessing numbers learns nothing personal.
   res.json({ order: { id: order.id, status: order.status, fulfilment: order.fulfilment, branch: order.branch,
     pickup_time: order.pickup_time, created_at: order.created_at,
-    reviewed: !!db.prepare('SELECT 1 FROM reviews WHERE order_id = ?').get(order.id) } });
+    reviewed: !!db.prepare('SELECT 1 FROM reviews WHERE order_id = ?').get(order.id),
+    codeAvailable: !!(order.delivery_code && order.status === 'out_for_delivery'),
+    // the 4-digit handover code is shown only to someone who also knows the order's phone number
+    deliveryCode: (order.delivery_code && order.status === 'out_for_delivery' && last9(req.query.phone).length >= 9 && last9(req.query.phone) === last9(order.customer_phone)) ? order.delivery_code : undefined } });
 });
 
 router.get('/:id', requireStaff, noStore, (req, res) => {
@@ -232,6 +245,9 @@ router.patch('/:id/status', requireStaff, (req, res) => {
   const result = db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(status, req.params.id);
   if (result.changes === 0) return res.status(404).json({ error: 'Order not found' });
   db.prepare('INSERT INTO order_status_log (order_id, status) VALUES (?, ?)').run(req.params.id, status);
+  if (status === 'cancelled') { try { require('../growth').returnRedemption(Number(req.params.id)); } catch (e) {} }
+  try { require('../growth').notify(status, Number(req.params.id)); } catch (e) {}
+  try { require('../activity').log(req, 'orders', 'order-status', { target: '#' + req.params.id, detail: 'now ' + status }); } catch (e) {}
   res.json({ ok: true });
 });
 module.exports = router;
