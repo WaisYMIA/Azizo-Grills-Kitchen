@@ -1785,6 +1785,696 @@
   "order": ""
  },
  {
+  "key": "franchise_applications",
+  "group": "Growth",
+  "title": "Franchise enquiries",
+  "desc": "Everyone who applied for a franchise, with budget, premises and follow-up status.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT f.id, f.created_at, f.name, f.phone, COALESCE(f.email,'') AS email, f.town, f.budget, f.premises, f.timeline, f.status, COALESCE(f.handled_by,'') AS handled_by FROM ops_franchise f WHERE f.created_at >= :from AND f.created_at < :to ORDER BY f.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "Ref #",
+    "t": "int"
+   },
+   {
+    "k": "created_at",
+    "l": "Received",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "name",
+    "l": "Name",
+    "t": "text"
+   },
+   {
+    "k": "phone",
+    "l": "Phone",
+    "t": "text"
+   },
+   {
+    "k": "email",
+    "l": "Email",
+    "t": "text"
+   },
+   {
+    "k": "town",
+    "l": "Town",
+    "t": "text"
+   },
+   {
+    "k": "budget",
+    "l": "Budget band",
+    "t": "text"
+   },
+   {
+    "k": "premises",
+    "l": "Premises",
+    "t": "text"
+   },
+   {
+    "k": "timeline",
+    "l": "Start within",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "handled_by",
+    "l": "Handled by",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Enquiries",
+    "fn": "count"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "checklist_runs",
+  "group": "Operations",
+  "title": "Daily checklist log",
+  "desc": "Every opening, mid-shift, closing and weekly checklist, with failed lines and who signed.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT r.run_date, COALESCE(b.name, r.branch) AS branch, r.code, r.status, r.done, r.total, r.fails, r.attention, CASE WHEN r.attention > 0 AND r.resolved = 1 THEN 'yes' WHEN r.attention > 0 THEN 'open' ELSE '' END AS critical_state, COALESCE(r.resolve_note,'') AS resolve_note, COALESCE(r.completed_by,'') AS completed_by FROM pb_runs r LEFT JOIN branches b ON b.id = r.branch WHERE r.run_date >= :fromd AND r.run_date <= :tod AND (:branch = '' OR r.branch = :branch OR b.name = :branch) ORDER BY r.run_date DESC, r.branch, r.code",
+  "cols": [
+   {
+    "k": "run_date",
+    "l": "Date",
+    "t": "date"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "code",
+    "l": "Checklist",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "done",
+    "l": "Lines done",
+    "t": "int"
+   },
+   {
+    "k": "total",
+    "l": "Lines",
+    "t": "int"
+   },
+   {
+    "k": "fails",
+    "l": "Failed lines",
+    "t": "int"
+   },
+   {
+    "k": "attention",
+    "l": "Critical failures",
+    "t": "int"
+   },
+   {
+    "k": "critical_state",
+    "l": "Critical fixed?",
+    "t": "text"
+   },
+   {
+    "k": "resolve_note",
+    "l": "Fix recorded",
+    "t": "text"
+   },
+   {
+    "k": "completed_by",
+    "l": "Signed by",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Runs",
+    "fn": "count"
+   },
+   {
+    "l": "Failed lines",
+    "fn": "sum",
+    "c": "fails",
+    "t": "int"
+   },
+   {
+    "l": "Critical failures",
+    "fn": "sum",
+    "c": "attention",
+    "t": "int"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "training_records",
+  "group": "Operations",
+  "title": "Training and certification",
+  "desc": "Quiz results and practical sign-offs per person, branch and course.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT t.taken_at, COALESCE(b.name, t.branch) AS branch, t.staff_name, t.staff_ref, t.course, t.score, CASE WHEN t.passed = 1 THEN 'passed' ELSE 'not passed' END AS result, CASE WHEN t.practical = 1 THEN 'signed off' ELSE '' END AS practical, COALESCE(t.practical_by,'') AS practical_by, COALESCE(t.recorded_by,'') AS recorded_by FROM pb_training t LEFT JOIN branches b ON b.id = t.branch WHERE t.taken_at >= :from AND t.taken_at < :to AND (:branch = '' OR t.branch = :branch OR b.name = :branch) ORDER BY t.id DESC",
+  "cols": [
+   {
+    "k": "taken_at",
+    "l": "Taken",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "staff_name",
+    "l": "Staff",
+    "t": "text"
+   },
+   {
+    "k": "staff_ref",
+    "l": "Phone ref",
+    "t": "text"
+   },
+   {
+    "k": "course",
+    "l": "Course",
+    "t": "text"
+   },
+   {
+    "k": "score",
+    "l": "Score %",
+    "t": "int"
+   },
+   {
+    "k": "result",
+    "l": "Result",
+    "t": "text"
+   },
+   {
+    "k": "practical",
+    "l": "Practical",
+    "t": "text"
+   },
+   {
+    "k": "practical_by",
+    "l": "Signed off by",
+    "t": "text"
+   },
+   {
+    "k": "recorded_by",
+    "l": "Recorded by",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Attempts",
+    "fn": "count"
+   }
+  ],
+  "branch": true,
+  "order": ""
+ },
+ {
+  "key": "branch_launches",
+  "group": "Operations",
+  "title": "New branch launches",
+  "desc": "Branches started with the wizard and whether they are live.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT l.id, l.created_at, l.name, l.branch_id, l.type, CASE WHEN l.grill = 1 THEN 'yes' ELSE 'no' END AS grill, l.status, COALESCE(l.live_at,'') AS live_at, COALESCE(l.created_by,'') AS created_by FROM pb_launches l WHERE l.created_at >= :from AND l.created_at < :to ORDER BY l.id DESC",
+  "cols": [
+   {
+    "k": "id",
+    "l": "#",
+    "t": "int"
+   },
+   {
+    "k": "created_at",
+    "l": "Started",
+    "t": "date",
+    "eat": true
+   },
+   {
+    "k": "name",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "branch_id",
+    "l": "Branch id",
+    "t": "text"
+   },
+   {
+    "k": "type",
+    "l": "Type",
+    "t": "text"
+   },
+   {
+    "k": "grill",
+    "l": "Grill",
+    "t": "text"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "live_at",
+    "l": "Went live",
+    "t": "text"
+   },
+   {
+    "k": "created_by",
+    "l": "Started by",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Launches",
+    "fn": "count"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "purchases_log",
+  "group": "Operations",
+  "title": "Purchases log",
+  "desc": "Meat bought by each branch: supplier, cut, kilograms and cost.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT p.id, p.day, p.branch, p.supplier, p.product, p.kg, p.cost, p.ref, p.by_name FROM bo_purchases p WHERE p.day >= :fromd AND p.day <= :tod ORDER BY p.day, p.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "#",
+    "t": "int"
+   },
+   {
+    "k": "day",
+    "l": "Date",
+    "t": "text"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "supplier",
+    "l": "Supplier",
+    "t": "text"
+   },
+   {
+    "k": "product",
+    "l": "Product",
+    "t": "text"
+   },
+   {
+    "k": "kg",
+    "l": "kg",
+    "t": "num"
+   },
+   {
+    "k": "cost",
+    "l": "Cost KSh",
+    "t": "money"
+   },
+   {
+    "k": "ref",
+    "l": "Reference",
+    "t": "text"
+   },
+   {
+    "k": "by_name",
+    "l": "Recorded by",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Entries",
+    "fn": "count"
+   },
+   {
+    "l": "kg",
+    "fn": "sum",
+    "c": "kg",
+    "t": "num"
+   },
+   {
+    "l": "Cost KSh",
+    "fn": "sum",
+    "c": "cost",
+    "t": "money"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "waste_log",
+  "group": "Operations",
+  "title": "Waste log",
+  "desc": "Meat thrown away or trimmed, by branch and reason.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT w.id, w.day, w.branch, w.product, w.kg, w.reason, w.note, w.by_name FROM bo_waste w WHERE w.day >= :fromd AND w.day <= :tod ORDER BY w.day, w.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "#",
+    "t": "int"
+   },
+   {
+    "k": "day",
+    "l": "Date",
+    "t": "text"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "product",
+    "l": "Product",
+    "t": "text"
+   },
+   {
+    "k": "kg",
+    "l": "kg",
+    "t": "num"
+   },
+   {
+    "k": "reason",
+    "l": "Reason",
+    "t": "text"
+   },
+   {
+    "k": "note",
+    "l": "Note",
+    "t": "text"
+   },
+   {
+    "k": "by_name",
+    "l": "Recorded by",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Entries",
+    "fn": "count"
+   },
+   {
+    "l": "kg",
+    "fn": "sum",
+    "c": "kg",
+    "t": "num"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "yield_log",
+  "group": "Operations",
+  "title": "Cutting yield log",
+  "desc": "Carcass or primal weighed in, saleable cuts and trim out, with the yield %.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT y.id, y.day, y.branch, y.product, y.kg_in, y.kg_out, y.trim_kg, ROUND(100.0 * y.kg_out / y.kg_in, 1) AS yield_pct, y.note, y.by_name FROM bo_yield y WHERE y.day >= :fromd AND y.day <= :tod ORDER BY y.day, y.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "#",
+    "t": "int"
+   },
+   {
+    "k": "day",
+    "l": "Date",
+    "t": "text"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "product",
+    "l": "Started with",
+    "t": "text"
+   },
+   {
+    "k": "kg_in",
+    "l": "kg in",
+    "t": "num"
+   },
+   {
+    "k": "kg_out",
+    "l": "kg saleable",
+    "t": "num"
+   },
+   {
+    "k": "trim_kg",
+    "l": "kg trim",
+    "t": "num"
+   },
+   {
+    "k": "yield_pct",
+    "l": "Yield %",
+    "t": "num"
+   },
+   {
+    "k": "note",
+    "l": "Note",
+    "t": "text"
+   },
+   {
+    "k": "by_name",
+    "l": "Recorded by",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Runs",
+    "fn": "count"
+   },
+   {
+    "l": "kg in",
+    "fn": "sum",
+    "c": "kg_in",
+    "t": "num"
+   },
+   {
+    "l": "kg saleable",
+    "fn": "sum",
+    "c": "kg_out",
+    "t": "num"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "supplier_rejections",
+  "group": "Operations",
+  "title": "Supplier rejections",
+  "desc": "Meat rejected on delivery, by supplier and reason.",
+  "roles": [
+   "owner"
+  ],
+  "sql": "SELECT r.id, r.day, r.branch, r.supplier, r.product, r.kg, r.reason, r.note, r.by_name FROM bo_rejects r WHERE r.day >= :fromd AND r.day <= :tod ORDER BY r.day, r.id",
+  "cols": [
+   {
+    "k": "id",
+    "l": "#",
+    "t": "int"
+   },
+   {
+    "k": "day",
+    "l": "Date",
+    "t": "text"
+   },
+   {
+    "k": "branch",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "supplier",
+    "l": "Supplier",
+    "t": "text"
+   },
+   {
+    "k": "product",
+    "l": "Product",
+    "t": "text"
+   },
+   {
+    "k": "kg",
+    "l": "kg",
+    "t": "num"
+   },
+   {
+    "k": "reason",
+    "l": "Reason",
+    "t": "text"
+   },
+   {
+    "k": "note",
+    "l": "Note",
+    "t": "text"
+   },
+   {
+    "k": "by_name",
+    "l": "Recorded by",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Rejections",
+    "fn": "count"
+   },
+   {
+    "l": "kg",
+    "fn": "sum",
+    "c": "kg",
+    "t": "num"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
+  "key": "royalty_statements",
+  "group": "Money",
+  "title": "Royalty statements",
+  "desc": "Franchise royalty statements issued, with status.",
+  "roles": [
+   "owner",
+   "manager"
+  ],
+  "sql": "SELECT r.id, r.period, f.name AS franchisee, f.branch_id, r.orders, r.gross, r.refunds, r.royalty_pct, r.royalty, r.marketing, r.total, r.status, COALESCE(r.paid_at,'') AS paid_at FROM bo_royalties r JOIN bo_franchisees f ON f.id = r.franchisee_id ORDER BY r.period DESC, r.id DESC",
+  "cols": [
+   {
+    "k": "id",
+    "l": "#",
+    "t": "int"
+   },
+   {
+    "k": "period",
+    "l": "Month",
+    "t": "text"
+   },
+   {
+    "k": "franchisee",
+    "l": "Franchisee",
+    "t": "text"
+   },
+   {
+    "k": "branch_id",
+    "l": "Branch",
+    "t": "text"
+   },
+   {
+    "k": "orders",
+    "l": "Orders",
+    "t": "int"
+   },
+   {
+    "k": "gross",
+    "l": "Net sales KSh",
+    "t": "money"
+   },
+   {
+    "k": "refunds",
+    "l": "Refunds KSh",
+    "t": "money"
+   },
+   {
+    "k": "royalty_pct",
+    "l": "Royalty %",
+    "t": "num"
+   },
+   {
+    "k": "royalty",
+    "l": "Royalty KSh",
+    "t": "money"
+   },
+   {
+    "k": "marketing",
+    "l": "Marketing KSh",
+    "t": "money"
+   },
+   {
+    "k": "total",
+    "l": "Total due KSh",
+    "t": "money"
+   },
+   {
+    "k": "status",
+    "l": "Status",
+    "t": "text"
+   },
+   {
+    "k": "paid_at",
+    "l": "Paid",
+    "t": "text"
+   }
+  ],
+  "totals": [
+   {
+    "l": "Statements",
+    "fn": "count"
+   },
+   {
+    "l": "Total due KSh",
+    "fn": "sum",
+    "c": "total",
+    "t": "money"
+   }
+  ],
+  "branch": false,
+  "order": ""
+ },
+ {
   "key": "partners",
   "group": "Marketplace",
   "title": "Marketplace partner performance",

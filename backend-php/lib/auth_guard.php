@@ -27,11 +27,11 @@ function team_role_now(): ?string {
 function team_deny(array $p): ?string {
     $tr = $p['tr'] ?? null; if (!$tr || $tr === 'owner') return null;
     $path = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH); $get = ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET';
-    $ownerOnly = ['#/api/ops/admin/(team|accounts)#', '#/api/auth/security#', '#/api/market/admin/(fees|settings)#', '#/api/site/settings#', '#/api/products/import#', '#/api/ai/admin/settings#', '#/api/growth/admin/settings#', '#/api/insight/admin/(activity|mail)#'];
+    $ownerOnly = ['#/api/branchops/(franchisees|royalties|settings)#', '#/api/playbook/launches#', '#/api/ops/admin/(team|accounts)#', '#/api/auth/security#', '#/api/market/admin/(fees|settings)#', '#/api/site/settings#', '#/api/products/import#', '#/api/ai/admin/settings#', '#/api/growth/admin/(settings|franchise)#', '#/api/insight/admin/(activity|mail)#'];
     if ($tr === 'manager') { foreach ($ownerOnly as $r) if (preg_match($r, $path)) return 'Only an Owner can do this'; return null; }
     if ($tr === 'finance') {
         if (preg_match('#/api/market/admin/invoices#', $path)) return null;
-        if ($get) foreach (['#/api/market/admin/(overview|fees|invoices|partners)#', '#/api/ops/admin/analytics#', '#/api/growth/admin/(recon|refunds|digest)#', '#/api/insight/admin/(reports|pack)#', '#/api/reports#', '#/api/orders#', '#/api/kitchens#'] as $r) if (preg_match($r, $path)) return null;
+        if ($get) foreach (['#/api/branchops/(scorecard|purchases|waste|margins|royalties|yield|rejects|suppliers)#', '#/api/market/admin/(overview|fees|invoices|partners)#', '#/api/ops/admin/analytics#', '#/api/growth/admin/(recon|refunds|digest)#', '#/api/insight/admin/(reports|pack)#', '#/api/reports#', '#/api/orders#', '#/api/kitchens#'] as $r) if (preg_match($r, $path)) return null;
         if (preg_match('#/api/growth/admin/refunds#', $path)) return null;
         return 'Your Finance login can view money screens but not change this';
     }

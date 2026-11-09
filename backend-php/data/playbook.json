@@ -1,0 +1,1097 @@
+{
+ "version": "6.0",
+ "passmark": 80,
+ "valid_months": 12,
+ "checklists": [
+  {
+   "code": "open",
+   "title": "Opening checklist",
+   "shift": "open",
+   "sop": "B09",
+   "desc": "Before the first customer. Takes about 15 minutes.",
+   "items": [
+    {
+     "id": "o1",
+     "t": "Staff on shift are fit to work, in clean uniform, hair covered; no one with vomiting, diarrhoea or fever handling food",
+     "type": "tick",
+     "sop": "B04",
+     "crit": true
+    },
+    {
+     "id": "o2",
+     "t": "Food-handler medical certificates for everyone on shift are valid (check expiry dates)",
+     "type": "tick",
+     "sop": "B04",
+     "crit": true
+    },
+    {
+     "id": "o3",
+     "t": "Hand-wash station has soap, warm water and single-use towels",
+     "type": "tick",
+     "sop": "B04",
+     "crit": false
+    },
+    {
+     "id": "o4",
+     "t": "Chiller temperature (0 to 4°C; act above 5°C)",
+     "type": "temp",
+     "sop": "B02",
+     "crit": true,
+     "min": 0,
+     "max": 5,
+     "unit": "°C"
+    },
+    {
+     "id": "o5",
+     "t": "Freezer temperature (-18°C or colder; act above -15°C)",
+     "type": "temp",
+     "sop": "B02",
+     "crit": true,
+     "min": -40,
+     "max": -15,
+     "unit": "°C"
+    },
+    {
+     "id": "o6",
+     "t": "Scale tested with the test weight and the county weights-and-measures stamp is valid",
+     "type": "tick",
+     "sop": "B03",
+     "crit": true
+    },
+    {
+     "id": "o7",
+     "t": "Colour-coded boards and knives in place (red raw meat, yellow poultry, blue fish, white cooked)",
+     "type": "tick",
+     "sop": "B03",
+     "crit": false
+    },
+    {
+     "id": "o8",
+     "t": "Sanitiser mixed at label strength; chemicals in the closed cupboard",
+     "type": "tick",
+     "sop": "B05",
+     "crit": false
+    },
+    {
+     "id": "o9",
+     "t": "Floors, drains, tables and blocks clean; no pests or droppings seen",
+     "type": "tick",
+     "sop": "B06",
+     "crit": false
+    },
+    {
+     "id": "o10",
+     "t": "Meat labels checked: first in, first out; nothing past its sell-by or freeze-by day on display",
+     "type": "tick",
+     "sop": "B02",
+     "crit": true
+    },
+    {
+     "id": "o11",
+     "t": "Opening till float counted (KSh)",
+     "type": "num",
+     "sop": "B09",
+     "unit": "KSh"
+    },
+    {
+     "id": "o12",
+     "t": "Online orders portal open; overnight orders acknowledged; sold-out items correct",
+     "type": "tick",
+     "sop": "B07",
+     "crit": false
+    },
+    {
+     "id": "o13",
+     "t": "Fire extinguisher and fire blanket in place (grill branches)",
+     "type": "tick",
+     "sop": "R01",
+     "crit": false
+    },
+    {
+     "id": "o14",
+     "t": "Handover notes from the last shift read (write anything important)",
+     "type": "text",
+     "sop": "B09"
+    }
+   ]
+  },
+  {
+   "code": "mid",
+   "title": "Mid-shift check",
+   "shift": "mid",
+   "sop": "B02",
+   "desc": "Midday. Takes about 10 minutes.",
+   "items": [
+    {
+     "id": "m1",
+     "t": "Chiller temperature (0 to 4°C; act above 5°C)",
+     "type": "temp",
+     "sop": "B02",
+     "crit": true,
+     "min": 0,
+     "max": 5,
+     "unit": "°C"
+    },
+    {
+     "id": "m2",
+     "t": "Freezer temperature (-18°C or colder; act above -15°C)",
+     "type": "temp",
+     "sop": "B02",
+     "crit": true,
+     "min": -40,
+     "max": -15,
+     "unit": "°C"
+    },
+    {
+     "id": "m3",
+     "t": "Hot-holding temperature of cooked food (60°C or above); write the lowest reading",
+     "type": "temp",
+     "sop": "R02",
+     "crit": true,
+     "min": 60,
+     "max": 100,
+     "unit": "°C"
+    },
+    {
+     "id": "m4",
+     "t": "Cooked food on display is within 2 hours of the hold start; older food discarded and logged",
+     "type": "tick",
+     "sop": "R02",
+     "crit": true
+    },
+    {
+     "id": "m5",
+     "t": "Probe core temperatures taken and logged for each grill batch (74°C poultry and mince, 71°C pork, 63°C beef/goat/fish)",
+     "type": "tick",
+     "sop": "R01",
+     "crit": true
+    },
+    {
+     "id": "m6",
+     "t": "Hands washed and boards/knives sanitised between species and after every long pause",
+     "type": "tick",
+     "sop": "B03",
+     "crit": false
+    },
+    {
+     "id": "m7",
+     "t": "Every online order acknowledged within 5 minutes; no order waiting more than 45 minutes after packing",
+     "type": "tick",
+     "sop": "B07",
+     "crit": false
+    },
+    {
+     "id": "m8",
+     "t": "Allergy flags on today's orders checked and marked",
+     "type": "tick",
+     "sop": "R03",
+     "crit": false
+    },
+    {
+     "id": "m9",
+     "t": "Waste so far today (kg)",
+     "type": "num",
+     "sop": "B02",
+     "unit": "kg"
+    }
+   ]
+  },
+  {
+   "code": "close",
+   "title": "Closing checklist",
+   "shift": "close",
+   "sop": "B09",
+   "desc": "At the end of the day or the end of your shift.",
+   "items": [
+    {
+     "id": "c1",
+     "t": "Chiller temperature (0 to 4°C; act above 5°C)",
+     "type": "temp",
+     "sop": "B02",
+     "crit": true,
+     "min": 0,
+     "max": 5,
+     "unit": "°C"
+    },
+    {
+     "id": "c2",
+     "t": "Freezer temperature (-18°C or colder; act above -15°C)",
+     "type": "temp",
+     "sop": "B02",
+     "crit": true,
+     "min": -40,
+     "max": -15,
+     "unit": "°C"
+    },
+    {
+     "id": "c3",
+     "t": "Chilled meat that was above 5°C for more than 2 hours has been discarded and logged",
+     "type": "tick",
+     "sop": "B02",
+     "crit": true
+    },
+    {
+     "id": "c4",
+     "t": "Boards, knives, saw, scale, mincer, floors and drains cleaned and sanitised; cleaning sheet signed",
+     "type": "tick",
+     "sop": "B05",
+     "crit": true
+    },
+    {
+     "id": "c5",
+     "t": "Bins emptied and washed; waste removed",
+     "type": "tick",
+     "sop": "B06",
+     "crit": false
+    },
+    {
+     "id": "c6",
+     "t": "Leftover cooked food labelled, cooled within the limits or discarded; nothing unlabelled kept",
+     "type": "tick",
+     "sop": "R02",
+     "crit": true
+    },
+    {
+     "id": "c7",
+     "t": "Waste for the whole day (kg)",
+     "type": "num",
+     "sop": "B02",
+     "unit": "kg"
+    },
+    {
+     "id": "c8",
+     "t": "Counted cash at close (KSh)",
+     "type": "num",
+     "sop": "B09",
+     "unit": "KSh"
+    },
+    {
+     "id": "c9",
+     "t": "Cash-up submitted in Operations and M-Pesa messages matched to orders",
+     "type": "tick",
+     "sop": "B09",
+     "crit": true
+    },
+    {
+     "id": "c10",
+     "t": "Unfinished orders handed over and written in the notes; sold-out items updated",
+     "type": "tick",
+     "sop": "B07",
+     "crit": false
+    },
+    {
+     "id": "c11",
+     "t": "Doors, windows and cold-room locked; alarm set; equipment off where required",
+     "type": "tick",
+     "sop": "B09",
+     "crit": false
+    },
+    {
+     "id": "c12",
+     "t": "Handover note for the next shift (problems, stock to order, repairs)",
+     "type": "text",
+     "sop": "B09"
+    }
+   ]
+  },
+  {
+   "code": "weekly",
+   "title": "Weekly checklist",
+   "shift": "weekly",
+   "sop": "B05",
+   "desc": "Once a week, by the manager.",
+   "items": [
+    {
+     "id": "w1",
+     "t": "Chiller and freezer shelves emptied, cleaned and sanitised; walls and ceiling wiped",
+     "type": "tick",
+     "sop": "B05",
+     "crit": false
+    },
+    {
+     "id": "w2",
+     "t": "Defrost freezers if frost is thick; temperature recovered within 2 hours",
+     "type": "tick",
+     "sop": "B02",
+     "crit": false
+    },
+    {
+     "id": "w3",
+     "t": "Supplier licences and meat inspection certificates on file and not expired (check monthly)",
+     "type": "tick",
+     "sop": "B01",
+     "crit": true
+    },
+    {
+     "id": "w4",
+     "t": "Medical certificates: list anyone due within 30 days",
+     "type": "tick",
+     "sop": "B04",
+     "crit": false
+    },
+    {
+     "id": "w5",
+     "t": "Pest-control visit or bait check done and logged",
+     "type": "tick",
+     "sop": "B06",
+     "crit": false
+    },
+    {
+     "id": "w6",
+     "t": "Fire extinguisher gauge in the green; staff know where it is",
+     "type": "tick",
+     "sop": "R01",
+     "crit": false
+    },
+    {
+     "id": "w7",
+     "t": "Thermometers checked in ice water (0°C) and boiling water (about 100°C); replace any off by more than 1°C",
+     "type": "tick",
+     "sop": "B02",
+     "crit": false
+    },
+    {
+     "id": "w8",
+     "t": "Complaints and refunds this week reviewed; three of the same kind in 30 days reported to head office",
+     "type": "tick",
+     "sop": "B08",
+     "crit": true
+    },
+    {
+     "id": "w9",
+     "t": "Data backup downloaded and a copy kept (Operations > Backups or cPanel backup)",
+     "type": "tick",
+     "sop": "G06",
+     "crit": false
+    },
+    {
+     "id": "w10",
+     "t": "Anything to escalate to Azizo head office (support ticket)",
+     "type": "text",
+     "sop": "G03"
+    }
+   ]
+  }
+ ],
+ "courses": [
+  {
+   "code": "C1",
+   "title": "Receiving meat and the cold chain",
+   "sop": [
+    "B01",
+    "B02"
+   ],
+   "for_roles": "Butchers, receivers, managers",
+   "lessons": [
+    {
+     "h": "Receiving",
+     "pts": [
+      "Buy only from licensed abattoirs or suppliers; keep the licence copy and check expiry every month.",
+      "No stamped inspection certificate or delivery note means no acceptance.",
+      "Check the vehicle, the meat (colour, smell, slime, texture) and the core temperature.",
+      "Chilled meat is accepted at 4°C or below and rejected above 7°C. Frozen meat is accepted at -15°C or below.",
+      "Record date, supplier, species, kg, temperature, accepted or rejected, and your name. Move to cold storage within 15 minutes."
+     ]
+    },
+    {
+     "h": "Storage",
+     "pts": [
+      "Chillers 0 to 4°C; freezers -18°C or colder. Log at opening, midday and closing.",
+      "Raw below, cooked above; red meat, poultry and fish kept apart; nothing on the floor.",
+      "First in, first out. Beef, goat and pork: sell or freeze within 3 days; poultry and mince 2 days; fish 1 day.",
+      "Never refreeze thawed meat; thaw only in the chiller.",
+      "Power cut: doors shut, tell the manager, discard chilled meat above 5°C for more than 2 hours."
+     ]
+    }
+   ],
+   "quiz": [
+    {
+     "q": "A delivery of chilled beef measures 6°C at the core and has a valid certificate. What do you do?",
+     "o": [
+      "Accept it and chill quickly",
+      "Reject it: acceptance is 4°C or below (reject above 7°C), so call the manager and record the reading",
+      "Accept half",
+      "Accept it if the driver agrees"
+     ],
+     "a": 1,
+     "why": "4°C or below is accepted and above 7°C is rejected. At 6°C you must not accept on your own: record it and call the manager, who decides under the SOP."
+    },
+    {
+     "q": "Which delivery paperwork is required?",
+     "o": [
+      "Only the driver's phone number",
+      "A stamped meat inspection certificate or delivery note",
+      "Nothing if you know the supplier",
+      "A photo of the animal"
+     ],
+     "a": 1,
+     "why": "No paper, no acceptance."
+    },
+    {
+     "q": "What is the freezer target temperature?",
+     "o": [
+      "0°C",
+      "-5°C",
+      "-18°C or colder",
+      "-10°C"
+     ],
+     "a": 2,
+     "why": "Freezers are kept at -18°C or colder; above -15°C means act and log."
+    },
+    {
+     "q": "How long can fresh poultry and mince be kept before sale or freezing?",
+     "o": [
+      "1 day",
+      "2 days",
+      "5 days",
+      "7 days"
+     ],
+     "a": 1,
+     "why": "Poultry and mince: 2 days. Beef, goat and pork: 3 days. Fish: 1 day."
+    },
+    {
+     "q": "The power is out. The chiller has been above 5°C for 3 hours. What now?",
+     "o": [
+      "Sell it quickly at a discount",
+      "Discard the chilled meat and log it",
+      "Refreeze it",
+      "Cook it and keep it"
+     ],
+     "a": 1,
+     "why": "Chilled meat above 5°C for more than 2 hours is discarded and logged."
+    }
+   ]
+  },
+  {
+   "code": "C2",
+   "title": "Cutting, weighing and personal hygiene",
+   "sop": [
+    "B03",
+    "B04"
+   ],
+   "for_roles": "Butchers, counter staff",
+   "lessons": [
+    {
+     "h": "Cutting and weighing",
+     "pts": [
+      "Red = raw red meat, yellow = poultry, blue = fish, white = cooked.",
+      "Wash and sanitise boards, knives and the saw between species and after any pause longer than 30 minutes.",
+      "Keep out of the chiller only what you can cut in 20 minutes.",
+      "Test the scale each morning; the county stamp must be valid. Tare the tray and weigh in front of the customer.",
+      "Label every pack: product, weight, date, branch."
+     ]
+    },
+    {
+     "h": "Hygiene",
+     "pts": [
+      "Wash hands for 20 seconds with soap and warm water on arrival, after the toilet, after raw meat, waste, phones or money, and before ready-to-eat food.",
+      "Clean apron, hair covering, closed non-slip shoes; short clean nails; no jewellery other than a plain band.",
+      "Cuts covered with a blue waterproof plaster and a glove.",
+      "If you have diarrhoea, vomiting, fever or infected skin, do not handle food and tell the manager the same day. Return after 48 hours with no symptoms.",
+      "Valid food-handler medical certificate, renewed every 6 months."
+     ]
+    }
+   ],
+   "quiz": [
+    {
+     "q": "Which board colour is for poultry?",
+     "o": [
+      "Red",
+      "Yellow",
+      "Blue",
+      "White"
+     ],
+     "a": 1,
+     "why": "Yellow is poultry."
+    },
+    {
+     "q": "How long should you wash your hands?",
+     "o": [
+      "5 seconds",
+      "10 seconds",
+      "20 seconds with soap and warm water",
+      "Until dry"
+     ],
+     "a": 2,
+     "why": "20 seconds, soap, warm water, single-use towel."
+    },
+    {
+     "q": "You have had diarrhoea since last night. What do you do?",
+     "o": [
+      "Work, but wear gloves",
+      "Tell the manager and do not handle food; return after 48 hours with no symptoms",
+      "Work only at the till",
+      "Take a tablet and work"
+     ],
+     "a": 1,
+     "why": "Illness must be reported the same day and you stay off food handling until 48 hours symptom-free."
+    },
+    {
+     "q": "When must the scale be tested?",
+     "o": [
+      "Once a month",
+      "Each morning with a test weight",
+      "Only when a customer complains",
+      "Once a year"
+     ],
+     "a": 1,
+     "why": "Each morning, and the county stamp must be valid."
+    },
+    {
+     "q": "How often must a food handler's medical certificate be renewed?",
+     "o": [
+      "Every 6 months",
+      "Every 5 years",
+      "Never",
+      "Every 3 years"
+     ],
+     "a": 0,
+     "why": "The SOP requires renewal every 6 months, as required by the county."
+    }
+   ]
+  },
+  {
+   "code": "C3",
+   "title": "Cleaning, sanitation and pest control",
+   "sop": [
+    "B05",
+    "B06"
+   ],
+   "for_roles": "All staff",
+   "lessons": [
+    {
+     "h": "Clean, then sanitise",
+     "pts": [
+      "Remove debris, wash with detergent, rinse, apply sanitiser at label strength, leave for the contact time.",
+      "After every shift: tables, blocks, knives, saw, scale, mincer, floors, drains. Daily: chillers wiped, bins washed. Weekly: shelves emptied and cleaned. Monthly: deep clean, drains descaled.",
+      "Cloths are single-use or colour-coded and washed hot daily; mops kept out of the food area.",
+      "Chemicals stay in a labelled closed cupboard. Never put them in drink bottles.",
+      "The supervisor signs the cleaning sheet each shift."
+     ]
+    }
+   ],
+   "quiz": [
+    {
+     "q": "What is the correct order?",
+     "o": [
+      "Sanitise, then clean",
+      "Clean, then sanitise",
+      "Rinse only",
+      "Spray perfume"
+     ],
+     "a": 1,
+     "why": "Remove soil first. Sanitiser does not work well on dirty surfaces."
+    },
+    {
+     "q": "Where do cleaning chemicals belong?",
+     "o": [
+      "In a drink bottle near the sink",
+      "In a labelled, closed cupboard away from food",
+      "On the counter",
+      "Beside the scale"
+     ],
+     "a": 1,
+     "why": "Labelled, closed, away from food. Never decanted into drink bottles."
+    },
+    {
+     "q": "Who signs the cleaning sheet?",
+     "o": [
+      "The customer",
+      "The supervisor each shift",
+      "No one",
+      "The supplier"
+     ],
+     "a": 1,
+     "why": "The supervisor signs each shift."
+    },
+    {
+     "q": "You see rat droppings in the store. What now?",
+     "o": [
+      "Ignore them",
+      "Record it, tell the manager at once, and clean and sanitise; the manager arranges pest control",
+      "Sweep and say nothing",
+      "Close the door"
+     ],
+     "a": 1,
+     "why": "Report it, clean and sanitise, and get pest control arranged and logged."
+    },
+    {
+     "q": "How often are chiller and freezer shelves emptied and cleaned?",
+     "o": [
+      "Weekly",
+      "Never",
+      "Yearly",
+      "Only when dirty"
+     ],
+     "a": 0,
+     "why": "Weekly, with the deep clean monthly."
+    }
+   ]
+  },
+  {
+   "code": "C4",
+   "title": "Orders, delivery and complaints",
+   "sop": [
+    "B07",
+    "B08"
+   ],
+   "for_roles": "Counter staff, riders, managers",
+   "lessons": [
+    {
+     "h": "Orders and delivery",
+     "pts": [
+      "Acknowledge every online order within 5 minutes and keep the status honest.",
+      "Weigh, label and pack to the order; raw meat packed separately; ice packs for journeys over 30 minutes.",
+      "A second person checks orders above KSh 5,000 before handover.",
+      "Riders: clean insulated bag, helmet and reflective jacket, call the customer 5 minutes before arrival.",
+      "Out of stock: tell the customer before substituting and mark the item sold out immediately."
+     ]
+    },
+    {
+     "h": "Complaints",
+     "pts": [
+      "Listen, apologise, record order number and photo. Do not argue.",
+      "Replace or refund within 24 hours. Quality and safety complaints are always accepted.",
+      "Illness complaint: stop selling the batch, keep samples, note batch and supplier, raise an urgent support ticket.",
+      "Three complaints of the same kind in 30 days trigger an unannounced inspection."
+     ]
+    }
+   ],
+   "quiz": [
+    {
+     "q": "Within what time must you acknowledge an online order?",
+     "o": [
+      "5 minutes",
+      "1 hour",
+      "Next day",
+      "No rule"
+     ],
+     "a": 0,
+     "why": "Within 5 minutes."
+    },
+    {
+     "q": "Above what order value does a second person check before handover?",
+     "o": [
+      "KSh 500",
+      "KSh 1,000",
+      "KSh 5,000",
+      "Never"
+     ],
+     "a": 2,
+     "why": "Orders above KSh 5,000 get a second check."
+    },
+    {
+     "q": "A customer says the meat made them ill. First action?",
+     "o": [
+      "Offer a discount",
+      "Stop selling that batch, keep samples, record batch and supplier, raise an urgent ticket",
+      "Delete the order",
+      "Say it is impossible"
+     ],
+     "a": 1,
+     "why": "Stop the batch, keep samples, and tell head office immediately."
+    },
+    {
+     "q": "How soon should a replacement or refund be given for a valid complaint?",
+     "o": [
+      "Within 24 hours",
+      "Within a month",
+      "Never",
+      "Only if they return it"
+     ],
+     "a": 0,
+     "why": "Within 24 hours."
+    },
+    {
+     "q": "An item is out of stock. What do you do?",
+     "o": [
+      "Substitute silently",
+      "Tell the customer first and mark it sold out in the portal",
+      "Hide the order",
+      "Cancel without saying"
+     ],
+     "a": 1,
+     "why": "Tell the customer before substituting and update the portal at once."
+    }
+   ]
+  },
+  {
+   "code": "C5",
+   "title": "Grill cooking and food holding",
+   "sop": [
+    "R01",
+    "R02"
+   ],
+   "for_roles": "Grill and kitchen staff",
+   "lessons": [
+    {
+     "h": "Cooking",
+     "pts": [
+      "Cook only fresh or properly thawed meat; marinate in the chiller.",
+      "Core temperatures held 15 seconds: poultry and mince 74°C; pork 71°C; beef and goat 63°C with a 3-minute rest; fish 63°C; sausages 74°C.",
+      "Separate tongs, boards and plates for raw and cooked; wash the probe between uses.",
+      "Keep fuel away from food; extinguisher and fire blanket near the grill."
+     ]
+    },
+    {
+     "h": "Holding and cooling",
+     "pts": [
+      "Hot food at 60°C or above and discarded 2 hours after the hold begins.",
+      "The danger zone is 5 to 60°C; never more than 2 hours in total.",
+      "Cool from 60°C to 21°C within 2 hours and then to 5°C within 4 more hours.",
+      "Reheat once only, to 74°C throughout. Unlabelled food is never sold."
+     ]
+    }
+   ],
+   "quiz": [
+    {
+     "q": "What core temperature must chicken reach?",
+     "o": [
+      "55°C",
+      "63°C",
+      "74°C",
+      "50°C"
+     ],
+     "a": 2,
+     "why": "Poultry and mince reach 74°C."
+    },
+    {
+     "q": "At what temperature must hot food be held?",
+     "o": [
+      "40°C",
+      "50°C",
+      "60°C or above",
+      "Any"
+     ],
+     "a": 2,
+     "why": "60°C or above, discarded 2 hours after the hold begins."
+    },
+    {
+     "q": "How many times may food be reheated?",
+     "o": [
+      "Once only, to 74°C",
+      "Twice",
+      "Until it is gone",
+      "Any number"
+     ],
+     "a": 0,
+     "why": "Once only, to 74°C throughout."
+    },
+    {
+     "q": "How long may food stay in the 5 to 60°C danger zone in total?",
+     "o": [
+      "No more than 2 hours",
+      "6 hours",
+      "Overnight",
+      "12 hours"
+     ],
+     "a": 0,
+     "why": "No more than 2 hours in total."
+    },
+    {
+     "q": "Leftover cooked meat in the chiller must be used within:",
+     "o": [
+      "24 hours",
+      "7 days",
+      "2 weeks",
+      "No limit"
+     ],
+     "a": 0,
+     "why": "Within 24 hours, labelled."
+    }
+   ]
+  },
+  {
+   "code": "C6",
+   "title": "Allergens, packaging and dispatch",
+   "sop": [
+    "R03",
+    "R04"
+   ],
+   "for_roles": "Grill and kitchen staff, packers, riders",
+   "lessons": [
+    {
+     "h": "Allergens",
+     "pts": [
+      "Main allergens: milk, eggs, fish, shellfish, peanuts and tree nuts, soy, wheat or gluten, sesame, sulphites.",
+      "Keep an allergen list per dish and review it when a recipe or supplier changes.",
+      "Never guess: say \"I will check\". Use separate utensils, clean hands and fresh oil for an allergic customer and mark the order.",
+      "Emergency (swelling, trouble breathing): call 112 or 999 and stay with the person."
+     ]
+    },
+    {
+     "h": "Packaging",
+     "pts": [
+      "Clean, food-grade, leak-proof containers; do not reuse single-use packaging.",
+      "Tamper-evident sticker with dish name, time packed and \"Eat within 2 hours\".",
+      "Hand over in a clean insulated bag; hot at 60°C or above, cold at 5°C or below.",
+      "Check items, sauces, cutlery, notes and the allergy flag against the ticket. Remake if more than 45 minutes after packing."
+     ]
+    }
+   ],
+   "quiz": [
+    {
+     "q": "A customer asks if a dish has peanuts and you are not sure. You say:",
+     "o": [
+      "\"No, it is fine\"",
+      "\"I will check\"",
+      "\"Probably not\"",
+      "Nothing"
+     ],
+     "a": 1,
+     "why": "Never guess about allergens."
+    },
+    {
+     "q": "A customer shows swelling and trouble breathing after eating. First action?",
+     "o": [
+      "Offer water",
+      "Call 112 or 999 and stay with them",
+      "Wait to see",
+      "Ask them to leave"
+     ],
+     "a": 1,
+     "why": "This is an emergency: call at once."
+    },
+    {
+     "q": "What must be on a takeaway label?",
+     "o": [
+      "Dish name, time packed, \"Eat within 2 hours\", and allergens present",
+      "Only the price",
+      "Only the branch",
+      "Nothing"
+     ],
+     "a": 0,
+     "why": "Dish name, time and allergens, with a tamper-evident sticker."
+    },
+    {
+     "q": "A packed order has waited 60 minutes before dispatch. What now?",
+     "o": [
+      "Send it",
+      "Remake it: the cap is 45 minutes from packing",
+      "Reheat in the bag",
+      "Add a sticker"
+     ],
+     "a": 1,
+     "why": "Beyond 45 minutes from packing, remake the order."
+    },
+    {
+     "q": "Hot food is handed to the rider at:",
+     "o": [
+      "40°C",
+      "50°C",
+      "60°C or above",
+      "Any"
+     ],
+     "a": 2,
+     "why": "60°C or above for cooked food."
+    }
+   ]
+  },
+  {
+   "code": "C7",
+   "title": "Opening, closing and cash",
+   "sop": [
+    "B09"
+   ],
+   "for_roles": "Supervisors, counter staff, managers",
+   "lessons": [
+    {
+     "h": "Daily rhythm",
+     "pts": [
+      "Run the opening checklist before the first customer: health, temperatures, scale, sanitiser, labels, float, orders portal.",
+      "Mid-shift: temperatures, hot-holding, probe logs, orders under 5 minutes.",
+      "Closing: temperatures, cleaning sheet, waste, count cash, submit the cash-up, hand over notes, lock up.",
+      "Any critical item that fails needs a written action. The manager reviews the failures daily.",
+      "Cash-up goes in every evening; M-Pesa messages are matched to orders; a gap above the tolerance is explained the same day."
+     ]
+    }
+   ],
+   "quiz": [
+    {
+     "q": "When do you run the opening checklist?",
+     "o": [
+      "Before the first customer",
+      "At lunch",
+      "At closing",
+      "Weekly"
+     ],
+     "a": 0,
+     "why": "Before the first customer."
+    },
+    {
+     "q": "A critical checklist item fails. What must you do?",
+     "o": [
+      "Skip it",
+      "Write down the action you took",
+      "Delete the run",
+      "Wait for the inspector"
+     ],
+     "a": 1,
+     "why": "Failures need a written corrective action and the manager reviews them."
+    },
+    {
+     "q": "When is the cash-up submitted?",
+     "o": [
+      "Every evening",
+      "Monthly",
+      "Never",
+      "When asked"
+     ],
+     "a": 0,
+     "why": "Every evening at closing."
+    },
+    {
+     "q": "Who is told about a cash gap above tolerance?",
+     "o": [
+      "Nobody",
+      "The manager, the same day",
+      "Only the customer",
+      "The supplier"
+     ],
+     "a": 1,
+     "why": "The manager must be told and the gap explained the same day."
+    },
+    {
+     "q": "What is written in the handover note?",
+     "o": [
+      "Problems, stock to order, repairs and unfinished orders",
+      "Nothing",
+      "Jokes",
+      "Only the date"
+     ],
+     "a": 0,
+     "why": "Anything the next shift needs to know."
+    }
+   ]
+  },
+  {
+   "code": "C8",
+   "title": "Brand standards and escalation",
+   "sop": [
+    "G01",
+    "G03"
+   ],
+   "for_roles": "Everyone, especially managers and franchise owners",
+   "lessons": [
+    {
+     "h": "One brand",
+     "pts": [
+      "The same look, wording, prices guidance, uniforms and cleanliness in every branch: customers must meet the same Azizo everywhere.",
+      "Use only the approved logo, colours and signage from the brand pack; no changes without written approval.",
+      "Never make health, sourcing or price claims that Azizo has not approved.",
+      "Escalate by support ticket in Operations: normal issues in a day; urgent issues (illness, recall, fire, theft, data breach) at once by phone and ticket."
+     ]
+    }
+   ],
+   "quiz": [
+    {
+     "q": "May a branch change the logo colours?",
+     "o": [
+      "Yes, if it looks nice",
+      "No: only approved brand-pack assets, with written approval for changes",
+      "Yes on weekends",
+      "Yes for events"
+     ],
+     "a": 1,
+     "why": "Only the approved brand pack."
+    },
+    {
+     "q": "A customer reports illness after eating. How do you escalate?",
+     "o": [
+      "Wait for the weekly meeting",
+      "Urgently: phone head office and raise an urgent ticket",
+      "Post online",
+      "Ignore"
+     ],
+     "a": 1,
+     "why": "Urgent issues go by phone and ticket at once."
+    },
+    {
+     "q": "May a branch advertise \"100% organic\" without approval?",
+     "o": [
+      "Yes",
+      "No: claims must be approved and true",
+      "Yes if cheap",
+      "Yes in the shop only"
+     ],
+     "a": 1,
+     "why": "Unapproved health or sourcing claims are not allowed."
+    },
+    {
+     "q": "Where are normal issues raised?",
+     "o": [
+      "A support ticket in Operations",
+      "Social media",
+      "Verbal only",
+      "Nowhere"
+     ],
+     "a": 0,
+     "why": "Raise a support ticket."
+    },
+    {
+     "q": "Why does brand consistency matter?",
+     "o": [
+      "Customers must trust the same standard in every branch",
+      "It does not",
+      "Only for photos",
+      "Only for owners"
+     ],
+     "a": 0,
+     "why": "Trust in one branch carries across all of them."
+    }
+   ]
+  }
+ ],
+ "core": [
+  "C1",
+  "C2",
+  "C3",
+  "C7"
+ ],
+ "grill": [
+  "C5",
+  "C6"
+ ],
+ "manual": [
+  {
+   "k": "licence",
+   "t": "Business permit and public health licence or certificate displayed (county)"
+  },
+  {
+   "k": "inspection",
+   "t": "Meat supplier agreements and licences on file (abattoir, inspection certificates)"
+  },
+  {
+   "k": "scale",
+   "t": "Scale verified and stamped by weights and measures"
+  },
+  {
+   "k": "thermo",
+   "t": "Thermometers and temperature probes checked and working"
+  },
+  {
+   "k": "fire",
+   "t": "Fire extinguisher serviced and staff shown how to use it"
+  },
+  {
+   "k": "medical",
+   "t": "All staff have a valid food-handler medical certificate"
+  },
+  {
+   "k": "payment",
+   "t": "Payment test done: cash, M-Pesa prompt and receipt"
+  },
+  {
+   "k": "brand",
+   "t": "Signage, uniforms and brand pack in place"
+  },
+  {
+   "k": "cold",
+   "t": "Cold-room temperature held for 24 hours before stocking meat"
+  },
+  {
+   "k": "agreement",
+   "t": "Franchise agreement signed (franchise branches only)"
+  }
+ ]
+}

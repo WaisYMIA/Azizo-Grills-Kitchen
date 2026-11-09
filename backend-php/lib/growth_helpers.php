@@ -7,6 +7,7 @@ function growth_defaults(): array {
         'price_mode' => 'enforce', 'price_band_pct' => '15', 'refund_window_hours' => '24',
         'sub_on' => '1', 'sub_min_order' => '1500', 'sub_max_per_customer' => '3', 'sub_freqs' => 'weekly,fortnightly,monthly', 'cash_tolerance' => '50',
         'digest_wa' => '', 'digest_email' => '', 'msg_on' => '0', 'msg_provider' => 'manual',
+        'franchise_on' => '1', 'franchise_invest_min' => '3000000', 'franchise_invest_max' => '6000000', 'franchise_fee' => '300000', 'franchise_royalty_pct' => '5', 'franchise_term_years' => '5', 'franchise_territory' => '', 'redeem_on' => '0', 'redeem_max_pct' => '20', 'redeem_min_order' => '1000',
         'tpl_received' => 'Hi {name}, we got your Azizo order #{order} (KSh {total}). We will confirm shortly.',
         'tpl_preparing' => 'Hi {name}, your Azizo order #{order} is being prepared.',
         'tpl_ready' => 'Hi {name}, your Azizo order #{order} is ready.',
@@ -95,4 +96,30 @@ function growth_digest(?string $day = null): array {
     $d['text'] = "Azizo daily digest, $day\nOrders: {$d['orders']} (KSh {$d['revenue']}, average {$d['avg']}). Cancelled: {$d['cancelled']}.\n" . ($top ? 'Top sellers: ' . implode(', ', $top) . ".\n" : '') . ($d['topBranch'] ? "Busiest: {$d['topBranch']}.\n" : '') .
         "Needs you: {$d['refundsOpen']} refund request(s), {$d['refundsToPay']} refund(s) to pay, {$d['openTickets']} open ticket(s), {$d['subsDue']} standing order(s) due.\n" . ($d['mpesaMissing'] ? "Check: {$d['mpesaMissing']} M-Pesa order(s) with no confirmed payment.\n" : '') . ($d['cashMissing'] ? "Check: cash-up missing for {$d['cashMissing']} branch(es).\n" : '');
     return $d;
+}
+
+// ---- v5.6: pay with points (1 point = KSh 1, multiples of 100). The balance comes from the account's own phone number. ----
+function growth_balance(int $customerId): ?array {
+    require_once __DIR__ . '/ops_helpers.php'; $pdo = get_db();
+    $q = $pdo->prepare('SELECT phone FROM customers WHERE id = ?'); $q->execute([$customerId]); $c = $q->fetch(); if (!$c) return null;
+    $p9 = growth_last9($c['phone']); $p = ops_points($pdo, $p9); return ['phone9' => $p9, 'balance' => max(0, $p['earned'] + $p['adj'])];
+}
+function growth_redeem_check($customerId, $points, int $itemsSubtotal): array {
+    $s = growth_settings(); $points = (int)floor((float)$points);
+    if ($s['redeem_on'] !== '1') return ['error' => 'Paying with points is not available right now'];
+    if (!$customerId) return ['error' => 'Sign in to your account to pay with points'];
+    if ($points < 100 || $points % 100) return ['error' => 'Choose a multiple of 100 points'];
+    if ($itemsSubtotal < (int)$s['redeem_min_order']) return ['error' => 'Points can be used on orders of KSh ' . $s['redeem_min_order'] . ' or more'];
+    $max = (int)(floor($itemsSubtotal * (float)$s['redeem_max_pct'] / 100 / 100) * 100);
+    if ($points > $max) return ['error' => 'You can pay up to KSh ' . $max . ' of this order with points (' . $s['redeem_max_pct'] . '% limit)'];
+    $b = growth_balance((int)$customerId); if (!$b || $points > $b['balance']) return ['error' => 'You do not have that many points'];
+    return ['discount' => $points, 'phone9' => $b['phone9']];
+}
+function growth_record_redemption(string $phone9, int $points, int $orderId): void {
+    get_db()->prepare('INSERT INTO ops_loyalty_adj (phone9, points, note, created_at) VALUES (?,?,?,?)')->execute([$phone9, -$points, 'Redeemed on order #' . $orderId, gmdate('Y-m-d H:i:s')]);
+}
+function growth_return_redemption(int $orderId): void {
+    $pdo = get_db(); $q = $pdo->prepare('SELECT phone9, points FROM ops_loyalty_adj WHERE note = ?'); $q->execute(['Redeemed on order #' . $orderId]); $r = $q->fetch(); if (!$r) return;
+    $q = $pdo->prepare('SELECT 1 FROM ops_loyalty_adj WHERE note = ?'); $q->execute(['Returned: order #' . $orderId . ' cancelled']); if ($q->fetch()) return;
+    $pdo->prepare('INSERT INTO ops_loyalty_adj (phone9, points, note, created_at) VALUES (?,?,?,?)')->execute([$r['phone9'], -(int)$r['points'], 'Returned: order #' . $orderId . ' cancelled', gmdate('Y-m-d H:i:s')]);
 }
