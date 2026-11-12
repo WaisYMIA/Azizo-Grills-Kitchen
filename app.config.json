@@ -1,0 +1,6 @@
+{
+  "siteUrl": "http://10.0.2.2:3000",
+  "appId": "com.azizo.app",
+  "appName": "Azizo",
+  "allowedHosts": []
+}

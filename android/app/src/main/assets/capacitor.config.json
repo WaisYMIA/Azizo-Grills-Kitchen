@@ -1,0 +1,39 @@
+{
+	"appId": "com.azizo.app",
+	"appName": "Azizo",
+	"webDir": "www",
+	"backgroundColor": "#070605",
+	"server": {
+		"url": "http://10.0.2.2:3000",
+		"cleartext": true,
+		"errorPath": "offline.html",
+		"allowNavigation": [
+			"10.0.2.2",
+			"wa.me",
+			"api.whatsapp.com"
+		]
+	},
+	"android": {
+		"allowMixedContent": true,
+		"backgroundColor": "#070605"
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 1200,
+			"backgroundColor": "#070605",
+			"showSpinner": false,
+			"androidScaleType": "CENTER_CROP"
+		},
+		"StatusBar": {
+			"style": "DARK",
+			"backgroundColor": "#161210"
+		},
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		}
+	}
+}
