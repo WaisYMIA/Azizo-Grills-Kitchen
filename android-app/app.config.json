@@ -1,0 +1,8 @@
+{
+  "mode": "device",
+  "apiUrl": "",
+  "siteUrl": "",
+  "appId": "com.azizo.app",
+  "appName": "Azizo",
+  "allowedHosts": []
+}

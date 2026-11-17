@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Azizo</title>
+<style>
+html,body{margin:0;height:100%;background:#070605;color:#f4efe8;font-family:system-ui,Segoe UI,Roboto,sans-serif}
+main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box}
+img{width:132px;height:132px;border-radius:50%;object-fit:cover;background:#161210;animation:b 1.6s ease-in-out infinite}
+@keyframes b{50%{transform:translateY(-8px)}}
+h1{font-size:1.3rem;margin:18px 0 6px}p{color:#c9bfb2;max-width:320px;line-height:1.5;margin:0 0 12px}
+pre{display:none;text-align:left;max-width:92vw;max-height:34vh;overflow:auto;background:#161210;border:1px solid #3a302a;border-radius:10px;padding:10px;font-size:11px;white-space:pre-wrap;word-break:break-all}
+button{display:none;width:240px;padding:13px 0;margin:8px auto;border-radius:12px;border:0;font:600 1rem system-ui,sans-serif;background:#d4a24c;color:#161210}
+a{display:none;width:240px;padding:13px 0;margin:8px auto;border-radius:12px;font:600 1rem system-ui,sans-serif;background:#25d366;color:#06240f;text-decoration:none}
+</style></head><body><main>
+<img src="mascot-head.webp" alt="" onerror="this.style.display='none'">
+<h1>Starting Azizo on your phone</h1>
+<p id="msg">Setting up the shop, the kitchens and the database. The first start takes up to a minute.</p>
+<pre id="log"></pre>
+<button id="quit">Close app, then open it again</button>
+<a id="wa" href="https://wa.me/254724888057">Order on WhatsApp instead</a>
+<script>
+(function(){
+  var URL_='http://127.0.0.1:3000/', t0=Date.now(), plug=null;
+  function P(){ return window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AzizoNode; }
+  function show(text){ var l=document.getElementById('log'); l.style.display='block'; l.textContent=text; l.scrollTop=l.scrollHeight; }
+  function fail(info){
+    document.getElementById('msg').textContent='The Azizo server did not start. Please send me the text below (or a screenshot of this screen).';
+    show((info.phase?('phase: '+info.phase+'\n'):'')+(info.error?('error: '+info.error+'\n'):'')+(info.log||'(no log yet)'));
+    document.getElementById('quit').style.display='block'; document.getElementById('wa').style.display='block';
+  }
+  document.getElementById('quit').onclick=function(){ var p=P(); if(p) p.quit(); };
+  function poll(){
+    var p=P(); if(!p){ if(Date.now()-t0>8000){ fail({error:'app bridge not available'}); return; } setTimeout(poll,500); return; }
+    p.status().then(function(s){
+      if(s.up){ location.replace(URL_); return; }
+      var secs=Math.round((Date.now()-t0)/1000);
+      if(s.phase==='failed'||s.phase==='stopped'||secs>90){ fail(s); return; }
+      document.getElementById('msg').textContent=(s.phase==='unpacking'?'Unpacking the server (first start only)... ':'Starting the server... ')+secs+' s';
+      setTimeout(poll,700);
+    }).catch(function(e){ fail({error:String(e)}); });
+  }
+  poll();
+})();
+</script></main></body></html>
