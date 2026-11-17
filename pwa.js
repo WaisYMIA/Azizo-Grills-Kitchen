@@ -1,8 +1,10 @@
 /* Azizo — app install prompt + automatic update check (v1.9). Standalone; no dependencies. */
 (function(){
-  var APP_VERSION='6.5.1';
+  var APP_VERSION='6.6.0';
   var LS={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-  var standalone=function(){return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;};
+  var isNative=function(){try{return !!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());}catch(e){return false;}};
+  if(isNative()) document.documentElement.classList.add('native-app');
+  var standalone=function(){return isNative()||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;};
   var deferred=null, regRef=null;
 
   function el(html){var d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild;}
