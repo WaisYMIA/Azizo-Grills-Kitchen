@@ -1,5 +1,7 @@
 {
-  "siteUrl": "http://10.0.2.2:3000",
+  "mode": "device",
+  "apiUrl": "",
+  "siteUrl": "",
   "appId": "com.azizo.app",
   "appName": "Azizo",
   "allowedHosts": []

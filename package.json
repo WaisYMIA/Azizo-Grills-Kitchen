@@ -1,10 +1,12 @@
 {
   "name": "azizo-android",
-  "version": "6.6.0",
+  "version": "6.8.1",
   "private": true,
   "description": "Azizo Butchery & Grill / Azizo Kitchens Android app (Capacitor shell around the Azizo site)",
   "scripts": {
-    "sync": "cap sync android",
+    "bundle": "node scripts/bundle-site.js",
+    "prepare-node": "node scripts/prepare-node.js",
+    "sync": "node scripts/bundle-site.js && node scripts/prepare-node.js && cap sync android",
     "open": "cap open android",
     "doctor": "cap doctor"
   },
@@ -20,7 +22,8 @@
     "@capacitor/network": "^8.0.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.6.0"
+    "@capacitor/cli": "^8.6.0",
+    "adm-zip": "^0.5.16"
   },
   "engines": {
     "node": ">=22"
